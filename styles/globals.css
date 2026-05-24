@@ -1,0 +1,414 @@
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400&family=JetBrains+Mono:wght@300;400;500;600&family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,400&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ── Design Token Variables (Dark = default) ─────────────── */
+:root {
+  --bg-base:       #07090f;
+  --bg-raised:     #0d1117;
+  --bg-overlay:    #111827;
+  --bg-panel:      rgba(13, 17, 23, 0.90);
+  --bg-sidebar:    #07090f;
+  --bg-topbar:     rgba(7, 9, 15, 0.95);
+  --bg-input:      rgba(0, 0, 0, 0.35);
+
+  --border-subtle: rgba(255,255,255,0.04);
+  --border-default:rgba(201,168,76,0.12);
+  --border-strong: rgba(201,168,76,0.28);
+  --border-focus:  rgba(201,168,76,0.45);
+
+  --text-primary:   #f0ede6;
+  --text-secondary: #8892a4;
+  --text-muted:     #4b5563;
+
+  --gold:     #c9a84c;
+  --gold-dim: #8a6e28;
+  --gold-glow:rgba(201,168,76,0.18);
+  --teal:     #0dd3c5;
+  --teal-glow:rgba(13,211,197,0.18);
+  --ember:    #f59e0b;
+  --crimson:  #ef4444;
+
+  --shadow-card: 0 4px 24px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.04);
+  --shadow-panel: 0 2px 12px rgba(0,0,0,0.5);
+  --shadow-elevated: 0 8px 40px rgba(0,0,0,0.7);
+
+  --radius: 8px;
+  --radius-sm: 5px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+  --radius-full: 9999px;
+
+  --chat-user-bg: linear-gradient(135deg, #c9a84c, #d4b558);
+  --chat-agent-bg: rgba(255,255,255,0.05);
+  --chat-agent-border: rgba(255,255,255,0.08);
+}
+
+/* ── Light Theme Overrides ─────────────────────────────────── */
+[data-theme="light"] {
+  --bg-base:       #f4f6f9;
+  --bg-raised:     #ffffff;
+  --bg-overlay:    #ffffff;
+  --bg-panel:      rgba(255, 255, 255, 0.98);
+  --bg-sidebar:    #ffffff;
+  --bg-topbar:     rgba(255, 255, 255, 0.96);
+  --bg-input:      rgba(0, 0, 0, 0.04);
+
+  --border-subtle: rgba(0,0,0,0.04);
+  --border-default:rgba(0,0,0,0.08);
+  --border-strong: rgba(0,0,0,0.16);
+  --border-focus:  rgba(201,168,76,0.5);
+
+  --text-primary:   #111827;
+  --text-secondary: #6b7280;
+  --text-muted:     #9ca3af;
+
+  --shadow-card: 0 1px 3px rgba(0,0,0,0.06), 0 4px 16px rgba(0,0,0,0.04);
+  --shadow-panel: 0 1px 4px rgba(0,0,0,0.06);
+  --shadow-elevated: 0 8px 32px rgba(0,0,0,0.12);
+
+  --chat-user-bg: linear-gradient(135deg, #c9a84c, #d4b558);
+  --chat-agent-bg: #f4f6f9;
+  --chat-agent-border: rgba(0,0,0,0.06);
+}
+
+/* ── Global Reset ──────────────────────────────────────────── */
+* { box-sizing: border-box; }
+
+html, body {
+  background-color: var(--bg-base);
+  color: var(--text-primary);
+  font-family: 'DM Sans', sans-serif;
+  height: 100%;
+  overflow: hidden;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+#__next { height: 100%; overflow: hidden; }
+
+/* ── Scrollbar ─────────────────────────────────────────────── */
+::-webkit-scrollbar { width: 4px; height: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb {
+  background: rgba(201,168,76,0.2);
+  border-radius: 2px;
+}
+::-webkit-scrollbar-thumb:hover { background: rgba(201,168,76,0.4); }
+
+[data-theme="light"] ::-webkit-scrollbar-thumb {
+  background: rgba(0,0,0,0.12);
+}
+[data-theme="light"] ::-webkit-scrollbar-thumb:hover {
+  background: rgba(0,0,0,0.22);
+}
+
+/* ── Font Utilities ────────────────────────────────────────── */
+.font-display { font-family: 'Cormorant Garamond', serif; }
+.font-mono    { font-family: 'JetBrains Mono', monospace; }
+.font-ui      { font-family: 'Syne', sans-serif; }
+.font-body    { font-family: 'DM Sans', sans-serif; }
+
+/* ── Panel Surfaces ────────────────────────────────────────── */
+.panel {
+  background: var(--bg-panel);
+  border: 1px solid var(--border-default);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-radius: var(--radius);
+}
+
+.panel-raised {
+  background: var(--bg-panel);
+  border: 1px solid var(--border-default);
+  backdrop-filter: blur(20px);
+  box-shadow: var(--shadow-card);
+  border-radius: var(--radius);
+}
+
+.panel-gold {
+  background: var(--bg-panel);
+  border: 1px solid rgba(201,168,76,0.22);
+  backdrop-filter: blur(20px);
+  box-shadow: var(--shadow-card);
+  border-radius: var(--radius);
+}
+
+/* ── Background patterns ───────────────────────────────────── */
+.bg-cockpit {
+  background-color: var(--bg-base);
+  background-image:
+    linear-gradient(rgba(201,168,76,0.025) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(201,168,76,0.025) 1px, transparent 1px);
+  background-size: 32px 32px;
+  transition: background-color 0.3s ease;
+}
+
+[data-theme="light"] .bg-cockpit {
+  background-image:
+    linear-gradient(rgba(0,0,0,0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,0,0,0.04) 1px, transparent 1px);
+}
+
+/* ── Scanlines (dark only) ─────────────────────────────────── */
+.scanlines {
+  background-image: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    rgba(0,0,0,0.03) 2px,
+    rgba(0,0,0,0.03) 4px
+  );
+  pointer-events: none;
+}
+
+[data-theme="light"] .scanlines { display: none; }
+
+/* ── Status Indicators ─────────────────────────────────────── */
+.status-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  display: inline-block;
+  flex-shrink: 0;
+}
+.status-dot.online  { background: var(--teal); box-shadow: 0 0 8px var(--teal); }
+.status-dot.running { background: var(--teal); box-shadow: 0 0 8px var(--teal); animation: pulse-teal 2s ease-in-out infinite; }
+.status-dot.idle    { background: var(--gold); }
+.status-dot.paused  { background: var(--ember); }
+.status-dot.error   { background: var(--crimson); box-shadow: 0 0 8px var(--crimson); animation: pulse-red 2s ease-in-out infinite; }
+.status-dot.offline { background: var(--text-muted); }
+
+@keyframes pulse-teal {
+  0%,100% { box-shadow: 0 0 6px var(--teal); opacity: 1; }
+  50%     { box-shadow: 0 0 14px var(--teal), 0 0 20px var(--teal-glow); opacity: 0.8; }
+}
+
+@keyframes pulse-red {
+  0%,100% { box-shadow: 0 0 6px var(--crimson); }
+  50%     { box-shadow: 0 0 14px var(--crimson); }
+}
+
+/* ── Glow Utilities ────────────────────────────────────────── */
+.glow-gold  { box-shadow: 0 0 20px var(--gold-glow), 0 0 60px rgba(201,168,76,0.04); }
+.glow-teal  { box-shadow: 0 0 20px var(--teal-glow), 0 0 60px rgba(13,211,197,0.05); }
+.glow-text-gold { text-shadow: 0 0 20px rgba(201,168,76,0.5); }
+
+.gradient-gold {
+  background: linear-gradient(135deg, #c9a84c 0%, #e5d080 50%, #c9a84c 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+.gradient-teal {
+  background: linear-gradient(135deg, #0dd3c5 0%, #67e8e1 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* ── Buttons ───────────────────────────────────────────────── */
+.btn-gold {
+  background: linear-gradient(135deg, #c9a84c 0%, #d4b558 100%);
+  color: #07090f;
+  font-family: 'Syne', sans-serif;
+  font-weight: 700;
+  font-size: 0.7rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 0.5rem 1.25rem;
+  border-radius: var(--radius-sm);
+  transition: opacity 0.2s, transform 0.15s, box-shadow 0.2s;
+  box-shadow: 0 2px 12px rgba(201,168,76,0.3);
+}
+.btn-gold:hover {
+  opacity: 0.92;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 20px rgba(201,168,76,0.45);
+}
+
+.btn-ghost {
+  background: transparent;
+  border: 1px solid var(--border-default);
+  color: var(--gold);
+  font-family: 'Syne', sans-serif;
+  font-weight: 600;
+  font-size: 0.7rem;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  padding: 0.5rem 1.25rem;
+  border-radius: var(--radius-sm);
+  transition: all 0.2s;
+}
+.btn-ghost:hover {
+  background: var(--gold-glow);
+  border-color: var(--border-strong);
+}
+
+.btn-danger {
+  background: rgba(239,68,68,0.1);
+  border: 1px solid rgba(239,68,68,0.25);
+  color: #ef4444;
+  font-family: 'Syne', sans-serif;
+  font-weight: 600;
+  font-size: 0.7rem;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  padding: 0.5rem 1.25rem;
+  border-radius: var(--radius-sm);
+  transition: all 0.2s;
+}
+.btn-danger:hover { background: rgba(239,68,68,0.18); }
+
+/* ── Cards ─────────────────────────────────────────────────── */
+.card-hover {
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+}
+.card-hover:hover {
+  transform: translateY(-2px);
+  border-color: var(--border-strong) !important;
+  box-shadow: var(--shadow-elevated);
+}
+
+/* ── Progress Bar ──────────────────────────────────────────── */
+.progress-bar {
+  height: 3px;
+  background: var(--border-subtle);
+  border-radius: 2px;
+  overflow: hidden;
+}
+.progress-fill {
+  height: 100%;
+  border-radius: 2px;
+  background: linear-gradient(90deg, var(--gold-dim), var(--gold));
+  transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ── Agent Avatar ──────────────────────────────────────────── */
+.agent-avatar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-full);
+  flex-shrink: 0;
+  font-size: 1.1em;
+  line-height: 1;
+  user-select: none;
+  position: relative;
+}
+
+/* ── Chat Interface ────────────────────────────────────────── */
+.chat-container {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  overflow-y: auto;
+  padding: 20px 16px;
+  scroll-behavior: smooth;
+}
+
+.chat-bubble-agent {
+  background: var(--chat-agent-bg);
+  border: 1px solid var(--chat-agent-border);
+  border-radius: 4px 16px 16px 16px;
+  padding: 12px 16px;
+  max-width: 80%;
+  font-size: 0.875rem;
+  line-height: 1.6;
+  color: var(--text-primary);
+  word-break: break-word;
+}
+
+.chat-bubble-user {
+  background: var(--chat-user-bg);
+  color: #07090f;
+  border-radius: 16px 4px 16px 16px;
+  padding: 12px 16px;
+  max-width: 72%;
+  font-size: 0.875rem;
+  line-height: 1.6;
+  font-weight: 500;
+  word-break: break-word;
+  margin-left: auto;
+}
+
+.chat-typing-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--text-muted);
+  animation: typing-bounce 1.4s ease-in-out infinite;
+}
+.chat-typing-dot:nth-child(2) { animation-delay: 0.2s; }
+.chat-typing-dot:nth-child(3) { animation-delay: 0.4s; }
+
+@keyframes typing-bounce {
+  0%, 60%, 100% { transform: translateY(0); opacity: 0.4; }
+  30%           { transform: translateY(-6px); opacity: 1; }
+}
+
+/* ── Agent Card (Hub) ──────────────────────────────────────── */
+.agent-card {
+  background: var(--bg-panel);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-lg);
+  padding: 20px;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+}
+.agent-card:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-elevated);
+}
+
+/* ── Tab Styles ────────────────────────────────────────────── */
+.tab-active::after {
+  content: '';
+  position: absolute;
+  bottom: -1px; left: 0; right: 0;
+  height: 2px;
+  background: var(--gold);
+  box-shadow: 0 0 8px var(--gold);
+  border-radius: 1px;
+}
+
+/* ── Corner Accents ────────────────────────────────────────── */
+.corner-tl::before, .corner-tl::after,
+.corner-br::before, .corner-br::after {
+  content: '';
+  position: absolute;
+  width: 12px;
+  height: 12px;
+  border-color: var(--gold);
+  border-style: solid;
+}
+.corner-tl::before { top: 0; left: 0; border-width: 1px 0 0 1px; }
+.corner-tl::after  { bottom: 0; right: 0; border-width: 0 1px 1px 0; }
+
+/* ── Tag ───────────────────────────────────────────────────── */
+.tag {
+  display: inline-flex;
+  align-items: center;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.6rem;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  padding: 2px 8px;
+  border-radius: 3px;
+  border: 1px solid;
+}
+
+/* ── Theme Transition ──────────────────────────────────────── */
+*, *::before, *::after {
+  transition-property: background-color, border-color, color, box-shadow;
+  transition-duration: 0.25s;
+  transition-timing-function: ease;
+}
+
+/* Exclude transitions that would be jarring */
+button, a, .btn-gold, .btn-ghost, .btn-danger {
+  transition: all 0.18s ease;
+}
