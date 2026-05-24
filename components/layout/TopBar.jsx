@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useStore } from '../../lib/store';
+import config from '../../lib/config';
 
 const SECTION_TITLES = {
   'mission-control': ['Mission Control',       'Daily overview & active operations'],
@@ -46,16 +47,18 @@ export default function TopBar({ gatewayStatus }) {
   const [time, setTime] = useState('');
   const [date, setDate] = useState('');
 
+  const timezone = config.ui.timezone;
+
   useEffect(() => {
     const tick = () => {
       const now = new Date();
-      setTime(now.toLocaleTimeString('en-US', { hour12: false, timeZone: 'America/New_York' }));
-      setDate(now.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', timeZone: 'America/New_York' }));
+      setTime(now.toLocaleTimeString('en-US', { hour12: false, timeZone: timezone }));
+      setDate(now.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', timeZone: timezone }));
     };
     tick();
     const id = setInterval(tick, 1000);
     return () => clearInterval(id);
-  }, []);
+  }, [timezone]);
 
   const [title, subtitle] = SECTION_TITLES[activeSection] || ['Dashboard', ''];
   const isOnline = gatewayStatus?.online;
@@ -158,7 +161,7 @@ export default function TopBar({ gatewayStatus }) {
             {time}
           </div>
           <div className="font-mono text-[8px] tracking-widest mt-0.5" style={{ color: 'var(--text-muted)' }}>
-            {date} · EST
+            {date} · {timezone}
           </div>
         </div>
       </div>

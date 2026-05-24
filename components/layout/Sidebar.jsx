@@ -2,6 +2,7 @@
 import { motion, AnimatePresence } from 'framer-motion';
 import { useStore } from '../../lib/store';
 import { AGENT_AVATARS } from '../../lib/agent-avatars';
+import config from '../../lib/config';
 import clsx from 'clsx';
 
 const NAV_SECTIONS = [
@@ -22,34 +23,13 @@ const NAV_SECTIONS = [
   { id: 'memory-vault',     label: 'Memory Vault',       icon: '⬡', group: 'intel' },
 ];
 
-const AGENTS = [
-  { id: 'mika',     label: 'Mika',     project: 'managed-by-mika' },
-  { id: 'diamond',  label: 'Diamond',  project: 'digital-diamond' },
-  { id: 'medbot',   label: 'MedBot',   project: 'medai' },
-  { id: 'cannabot', label: 'CannaBot', project: 'cannaops' },
-  { id: 'hookr',    label: 'Hookr',    project: 'hotel-hooker' },
-  { id: 'twin',     label: 'Twin',     project: 'ai-twin' },
-  { id: 'recovery', label: 'Recovery', project: 'lead-recovery' },
-  { id: 'hermes',   label: 'Hermes',   project: 'hermes' },
-  { id: 'sentinel', label: 'Sentinel', project: null },
-];
-
 const GROUPS = {
   core:   'COMMAND',
   brands: 'BRANDS',
   intel:  'INTELLIGENCE',
 };
 
-const PROJECT_COLORS = {
-  'digital-diamond': '#c9a84c',
-  'managed-by-mika': '#0dd3c5',
-  'medai':           '#818cf8',
-  'cannaops':        '#4ade80',
-  'hotel-hooker':    '#f472b6',
-  'ai-twin':         '#60a5fa',
-  'lead-recovery':   '#fb923c',
-  'hermes':          '#a78bfa',
-};
+const PROJECT_COLORS = Object.fromEntries(config.projects.map(project => [project.id, project.color]));
 
 const MOCK_AGENT_STATUS = {
   mika:     'running',
@@ -249,7 +229,7 @@ export default function Sidebar() {
             )}
           </AnimatePresence>
 
-          {AGENTS.map((agent) => {
+          {config.agents.map((agent) => {
             const isActive  = activeAgentId === agent.id;
             const projColor = PROJECT_COLORS[agent.project] || AGENT_AVATARS[agent.id]?.color || '#8892a4';
             const rawStatus = agentStatusOverrides[agent.id] || MOCK_AGENT_STATUS[agent.id] || 'idle';

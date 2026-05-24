@@ -1,0 +1,9 @@
+{
+  "vault": {
+    "localPath": "/path/to/your/vault"
+  },
+  "ui": {
+    "operatorName": "Command"
+  },
+  "localAiTools": []
+}

@@ -3,18 +3,6 @@ import { motion } from 'framer-motion';
 import { useStore } from '../../lib/store';
 import { AGENT_AVATARS } from '../../lib/agent-avatars';
 
-const AGENTS = [
-  { id: 'mika',     label: 'Mika',     project: 'managed-by-mika', model: 'gpt-4o',                     systemType: 'openclaw', schedule: '*/15 * * * *', memory: true,  description: 'Handles all guest operations autonomously across managed properties.' },
-  { id: 'diamond',  label: 'Diamond',  project: 'digital-diamond', model: 'gpt-4o',                     systemType: 'openclaw', schedule: null,           memory: true,  description: 'AI consulting agent — drafts proposals, runs research, manages outreach.' },
-  { id: 'medbot',   label: 'MedBot',   project: 'medai',           model: 'gpt-4o-mini',                systemType: 'openclaw', schedule: '0 8 * * 1-5', memory: false, description: 'Manages inbound calls, appointment scheduling, and patient comms.' },
-  { id: 'cannabot', label: 'CannaBot', project: 'cannaops',        model: 'gpt-4o-mini',                systemType: 'openclaw', schedule: '0 */6 * * *', memory: false, description: 'Syncs inventory, flags compliance issues, generates regulatory digests.' },
-  { id: 'hookr',    label: 'Hookr',    project: 'hotel-hooker',    model: 'claude-3-5-sonnet-20241022', systemType: 'openclaw', schedule: '0 10 * * *',  memory: true,  description: 'Generates and schedules brand content across all Hotel Hooker channels.' },
-  { id: 'twin',     label: 'Twin',     project: 'ai-twin',         model: 'claude-3-5-sonnet-20241022', systemType: 'openclaw', schedule: '0 9 * * *',   memory: true,  description: 'Personal brand AI — writes scripts, generates hooks, batches content calendars.' },
-  { id: 'recovery', label: 'Recovery', project: 'lead-recovery',   model: 'gpt-4o-mini',                systemType: 'openclaw', schedule: '0 14 * * 1-5',memory: true,  description: 'Runs multi-channel reactivation sequences on cold leads.' },
-  { id: 'hermes',   label: 'Hermes',   project: 'hermes',          model: 'gpt-4o',                     systemType: 'custom',   schedule: null,           memory: true,  description: 'Cross-brand communications agent — routes, drafts, and manages outbound messaging.' },
-  { id: 'sentinel', label: 'Sentinel', project: null,              model: 'gpt-4o-mini',                systemType: 'openclaw', schedule: '*/5 * * * *', memory: false, description: 'System watchdog — monitors all agents and fires alerts on failures.' },
-];
-
 const MOCK_STATUS = {
   mika: 'running', diamond: 'running', medbot: 'running', cannabot: 'error',
   hookr: 'paused', twin: 'running', recovery: 'idle', hermes: 'idle', sentinel: 'running',
@@ -37,7 +25,7 @@ const item = {
   show: { opacity: 1, y: 0, transition: { duration: 0.35, ease: [0.4, 0, 0.2, 1] } },
 };
 
-export default function AgentsHub() {
+export default function AgentsHub({ agents = [] }) {
   const { setActiveAgentId, agentStatusOverrides } = useStore();
   const liveCount = Object.values(MOCK_STATUS).filter(s => s === 'running').length;
 
@@ -48,7 +36,7 @@ export default function AgentsHub() {
         <div>
           <h2 className="font-display text-3xl font-semibold" style={{ color: 'var(--text-primary)' }}>AI Agents</h2>
           <p className="font-mono text-[10px] tracking-wider mt-1" style={{ color: 'var(--text-muted)' }}>
-            {AGENTS.length} AGENTS CONFIGURED · {liveCount} LIVE
+            {agents.length} AGENTS CONFIGURED · {liveCount} LIVE
           </p>
         </div>
         <div className="flex items-center gap-2 px-3 py-1.5 rounded-full"
@@ -71,7 +59,7 @@ export default function AgentsHub() {
         animate="show"
         className="grid grid-cols-2 xl:grid-cols-3 gap-4"
       >
-        {AGENTS.map((agent) => {
+        {agents.map((agent) => {
           const avatar   = AGENT_AVATARS[agent.id] || { emoji: '🤖', color: '#8892a4', gradient: 'linear-gradient(135deg,#374151,#1f2937)' };
           const rawStatus = agentStatusOverrides[agent.id] || MOCK_STATUS[agent.id] || 'idle';
           const statusMeta = STATUS_META[rawStatus] || STATUS_META.idle;

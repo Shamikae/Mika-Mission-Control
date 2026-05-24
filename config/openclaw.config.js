@@ -34,12 +34,15 @@ const config = {
 
   // ── Obsidian Vault ────────────────────────────────────────────────
   vault: {
-    localPath: process.env.VAULT_PATH || '/Users/YOU/Documents/ObsidianVault',
+    localPath: process.env.VAULT_PATH || '',
     folders: {
-      journal: 'Journal', goals: 'Goals', memory: 'Memory Vault',
+      chats: 'Chats', journal: 'Journal', goals: 'Goals', memory: 'Memory Vault',
       prompts: 'Prompt Library', tasks: 'Tasks', research: 'Research',
     },
   },
+
+  // ── Local AI Tools Detected by Setup ─────────────────────────────
+  localAiTools: [],
 
   // ── Google Drive ──────────────────────────────────────────────────
   googleDrive: {

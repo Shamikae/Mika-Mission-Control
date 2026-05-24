@@ -1,8 +1,20 @@
 // pages/api/vault.js — writes to Obsidian vault on the local filesystem
 import fs   from 'fs';
 import path from 'path';
+import { loadConfig } from '../../lib/config-loader';
 
-const VAULT_ROOT = '/Users/shamika/Documents/Obsidian Vault/Agentic OS';
+function getVaultConfig() {
+  const { vault } = loadConfig();
+  if (!vault?.localPath) {
+    throw new Error('Vault path is not configured. Run `npm run setup` and choose your vault folder.');
+  }
+  return vault;
+}
+
+function vaultDir(folderKey) {
+  const vault = getVaultConfig();
+  return path.join(vault.localPath, vault.folders?.[folderKey] || folderKey);
+}
 
 function ensureDir(dir) {
   fs.mkdirSync(dir, { recursive: true });
@@ -12,7 +24,7 @@ function ensureDir(dir) {
 
 function appendChat({ agentLabel, role, content, timestamp, capability }) {
   const date = timestamp.slice(0, 10);
-  const dir  = path.join(VAULT_ROOT, 'Chats');
+  const dir  = vaultDir('chats');
   ensureDir(dir);
 
   const file = path.join(dir, `${date} - ${agentLabel}.md`);
@@ -40,7 +52,7 @@ function appendChat({ agentLabel, role, content, timestamp, capability }) {
 // ── journal ─────────────────────────────────────────────────────────
 
 function saveJournal({ title, body, mood, tags, date }) {
-  const dir      = path.join(VAULT_ROOT, 'Journal');
+  const dir      = vaultDir('journal');
   ensureDir(dir);
 
   const dateStr   = (date || new Date().toISOString()).slice(0, 10);
@@ -76,7 +88,8 @@ function saveJournal({ title, body, mood, tags, date }) {
 // ── goals ────────────────────────────────────────────────────────────
 
 function syncGoals({ goals }) {
-  ensureDir(VAULT_ROOT);
+  const vault = getVaultConfig();
+  ensureDir(vault.localPath);
 
   const now = new Date().toLocaleString('en-US', {
     month: 'long', day: 'numeric', year: 'numeric',
@@ -115,7 +128,11 @@ function syncGoals({ goals }) {
   }
 
   if (goals.length === 0) md += '*No goals set.*\n';
-  fs.writeFileSync(path.join(VAULT_ROOT, 'Goals.md'), md, 'utf8');
+  const goalsPath = vault.folders?.goals
+    ? path.join(vault.localPath, vault.folders.goals, 'Goals.md')
+    : path.join(vault.localPath, 'Goals.md');
+  ensureDir(path.dirname(goalsPath));
+  fs.writeFileSync(goalsPath, md, 'utf8');
 }
 
 // ── handler ─────────────────────────────────────────────────────────

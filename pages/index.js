@@ -23,18 +23,7 @@ import {
   fetchLeadMetrics, fetchCannaOpsData, fetchMedAIData,
 } from '../lib/api';
 import { useStore } from '../lib/store';
-
-const AGENT_DEFS = [
-  { id: 'mika',     label: 'Mika',     project: 'managed-by-mika', model: 'gpt-4o',                     systemType: 'openclaw', systemId: 'mika',     capabilities: ['checkin','checkout','guest_message','maintenance','report','booking'],               schedule: '*/15 * * * *', memory: true,  description: 'Handles all guest operations autonomously across managed properties.' },
-  { id: 'diamond',  label: 'Diamond',  project: 'digital-diamond', model: 'gpt-4o',                     systemType: 'openclaw', systemId: 'diamond',  capabilities: ['draft_proposal','research','outreach','analytics','report'],                         schedule: null,           memory: true,  description: 'AI consulting agent — drafts proposals, runs research, manages outreach.' },
-  { id: 'medbot',   label: 'MedBot',   project: 'medai',           model: 'gpt-4o-mini',                systemType: 'openclaw', systemId: 'medbot',   capabilities: ['schedule_appointment','handle_call','insurance_check','waitlist','notify_staff'],     schedule: '0 8 * * 1-5', memory: false, description: 'Manages inbound calls, appointment scheduling, and patient comms.' },
-  { id: 'cannabot', label: 'CannaBot', project: 'cannaops',        model: 'gpt-4o-mini',                systemType: 'openclaw', systemId: 'cannabot', capabilities: ['inventory_sync','compliance_check','report','leafly_update'],                        schedule: '0 */6 * * *', memory: false, description: 'Syncs inventory, flags compliance issues, generates regulatory digests.' },
-  { id: 'hookr',    label: 'Hookr',    project: 'hotel-hooker',    model: 'claude-3-5-sonnet-20241022', systemType: 'openclaw', systemId: 'hookr',    capabilities: ['generate_content','post_to_social','caption','story','schedule_post'],              schedule: '0 10 * * *',  memory: true,  description: 'Generates and schedules brand content across all Hotel Hooker channels.' },
-  { id: 'twin',     label: 'Twin',     project: 'ai-twin',         model: 'claude-3-5-sonnet-20241022', systemType: 'openclaw', systemId: 'twin',     capabilities: ['script_video','generate_hooks','batch_content','voice_clone_prep','publish'],        schedule: '0 9 * * *',   memory: true,  description: 'Personal brand AI — writes scripts, generates hooks, batches content calendars.' },
-  { id: 'recovery', label: 'Recovery', project: 'lead-recovery',   model: 'gpt-4o-mini',                systemType: 'openclaw', systemId: 'recovery', capabilities: ['whatsapp_sequence','email_sequence','telegram_ping','tag_lead','book_call'],         schedule: '0 14 * * 1-5',memory: true,  description: 'Runs multi-channel reactivation sequences on cold leads.' },
-  { id: 'hermes',   label: 'Hermes',   project: 'hermes',          model: 'gpt-4o',                     systemType: 'custom',   systemId: 'hermes-main', systemConfig: { baseUrl: process.env.NEXT_PUBLIC_HERMES_URL || 'http://localhost:4000', auth: { type: 'bearer', token: '' } }, capabilities: ['send_message','broadcast','route_comms','translate','summarize_thread','draft_reply'], schedule: null, memory: true, description: 'Cross-brand communications agent — routes, drafts, and manages outbound messaging.' },
-  { id: 'sentinel', label: 'Sentinel', project: null,              model: 'gpt-4o-mini',                systemType: 'openclaw', systemId: 'sentinel', capabilities: ['health_check','alert','monitor','failover'],                                          schedule: '*/5 * * * *', memory: false, description: 'System watchdog — monitors all agents and fires alerts on failures.' },
-];
+import config from '../lib/config';
 
 const pageTransition = {
   initial: { opacity: 0, x: 8 },
@@ -80,7 +69,7 @@ export default function Home() {
     const id = setInterval(() => {
       fetchGatewayStatus().then(s => { setGatewayStatus(s); setData(p => ({ ...p, gateway: s })); });
       fetchPendingApprovals().then(a => { setPendingApprovals(a); setData(p => ({ ...p, approvals: a })); });
-    }, 10_000);
+    }, config.ui.liveRefreshMs);
     return () => clearInterval(id);
   }, [setGatewayStatus, setPendingApprovals]);
 
@@ -102,7 +91,7 @@ export default function Home() {
     );
 
     if (activeAgentId) {
-      const agentDef = AGENT_DEFS.find(a => a.id === activeAgentId);
+      const agentDef = config.agents.find(a => a.id === activeAgentId);
       if (agentDef) {
         return (
           <AnimatePresence mode="wait">
@@ -116,7 +105,7 @@ export default function Home() {
 
     const sectionMap = {
       'mission-control': <MissionControl data={data} />,
-      'agents-hub':      <AgentsHub />,
+      'agents-hub':      <AgentsHub agents={config.agents} />,
       'openclaw-status': <OpenClawStatus data={data} />,
       'telegram':        <TelegramApproval data={data} />,
       'digital-diamond': <DigitalDiamondSection />,

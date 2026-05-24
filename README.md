@@ -8,32 +8,39 @@ Built with **Next.js 14**, **Tailwind CSS**, **Framer Motion**, and **Zustand**.
 
 ## Setup
 
-### 1. Install dependencies
+### One-command local launch
+
+```bash
+npm run launch
+```
+
+`launch` installs dependencies when needed, runs the setup wizard if `config/openclaw.local.json` does not exist, then starts the dashboard at **http://localhost:3099**.
+
+### Manual setup
+
 ```bash
 npm install
-```
-
-### 2. Configure your environment
-```bash
-cp .env.example .env.local
-# Edit .env.local with your VPS URL, API key, Telegram token, etc.
-```
-
-### 3. Edit the central config
-Open `config/openclaw.config.js` and update:
-- `gateway.vpsUrl` → your Hostinger VPS public IP/domain
-- `gateway.apiKey` → your OpenClaw shared secret
-- `telegram.botToken` + `chatId`
-- `vault.localPath` → path to your Obsidian vault on this Mac
-- `projects` → add/remove brands
-- `agents` → add/remove agent definitions
-- `approvalRules` → customize which actions need human review
-
-### 4. Run locally
-```bash
+npm run setup
 npm run dev
 ```
-Dashboard opens at: **http://localhost:3099**
+
+The setup wizard:
+- auto-detects installed local AI tools such as Claude Code, Codex, Cursor, Windsurf, Gemini CLI, Aider, Goose, OpenCode, and Continue
+- asks for your vault path
+- writes machine-specific settings to `config/openclaw.local.json`
+
+`config/openclaw.local.json` is ignored by Git. Share `config/openclaw.config.js` and `config/openclaw.local.example.json`, not your private local config.
+
+### Configuration
+
+Shared defaults live in `config/openclaw.config.js`:
+- `gateway` for OpenClaw/VPS URLs and auth
+- `telegram`, `whatsapp`, and `googleDrive` integration settings
+- `vault.folders` for vault folder names
+- `projects`, `agentSystems`, `agents`, and `approvalRules`
+- `ui` refresh/operator settings
+
+Machine-specific overrides live in `config/openclaw.local.json`, created by `npm run setup`.
 
 ---
 
@@ -41,9 +48,9 @@ Dashboard opens at: **http://localhost:3099**
 
 The API layer is in `lib/api.js`. Each function has a commented-out `// LIVE:` block showing the real gateway call. To go live:
 
-1. Set `NEXT_PUBLIC_VPS_GATEWAY_URL` in `.env.local`
-2. Uncomment the `// LIVE:` lines in `lib/api.js`
-3. Remove the `if (MOCK_MODE) return mock.xxx;` guards
+1. Set `gateway.vpsUrl` and `gateway.apiKey` in `config/openclaw.config.js` or environment variables.
+2. Update `agentSystems` endpoint definitions if your gateway routes differ.
+3. Keep `config/openclaw.local.json` for local-only vault paths and detected tools.
 
 The dashboard will automatically prefer your VPS and fall back to the local Docker instance if the VPS is unreachable.
 
@@ -53,11 +60,16 @@ The dashboard will automatically prefer your VPS and fall back to the local Dock
 
 ```
 openclaw-mission-control/
-├── config/openclaw.config.js   ← Central config (VPS URL, agents, approval rules)
+├── config/openclaw.config.js   ← Shared config (VPS URL, agents, approval rules)
+├── config/openclaw.local.example.json
 ├── lib/
 │   ├── api.js                  ← API abstraction (mock → live swap)
+│   ├── config-loader.js        ← Server/setup config merge with local overrides
 │   ├── mock-data.js            ← Rich mock data for all sections
 │   └── store.js                ← Zustand global state
+├── scripts/
+│   ├── setup.js                ← Wizard for vault path + AI tool detection
+│   └── launch.js               ← Install, setup, and run in one command
 ├── components/
 │   ├── layout/
 │   │   ├── Sidebar.jsx         ← Navigation with all 14 sections

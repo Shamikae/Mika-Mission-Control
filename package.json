@@ -3,7 +3,9 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "dev": "next dev -p 3099",
+    "setup": "node scripts/setup.js",
+    "launch": "node scripts/launch.js",
+    "dev": "node scripts/ensure-config.js && next dev -p 3099",
     "build": "next build",
     "start": "next start -p 3099"
   },
