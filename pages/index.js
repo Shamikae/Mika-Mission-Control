@@ -18,6 +18,7 @@ import {
 } from '../components/sections/IntelligenceSections';
 import {
   fetchGatewayStatus, fetchActiveAgents, fetchPendingApprovals,
+  fetchOpenClawStatus,
   fetchMissionQueue, fetchTaskOutputs, fetchWeeklyMetrics,
   fetchGoals, fetchJournalEntries, fetchMemoryVault, fetchPrompts,
   fetchLeadMetrics, fetchCannaOpsData, fetchMedAIData,
@@ -37,22 +38,22 @@ export default function Home() {
   const [data, setData] = useState({
     gateway: null, agents: [], approvals: [], queue: [], outputs: [],
     metrics: [], goals: [], journal: [], memory: [], prompts: [],
-    leads: null, cannaops: null, medai: null,
+    leads: null, cannaops: null, medai: null, openclaw: null,
   });
   const [loading, setLoading] = useState(true);
 
   const load = useCallback(async () => {
     try {
       const [
-        gateway, agents, approvals, queue, outputs, metrics,
+        gateway, openclaw, agents, approvals, queue, outputs, metrics,
         goals, journal, memory, prompts, leads, cannaops, medai,
       ] = await Promise.all([
-        fetchGatewayStatus(), fetchActiveAgents(), fetchPendingApprovals(),
+        fetchGatewayStatus(), fetchOpenClawStatus(), fetchActiveAgents(), fetchPendingApprovals(),
         fetchMissionQueue(), fetchTaskOutputs(), fetchWeeklyMetrics(),
         fetchGoals(), fetchJournalEntries(), fetchMemoryVault(), fetchPrompts(),
         fetchLeadMetrics(), fetchCannaOpsData(), fetchMedAIData(),
       ]);
-      const next = { gateway, agents, approvals, queue, outputs, metrics, goals, journal, memory, prompts, leads, cannaops, medai };
+      const next = { gateway, openclaw, agents, approvals, queue, outputs, metrics, goals, journal, memory, prompts, leads, cannaops, medai };
       setData(next);
       setGatewayStatus(gateway);
       setPendingApprovals(approvals);
@@ -68,6 +69,7 @@ export default function Home() {
   useEffect(() => {
     const id = setInterval(() => {
       fetchGatewayStatus().then(s => { setGatewayStatus(s); setData(p => ({ ...p, gateway: s })); });
+      fetchOpenClawStatus().then(s => setData(p => ({ ...p, openclaw: s })));
       fetchPendingApprovals().then(a => { setPendingApprovals(a); setData(p => ({ ...p, approvals: a })); });
     }, config.ui.liveRefreshMs);
     return () => clearInterval(id);

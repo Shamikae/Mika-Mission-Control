@@ -19,6 +19,12 @@ const MISSION_STATUS_COLOR = {
   pending: '#4b5563',
 };
 
+const OPENCLAW_STATUS_META = {
+  LIVE: { color: '#0dd3c5', label: 'LIVE' },
+  DEGRADED: { color: '#f59e0b', label: 'DEGRADED' },
+  OFFLINE: { color: '#ef4444', label: 'OFFLINE' },
+};
+
 const PROJECT_COLORS = {
   'digital-diamond': '#c9a84c',
   'managed-by-mika': '#0dd3c5',
@@ -30,13 +36,14 @@ const PROJECT_COLORS = {
 };
 
 export default function MissionControl({ data }) {
-  const { gateway, agents, approvals, queue, outputs, metrics } = data;
+  const { gateway, openclaw, agents, approvals, queue, outputs, metrics } = data;
 
   const doneTasks    = queue?.filter(q => q.status === 'done').length    ?? 0;
   const runningTasks = queue?.filter(q => q.status === 'running').length ?? 0;
   const totalTasks   = queue?.length ?? 0;
   const totalTokens  = agents?.reduce((s, a) => s + a.tokens, 0) ?? 0;
   const weekRevenue  = metrics?.reduce((s, m) => s + m.revenue, 0) ?? 0;
+  const openclawMeta = OPENCLAW_STATUS_META[openclaw?.status] || OPENCLAW_STATUS_META.OFFLINE;
 
   return (
     <motion.div variants={stagger} initial="initial" animate="animate" className="space-y-6">
@@ -72,6 +79,58 @@ export default function MissionControl({ data }) {
           icon="◆"
           trend={12}
         />
+      </motion.div>
+
+      {/* OpenClaw live connection */}
+      <motion.div variants={fadeUp} className="panel-gold rounded-sm p-4">
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <div className="flex items-center gap-2 mb-1">
+              <div
+                className="w-2 h-2 rounded-full"
+                style={{ background: openclawMeta.color, boxShadow: `0 0 8px ${openclawMeta.color}` }}
+              />
+              <h3 className="font-ui text-xs font-semibold tracking-wider text-[#f0ede6] uppercase">
+                OpenClaw VPS
+              </h3>
+            </div>
+            <p className="font-mono text-[10px]" style={{ color: 'var(--text-muted)' }}>
+              {openclaw?.source === 'mock' ? 'MOCK FALLBACK · ADD OPENCLAW_GATEWAY_URL' : 'SERVER-SIDE STATUS PROXY'}
+            </p>
+          </div>
+
+          <div className="text-right">
+            <div className="font-mono text-lg font-bold" style={{ color: openclawMeta.color }}>
+              {openclawMeta.label}
+            </div>
+            <div className="font-mono text-[9px]" style={{ color: 'var(--text-muted)' }}>
+              {openclaw?.latencyMs ?? '—'}ms
+            </div>
+          </div>
+        </div>
+
+        <GoldDivider className="my-3" />
+
+        <div className="grid grid-cols-3 gap-3">
+          <div>
+            <div className="font-mono text-[8px] tracking-widest mb-1" style={{ color: 'var(--text-muted)' }}>LAST CHECKED</div>
+            <div className="font-mono text-[10px]" style={{ color: 'var(--text-secondary)' }}>
+              {openclaw?.lastChecked ? format(parseISO(openclaw.lastChecked), 'HH:mm:ss') : '—'}
+            </div>
+          </div>
+          <div>
+            <div className="font-mono text-[8px] tracking-widest mb-1" style={{ color: 'var(--text-muted)' }}>SOURCE</div>
+            <div className="font-mono text-[10px]" style={{ color: 'var(--text-secondary)' }}>
+              {openclaw?.source || '—'}
+            </div>
+          </div>
+          <div>
+            <div className="font-mono text-[8px] tracking-widest mb-1" style={{ color: 'var(--text-muted)' }}>ERROR</div>
+            <div className="font-mono text-[10px] truncate" style={{ color: openclaw?.error ? '#ef4444' : 'var(--text-secondary)' }}>
+              {openclaw?.error || 'None'}
+            </div>
+          </div>
+        </div>
       </motion.div>
 
       {/* Main grid */}
