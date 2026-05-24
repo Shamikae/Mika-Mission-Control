@@ -3,7 +3,6 @@ const fs = require('fs');
 const os = require('os');
 const path = require('path');
 const readline = require('readline');
-const { spawnSync } = require('child_process');
 const { loadConfig, localConfigPath } = require('../lib/config-loader');
 
 const AI_TOOLS = [
@@ -19,9 +18,21 @@ const AI_TOOLS = [
 ];
 
 function commandExists(command) {
-  const check = process.platform === 'win32' ? 'where' : 'command';
-  const args = process.platform === 'win32' ? [command] : ['-v', command];
-  return spawnSync(check, args, { stdio: 'ignore', shell: process.platform !== 'win32' }).status === 0;
+  const pathValue = process.env.PATH || '';
+  const pathDirs = pathValue.split(path.delimiter).filter(Boolean);
+  const extensions = process.platform === 'win32'
+    ? (process.env.PATHEXT || '.EXE;.CMD;.BAT;.COM').split(';')
+    : [''];
+
+  return pathDirs.some(dir => extensions.some(ext => {
+    const candidate = path.join(dir, `${command}${ext}`);
+    try {
+      fs.accessSync(candidate, fs.constants.X_OK);
+      return true;
+    } catch {
+      return false;
+    }
+  }));
 }
 
 function appExists(appName) {
