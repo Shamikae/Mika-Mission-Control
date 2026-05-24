@@ -16,6 +16,12 @@ npm run launch
 
 `launch` installs dependencies when needed, runs the setup wizard if `config/openclaw.local.json` does not exist, then starts the dashboard at **http://localhost:3099**.
 
+Use another port when 3099 is already busy:
+
+```bash
+PORT=3100 npm run dev
+```
+
 ### Manual setup
 
 ```bash

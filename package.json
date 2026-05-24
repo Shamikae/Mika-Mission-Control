@@ -5,9 +5,9 @@
   "scripts": {
     "setup": "node scripts/setup.js",
     "launch": "node scripts/launch.js",
-    "dev": "node scripts/ensure-config.js && next dev -p 3099",
+    "dev": "node scripts/ensure-config.js && node scripts/next-port.js dev",
     "build": "next build",
-    "start": "next start -p 3099"
+    "start": "node scripts/next-port.js start"
   },
   "dependencies": {
     "next": "14.2.5",
