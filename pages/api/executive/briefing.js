@@ -9,6 +9,7 @@ import { loadAdapterHealth, getAdapterHealthSummary } from '../../../lib/adapter
 import { resolveAgentRuntimeHealth } from '../../../lib/agents/resolveRuntimeHealth';
 import { getCostSummary } from '../../../lib/cost/costEngine';
 import { getPendingRequests } from '../../../lib/activation/activationGate';
+import { getHermesHealthSummary } from '../../../lib/hermes/health';
 
 const ROOT = process.cwd();
 
@@ -88,11 +89,7 @@ async function fetchOpenClawStatus() {
 }
 
 async function fetchHermesStatus() {
-  const enabled = process.env.HERMES_ENABLED === 'true';
-  const apiUrl  = process.env.HERMES_API_URL || '';
-  if (!enabled) return { status: 'DISABLED', enabled: false };
-  if (!apiUrl)  return { status: 'UNCONFIGURED', enabled: true };
-  return { status: 'ENABLED', enabled: true };
+  return getHermesHealthSummary({ checkHttp: true });
 }
 
 export default async function handler(req, res) {
@@ -140,9 +137,10 @@ export default async function handler(req, res) {
       healthy:   openclaw.status === 'LIVE',
     },
     hermes: {
-      status:  hermes.status,
-      enabled: hermes.enabled,
-      healthy: hermes.enabled,
+      status:     hermes.status,
+      configured: hermes.configured,
+      mode:       hermes.mode,
+      healthy:    hermes.verified && hermes.reachable,
     },
     queue: {
       depth:   queue.length,

@@ -91,7 +91,9 @@ function SystemHealthPanel({ health }) {
     {
       label: 'Hermes',
       status: health.hermes?.status || '—',
-      sub: health.hermes?.enabled ? 'agent enabled' : 'disabled',
+      sub: health.hermes?.configured
+        ? `${health.hermes?.mode || 'unknown'} mode`
+        : 'not configured',
       healthy: health.hermes?.healthy,
       color: VIOLET,
     },

@@ -1,5 +1,6 @@
 import { sanitizeMessage, sendHermesChatMessage } from '../../../lib/hermes/chat';
 import { getSession, appendMessage, upsertSession } from '../../../lib/hermes/chatSessions';
+import { sanitizeHermesError } from '../../../lib/hermes/health';
 
 export const config = {
   api: { bodyParser: { sizeLimit: '16kb' } },
@@ -51,6 +52,6 @@ export default async function handler(req, res) {
 
     return res.status(200).json(result);
   } catch (err) {
-    return res.status(200).json({ ok: false, error: err.message });
+    return res.status(200).json({ ok: false, error: sanitizeHermesError(err) });
   }
 }

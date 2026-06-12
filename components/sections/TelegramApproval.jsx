@@ -1,11 +1,15 @@
 // components/sections/TelegramApproval.jsx
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { SectionHeader, StatusBadge } from '../ui';
-import { approveTask, rejectTask } from '../../lib/api';
+import { SectionHeader } from '../ui';
+import {
+  approveTask,
+  fetchTelegramStatus,
+  rejectTask,
+  verifyTelegramDelivery,
+} from '../../lib/api';
 import { useStore } from '../../lib/store';
 import { formatDistanceToNow, parseISO } from 'date-fns';
-import clsx from 'clsx';
 
 const CHANNEL_ICONS = {
   Instagram: '📸',
@@ -25,12 +29,62 @@ const PRIORITY_COLOR = {
 const stagger = { initial: {}, animate: { transition: { staggerChildren: 0.1 } } };
 const fadeUp  = { initial: { opacity: 0, y: 16 }, animate: { opacity: 1, y: 0, transition: { duration: 0.4 } } };
 
+const VERIFICATION_META = {
+  verified: { label: 'VERIFIED', color: '#0dd3c5' },
+  failed: { label: 'FAILED', color: '#ef4444' },
+  not_configured: { label: 'NOT CONFIGURED', color: '#f59e0b' },
+  unknown: { label: 'UNKNOWN', color: '#8892a4' },
+};
+
+function formatVerificationTime(value) {
+  if (!value) return 'No verification has been run.';
+  const timestamp = new Date(value);
+  if (Number.isNaN(timestamp.getTime())) return 'Verification time unavailable.';
+  return `Last verification: ${timestamp.toLocaleString()}`;
+}
+
 export default function TelegramApproval({ data }) {
   const { approvals: initialApprovals } = data;
   const [approvals, setApprovals]   = useState(initialApprovals || []);
   const [expandedId, setExpandedId] = useState(null);
   const [processing, setProcessing] = useState({});
+  const [telegramStatus, setTelegramStatus] = useState(null);
+  const [verifying, setVerifying] = useState(false);
+  const [verificationNotice, setVerificationNotice] = useState('');
   const { addNotification }         = useStore();
+
+  useEffect(() => {
+    fetchTelegramStatus()
+      .then(setTelegramStatus)
+      .catch(() => setTelegramStatus({
+        enabled: false,
+        configured: false,
+        verification: { status: 'unknown', checkedAt: null, error: null },
+      }));
+  }, []);
+
+  const runVerification = async () => {
+    setVerifying(true);
+    setVerificationNotice('');
+    try {
+      const verification = await verifyTelegramDelivery();
+      setTelegramStatus(current => ({
+        ...(current || {}),
+        verification,
+      }));
+      setVerificationNotice(verification.cooldown
+        ? 'Verification was run recently. No additional test message was sent.'
+        : verification.status === 'verified'
+          ? 'Telegram confirmed delivery of the test message.'
+          : verification.status === 'not_configured'
+            ? 'Telegram approval delivery is not configured.'
+            : 'Telegram could not confirm delivery.');
+    } catch {
+      setVerificationNotice('Telegram verification could not be completed.');
+    } finally {
+      setVerifying(false);
+    }
+  };
 
   const handle = async (id, action) => {
     setProcessing(p => ({ ...p, [id]: action }));
@@ -46,6 +100,13 @@ export default function TelegramApproval({ data }) {
     setProcessing(p => { const n = {...p}; delete n[id]; return n; });
   };
 
+  const verification = telegramStatus?.verification || {
+    status: 'unknown',
+    checkedAt: null,
+    error: null,
+  };
+  const verificationMeta = VERIFICATION_META[verification.status] || VERIFICATION_META.unknown;
+
   return (
     <motion.div variants={stagger} initial="initial" animate="animate" className="space-y-6">
       <SectionHeader
@@ -54,11 +115,45 @@ export default function TelegramApproval({ data }) {
         subtitle="Human-in-the-loop decisions — approve or reject pending agent actions"
         action={
           <div className="flex items-center gap-2">
-            <div className="status-dot running" />
-            <span className="font-mono text-[10px] text-[#0dd3c5]">TELEGRAM CONNECTED</span>
+            <div className="status-dot" style={{ background: verificationMeta.color }} />
+            <span className="font-mono text-[10px]" style={{ color: verificationMeta.color }}>
+              TELEGRAM {verificationMeta.label}
+            </span>
           </div>
         }
       />
+
+      <motion.div variants={fadeUp} className="panel-gold rounded-sm p-4">
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <div className="font-mono text-[9px] tracking-widest" style={{ color: verificationMeta.color }}>
+              DELIVERY VERIFICATION · {verificationMeta.label}
+            </div>
+            <p className="font-mono text-[9px] mt-2 text-[#8892a4]">
+              {formatVerificationTime(verification.checkedAt)}
+            </p>
+            {verification.error && (
+              <p className="font-mono text-[9px] mt-2 text-[#ef4444]">
+                {verification.error}
+              </p>
+            )}
+            {verificationNotice && (
+              <p className="font-mono text-[9px] mt-2 text-[#8892a4]">
+                {verificationNotice}
+              </p>
+            )}
+          </div>
+          <button
+            type="button"
+            onClick={runVerification}
+            disabled={verifying}
+            className="btn-ghost text-[10px] disabled:opacity-50"
+            title="Sends one clearly labeled, non-destructive Telegram test message"
+          >
+            {verifying ? 'VERIFYING…' : 'VERIFY DELIVERY'}
+          </button>
+        </div>
+      </motion.div>
 
       {/* Stats row */}
       <motion.div variants={fadeUp} className="grid grid-cols-4 gap-3">

@@ -2,10 +2,11 @@ import { motion } from 'framer-motion';
 import { SectionHeader } from '../ui';
 
 const STATUS_COLORS = {
-  LIVE:     '#a78bfa',
-  DEGRADED: '#f59e0b',
-  OFFLINE:  '#ef4444',
-  DISABLED: '#4b5563',
+  verified:              '#0dd3c5',
+  configured_unverified: '#f59e0b',
+  failed:                '#ef4444',
+  not_configured:        '#4b5563',
+  unknown:               '#4b5563',
 };
 
 const CAPABILITIES = [
@@ -18,14 +19,14 @@ const CAPABILITIES = [
 
 export default function HermesStatus({ data }) {
   const h      = data?.hermes;
-  const status = h?.status || 'DISABLED';
-  const color  = STATUS_COLORS[status] || STATUS_COLORS.DISABLED;
+  const status = h?.status || 'unknown';
+  const color  = STATUS_COLORS[status] || STATUS_COLORS.unknown;
+  const statusLabel = status.replaceAll('_', ' ').toUpperCase();
 
-  const latency    = h?.latencyMs != null ? `${h.latencyMs}ms` : '—';
   const lastChecked = h?.lastChecked
     ? new Date(h.lastChecked).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })
     : '—';
-  const agentId  = h?.agentId  || 'hermes-research';
+  const mode = String(h?.mode || 'unknown').toUpperCase();
 
   return (
     <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
@@ -47,10 +48,10 @@ export default function HermesStatus({ data }) {
               style={{ border: `2px solid ${color}`, boxShadow: `0 0 32px ${color}33` }}
             >
               <span className="font-mono text-[10px] font-bold text-center leading-tight px-1" style={{ color }}>
-                {status}
+                {statusLabel}
               </span>
             </div>
-            {status === 'LIVE' && (
+            {status === 'verified' && (
               <motion.div
                 animate={{ scale: [1, 1.5, 1], opacity: [0.6, 0, 0.6] }}
                 transition={{ repeat: Infinity, duration: 2 }}
@@ -63,8 +64,8 @@ export default function HermesStatus({ data }) {
           {/* Metrics */}
           <div className="grid grid-cols-2 gap-8 flex-1">
             <div>
-              <div className="font-mono text-[9px] tracking-widest text-[#4b5563] mb-1">LATENCY</div>
-              <div className="font-mono text-2xl font-semibold" style={{ color: '#c9a84c' }}>{latency}</div>
+              <div className="font-mono text-[9px] tracking-widest text-[#4b5563] mb-1">CANONICAL MODE</div>
+              <div className="font-mono text-2xl font-semibold" style={{ color: '#c9a84c' }}>{mode}</div>
             </div>
             <div>
               <div className="font-mono text-[9px] tracking-widest text-[#4b5563] mb-1">LAST CHECKED</div>
@@ -89,12 +90,14 @@ export default function HermesStatus({ data }) {
 
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <div className="font-mono text-[9px] tracking-widest text-[#4b5563] mb-1">AGENT ID</div>
-            <div className="font-mono text-[11px]" style={{ color: '#a78bfa' }}>{agentId}</div>
+            <div className="font-mono text-[9px] tracking-widest text-[#4b5563] mb-1">CONFIGURED</div>
+            <div className="font-mono text-[11px]" style={{ color: '#a78bfa' }}>{h?.configured ? 'YES' : 'NO'}</div>
           </div>
           <div>
-            <div className="font-mono text-[9px] tracking-widest text-[#4b5563] mb-1">ROLE</div>
-            <div className="font-mono text-[11px]" style={{ color: '#8892a4' }}>Research Worker</div>
+            <div className="font-mono text-[9px] tracking-widest text-[#4b5563] mb-1">REACHABLE</div>
+            <div className="font-mono text-[11px]" style={{ color: '#8892a4' }}>
+              {h?.reachable === true ? 'YES' : h?.reachable === false ? 'NO' : 'UNVERIFIED'}
+            </div>
           </div>
         </div>
 

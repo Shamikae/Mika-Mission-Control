@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { SectionHeader } from '../ui';
 import {
   sendHermesChat, sendOpenClawChat, submitTask,
-  fetchHermesHttpStatus, fetchHermesChatSessions, clearHermesChatSession,
+  fetchHermesStatus, fetchHermesChatSessions, clearHermesChatSession,
 } from '../../lib/api';
 
 const LANES = [
@@ -79,6 +79,10 @@ function ChatPanel({
 
   const borderColor = `${color}20`;
   const bgColor     = `${color}06`;
+  const connectionVerified = connectionStatus?.status === 'verified';
+  const connectionFailed = connectionStatus?.status === 'failed';
+  const connectionColor = connectionVerified ? '#0dd3c5' : connectionFailed ? '#ef4444' : '#f59e0b';
+  const connectionLabel = String(connectionStatus?.status || 'unknown').replaceAll('_', ' ').toUpperCase();
 
   return (
     <div className="panel-gold rounded-sm flex flex-col" style={{ height: 580 }}>
@@ -127,29 +131,26 @@ function ChatPanel({
               <div
                 className="w-1.5 h-1.5 rounded-full"
                 style={{
-                  background: connectionStatus.online ? '#0dd3c5' : connectionStatus.configured ? '#ef4444' : '#4b5563',
-                  boxShadow:  connectionStatus.online ? '0 0 4px #0dd3c5' : undefined,
+                  background: connectionColor,
+                  boxShadow: connectionVerified ? '0 0 4px #0dd3c5' : undefined,
                 }}
               />
               <span
                 className="font-mono text-[8px] tracking-wider"
-                style={{ color: connectionStatus.online ? '#0dd3c5' : connectionStatus.configured ? '#ef4444' : '#4b5563' }}
+                style={{ color: connectionColor }}
               >
-                {connectionStatus.online ? 'ONLINE' : connectionStatus.configured ? 'OFFLINE' : 'NOT CONFIGURED'}
+                {connectionLabel}
               </span>
             </div>
-            {connectionStatus.lastLatency != null && (
-              <span className="font-mono text-[8px] text-[#4b5563]">{connectionStatus.lastLatency}ms</span>
-            )}
-            {connectionStatus.lastSuccess && (
+            {connectionStatus.lastChecked && (
               <span className="font-mono text-[8px] text-[#4b5563]">
-                last ok {new Date(connectionStatus.lastSuccess).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                checked {new Date(connectionStatus.lastChecked).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
               </span>
             )}
             <span className="font-mono text-[8px] text-[#4b5563] ml-auto">{connectionStatus.mode || 'cli'}</span>
-            {connectionStatus.lastError && !connectionStatus.online && (
-              <span className="font-mono text-[8px] truncate max-w-[140px]" style={{ color: '#ef4444' }} title={connectionStatus.lastError}>
-                {connectionStatus.lastError}
+            {connectionStatus.error && !connectionVerified && (
+              <span className="font-mono text-[8px] truncate max-w-[140px]" style={{ color: '#ef4444' }} title={connectionStatus.error}>
+                {connectionStatus.error}
               </span>
             )}
           </div>
@@ -398,10 +399,10 @@ export default function HermesChat() {
     });
   }, []);
 
-  // ── Poll Hermes HTTP connection status every 30s ───────────────────────────
+  // ── Poll the canonical Hermes connection summary every 30s ─────────────────
   useEffect(() => {
-    fetchHermesHttpStatus().then(setHermesHttpStatus);
-    const id = setInterval(() => fetchHermesHttpStatus().then(setHermesHttpStatus), 30_000);
+    fetchHermesStatus().then(setHermesHttpStatus);
+    const id = setInterval(() => fetchHermesStatus().then(setHermesHttpStatus), 30_000);
     return () => clearInterval(id);
   }, []);
 
@@ -442,7 +443,7 @@ export default function HermesChat() {
       addMessage(setHermesMessages, 'assistant', err.message, { error: true });
     } finally {
       setHermesSending(false);
-      fetchHermesHttpStatus().then(setHermesHttpStatus);
+      fetchHermesStatus().then(setHermesHttpStatus);
     }
   }, [hermesLane]);
 

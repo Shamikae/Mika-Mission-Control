@@ -92,7 +92,29 @@ export default function MissionControl({ data }) {
 
   const gatewayVerified = gateway?.online === true && openclaw?.source !== 'mock';
   const openClawVerified = openclaw?.source !== 'mock' && openclaw?.status === 'LIVE';
-  const hermesVerified = hermes?.ok === true || hermes?.online === true || hermes?.status === 'LIVE';
+  const hermesVerified = hermes?.verified === true && hermes?.reachable === true;
+  const hermesStatus = hermes?.status || 'unknown';
+  const hermesLabel = {
+    verified: 'Verified',
+    configured_unverified: 'Configured',
+    not_configured: 'Not configured',
+    failed: 'Failed',
+    unknown: 'Unknown',
+  }[hermesStatus] || 'Unknown';
+  const hermesDetail = hermesVerified
+    ? `${String(hermes?.mode || 'unknown').toUpperCase()} connection verified`
+    : hermesStatus === 'configured_unverified'
+      ? `${String(hermes?.mode || 'unknown').toUpperCase()} configured; runtime not yet verified`
+      : hermesStatus === 'not_configured'
+        ? 'No complete Hermes connection mode configured'
+        : hermesStatus === 'failed'
+          ? 'Last Hermes connection check failed'
+          : 'No Hermes runtime evidence';
+  const hermesState = hermesVerified
+    ? 'verified'
+    : hermesStatus === 'configured_unverified'
+      ? 'staged'
+      : 'unknown';
   const latency = gatewayVerified && gateway?.latencyMs != null ? `${gateway.latencyMs}ms` : 'Unknown';
 
   const activity = [
@@ -138,9 +160,9 @@ export default function MissionControl({ data }) {
           <StatusCard
             icon={FiMessageSquare}
             label="Hermes"
-            value={hermesVerified ? 'Verified' : 'Unknown'}
-            detail={hermesVerified ? 'Hermes connection verified' : 'No verified live connection'}
-            state={hermesVerified ? 'verified' : 'unknown'}
+            value={hermesLabel}
+            detail={hermesDetail}
+            state={hermesState}
           />
           <StatusCard
             icon={FiActivity}
@@ -189,7 +211,7 @@ export default function MissionControl({ data }) {
             icon={<AgentIcon id="hermes" fallback="HE" />}
             title="Hermes"
             description="Status, sessions, communications, and direct chat."
-            meta={hermesVerified ? 'Verified' : 'Unknown'}
+            meta={hermesLabel}
             onClick={() => setActiveSection('hermes-workspace')}
           />
         </div>

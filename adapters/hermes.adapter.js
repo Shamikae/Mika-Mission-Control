@@ -3,6 +3,7 @@
 // Handles content execution and acts as execution fallback for staged specialist agents.
 
 import { sendHermesChatMessage }  from '../lib/hermes/chat.js';
+import { getHermesHealthSummary } from '../lib/hermes/health.js';
 import { loadBusinessLaneContext } from '../lib/context/loadBusinessLaneContext.js';
 import { getSkillPrompt, validateSkill } from '../lib/agents/loadSkill.js';
 
@@ -57,24 +58,13 @@ const hermesAdapter = {
   ],
 
   async healthCheck() {
-    const enabled = process.env.HERMES_ENABLED === 'true';
-    const apiUrl  = process.env.HERMES_API_URL || '';
-    if (!enabled) {
-      return { ok: false, status: 'disabled', error: 'HERMES_ENABLED is not set to true', adapterId: 'hermes' };
-    }
-    if (!apiUrl) {
-      return { ok: false, status: 'misconfigured', error: 'HERMES_API_URL not set', adapterId: 'hermes' };
-    }
-    const t0 = Date.now();
-    try {
-      const res = await fetch(`${apiUrl.replace(/\/$/, '')}/health`, {
-        signal: AbortSignal.timeout(4000),
-      });
-      const latencyMs = Date.now() - t0;
-      return { ok: res.ok, latencyMs, status: res.ok ? 'active' : 'degraded', adapterId: 'hermes' };
-    } catch (e) {
-      return { ok: false, latencyMs: Date.now() - t0, status: 'offline', error: e.message, adapterId: 'hermes' };
-    }
+    const summary = await getHermesHealthSummary({ checkHttp: true });
+    return {
+      ok: summary.verified,
+      status: summary.status,
+      error: summary.error,
+      adapterId: 'hermes',
+    };
   },
 
   async execute(task, decision) {

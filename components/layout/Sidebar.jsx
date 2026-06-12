@@ -20,9 +20,11 @@ import {
   FiTrendingUp,
   FiUsers,
 } from 'react-icons/fi';
+import { useEffect, useState } from 'react';
 import { useStore } from '../../lib/store';
 import { AGENT_AVATARS } from '../../lib/agent-avatars';
 import { buildWorkspaceNavigation, resolveSectionId } from '../../lib/navigation/workspaceRegistry';
+import { fetchHermesStatus } from '../../lib/api';
 
 const NAV_ICONS = {
   'mission-control': FiGrid,
@@ -67,6 +69,23 @@ function AgentGlyph({ itemId, label }) {
 export default function Sidebar() {
   const { activeSection, setActiveSection, activeAgentId } = useStore();
   const navigation = buildWorkspaceNavigation();
+  const [hermesStatus, setHermesStatus] = useState(null);
+
+  useEffect(() => {
+    let active = true;
+    fetchHermesStatus().then(status => {
+      if (active) setHermesStatus(status);
+    });
+    return () => { active = false; };
+  }, []);
+
+  const hermesWiredLabel = {
+    verified: 'verified',
+    configured_unverified: 'configured',
+    not_configured: 'not configured',
+    failed: 'failed',
+    unknown: 'unknown',
+  }[hermesStatus?.status] || 'unknown';
 
   function isItemActive(item) {
     if (activeAgentId) return activeAgentId === item.id;
@@ -116,7 +135,7 @@ export default function Sidebar() {
 
       <div className="agent-os-sidebar-footer">
         <div className="agent-os-section-label">Wired</div>
-        <p>claude · openclaw · hermes</p>
+        <p>claude · openclaw · hermes {hermesWiredLabel}</p>
         <button onClick={() => setActiveSection('knowledge-graph')}>
           <span>+</span> Obsidian vault
         </button>
