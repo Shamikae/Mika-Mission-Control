@@ -66,7 +66,7 @@ import {
 } from '../lib/api';
 import { useStore } from '../lib/store';
 import config from '../lib/config';
-import { resolveSectionId } from '../lib/navigation/workspaceRegistry';
+import { resolveWorkspaceRoute } from '../lib/navigation/workspaceRegistry';
 
 const pageTransition = {
   initial: { opacity: 0, x: 8 },
@@ -91,6 +91,7 @@ export default function Home() {
   const [data, setData] = useState({
     gateway: null, agents: [], approvals: [], queue: [], outputs: [],
     metrics: [], revenueBrands: [], goals: [], journal: [], memory: [], prompts: [],
+    selfSources: {},
     leads: null, cannaops: null, medai: null, openclaw: null, tasks: [], hermes: null,
   });
   const [loading, setLoading] = useState(true);
@@ -99,7 +100,7 @@ export default function Home() {
     try {
       const [
         gateway, openclaw, tasks, agents, approvals, queue, outputs, metrics, revenueBrands,
-        goals, journal, memory, prompts, leads, cannaops, medai, hermes,
+        goalsResult, journalResult, memoryResult, promptsResult, leads, cannaops, medai, hermes,
       ] = await Promise.all([
         fetchGatewayStatus(), fetchOpenClawStatus(), fetchSubmittedTasks(),
         fetchActiveAgents(), fetchPendingApprovals(),
@@ -107,7 +108,31 @@ export default function Home() {
         fetchGoals(), fetchJournalEntries(), fetchMemoryVault(), fetchPrompts(),
         fetchLeadMetrics(), fetchCannaOpsData(), fetchMedAIData(), fetchHermesStatus(),
       ]);
-      const next = { gateway, openclaw, tasks, agents, approvals, queue, outputs, metrics, revenueBrands, goals, journal, memory, prompts, leads, cannaops, medai, hermes };
+      const next = {
+        gateway,
+        openclaw,
+        tasks,
+        agents,
+        approvals,
+        queue,
+        outputs,
+        metrics,
+        revenueBrands,
+        goals: goalsResult.items,
+        journal: journalResult.items,
+        memory: memoryResult.items,
+        prompts: promptsResult.items,
+        selfSources: {
+          goals: goalsResult,
+          journal: journalResult,
+          memory: memoryResult,
+          prompts: promptsResult,
+        },
+        leads,
+        cannaops,
+        medai,
+        hermes,
+      };
       setData(next);
       setGatewayStatus(gateway);
       setPendingApprovals(approvals);
@@ -220,12 +245,24 @@ export default function Home() {
       'notebook':        <NotebookWorkspace data={data} />,
       'knowledge-graph': <ObsidianGraph />,
     };
-    const resolvedSection = resolveSectionId(activeSection);
+    const resolvedRoute = resolveWorkspaceRoute(activeSection);
+    const operationalSubviewMap = {
+      'mission-control:priority-actions': <TelegramApproval data={data} />,
+      'diamond-control:activation': <ActivationGate />,
+      'diamond-control:costs': <CostIntelligence />,
+      'diamond-control:agent-control': <AgentControlCenter />,
+      'diamond-control:dispatch': <AgentDispatchCenter />,
+      'diamond-control:system-health': <AgentControlCenter initialTab="adapters" />,
+      'diamond-control:engineering': <EngineeringDivision />,
+      'pipeline:dispatch': <TaskDispatch />,
+    };
+    const resolvedKey = `${resolvedRoute.sectionId}:${resolvedRoute.subview || 'overview'}`;
+    const resolvedContent = operationalSubviewMap[resolvedKey] || sectionMap[resolvedRoute.sectionId];
 
     return (
       <AnimatePresence mode="wait">
-        <motion.div key={resolvedSection} {...pageTransition}>
-          {sectionMap[resolvedSection] || (
+        <motion.div key={resolvedKey} {...pageTransition}>
+          {resolvedContent || (
             <div className="flex items-center justify-center h-32">
               <p className="font-mono text-sm" style={{ color: 'var(--text-muted)' }}>Section not found</p>
             </div>

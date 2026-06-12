@@ -743,14 +743,14 @@ const ADAPTER_FILTER_TABS = [
   { key: 'maintenance', label: 'Maintenance' },
 ];
 
-export default function AgentControlCenter() {
+export default function AgentControlCenter({ initialTab = 'agents' }) {
   const { setActiveSection } = useStore();
   const [data,          setData]          = useState(null);
   const [healthData,    setHealthData]    = useState(null);
   const [costData,      setCostData]      = useState(null);
   const [loading,       setLoading]       = useState(true);
   const [healthLoading, setHealthLoading] = useState(false);
-  const [tab,           setTab]           = useState('agents');
+  const [tab,           setTab]           = useState(initialTab);
   const [agentFilter,   setAgentFilter]   = useState('all');
   const [deptFilter,    setDeptFilter]    = useState('all');
   const [adapterFilter, setAdapterFilter] = useState('all');

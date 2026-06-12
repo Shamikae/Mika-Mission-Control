@@ -26,7 +26,6 @@ export default function HermesStatus({ data }) {
     ? new Date(h.lastChecked).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })
     : '—';
   const agentId  = h?.agentId  || 'hermes-research';
-  const workspace = h?.workspace || '/docker/agentic-os/shared';
 
   return (
     <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
@@ -96,10 +95,6 @@ export default function HermesStatus({ data }) {
           <div>
             <div className="font-mono text-[9px] tracking-widest text-[#4b5563] mb-1">ROLE</div>
             <div className="font-mono text-[11px]" style={{ color: '#8892a4' }}>Research Worker</div>
-          </div>
-          <div className="col-span-2">
-            <div className="font-mono text-[9px] tracking-widest text-[#4b5563] mb-1">SHARED WORKSPACE</div>
-            <div className="font-mono text-[10px]" style={{ color: '#6b7280' }}>{workspace}</div>
           </div>
         </div>
 

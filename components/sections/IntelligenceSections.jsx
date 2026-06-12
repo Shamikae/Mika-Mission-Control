@@ -75,6 +75,23 @@ function MicButton({ value, onValue }) {
 const stagger = { initial: {}, animate: { transition: { staggerChildren: 0.08 } } };
 const fadeUp  = { initial: { opacity: 0, y: 16 }, animate: { opacity: 1, y: 0, transition: { duration: 0.4 } } };
 
+function SourceNotice({ source }) {
+  if (!source) return null;
+  const available = source.status === 'available';
+  return (
+    <div
+      className="rounded-sm px-4 py-3 font-mono text-[10px] leading-relaxed"
+      style={{
+        color: available ? '#0dd3c5' : '#f59e0b',
+        background: available ? 'rgba(13,211,197,0.05)' : 'rgba(245,158,11,0.05)',
+        border: `1px solid ${available ? 'rgba(13,211,197,0.2)' : 'rgba(245,158,11,0.2)'}`,
+      }}
+    >
+      SOURCE: {String(source.source || 'unknown').replaceAll('_', ' ').toUpperCase()} · {source.message}
+    </div>
+  );
+}
+
 // ── Prompt Library ─────────────────────────────────────────────────
 const PROJECT_COLORS = {
   'digital-diamond': '#c9a84c',
@@ -88,6 +105,7 @@ const PROJECT_COLORS = {
 
 export function PromptLibrarySection({ data }) {
   const { prompts } = data;
+  const source = data.selfSources?.prompts;
   const [search, setSearch]   = useState('');
   const [selected, setSelected] = useState(null);
   const [copied, setCopied]   = useState(false);
@@ -95,7 +113,7 @@ export function PromptLibrarySection({ data }) {
   const filtered = prompts?.filter(p =>
     !search ||
     p.title.toLowerCase().includes(search.toLowerCase()) ||
-    p.tags.some(t => t.includes(search.toLowerCase()))
+    (p.tags || []).some(t => t.includes(search.toLowerCase()))
   );
 
   const copy = (text) => {
@@ -107,6 +125,7 @@ export function PromptLibrarySection({ data }) {
   return (
     <motion.div variants={stagger} initial="initial" animate="animate" className="space-y-6">
       <SectionHeader icon="⌘" title="Prompt Library" subtitle="Curated agent prompts — your AI arsenal" />
+      <SourceNotice source={source} />
 
       <motion.div variants={fadeUp} className="flex gap-3">
         <input
@@ -148,7 +167,7 @@ export function PromptLibrarySection({ data }) {
                     <span className="tag" style={{ color, borderColor: `${color}30`, background: `${color}10` }}>
                       {prompt.category}
                     </span>
-                    {prompt.tags.slice(0, 2).map(t => (
+                    {(prompt.tags || []).slice(0, 2).map(t => (
                       <span key={t} className="tag" style={{ color: '#4b5563', borderColor: 'rgba(75,85,99,0.3)' }}>#{t}</span>
                     ))}
                   </div>
@@ -186,6 +205,13 @@ export function PromptLibrarySection({ data }) {
           );
         })}
       </div>
+      {!filtered?.length && (
+        <div className="self-empty-state">
+          <span>PROMPT LIBRARY</span>
+          <h2>No verified prompt source connected</h2>
+          <p>Sample prompts are not displayed as real Mika data.</p>
+        </div>
+      )}
     </motion.div>
   );
 }
@@ -325,11 +351,13 @@ export function GoalsSection({ data }) {
   const [newTitle,    setNewTitle]    = useState('');
   const [newCategory, setNewCategory] = useState('');
   const [newDeadline, setNewDeadline] = useState('');
-  const [synced,      setSynced]      = useState(false);
+  const [syncState,   setSyncState]   = useState('idle');
+  const [syncError,   setSyncError]   = useState('');
 
   const save = useCallback((next) => {
     setGoals(next);
-    vaultSyncGoals(next);
+    setSyncState('unsynced');
+    setSyncError('');
   }, []);
 
   const toggleTask = (goalId, taskId) => {
@@ -371,9 +399,15 @@ export function GoalsSection({ data }) {
   };
 
   const handleSync = async () => {
-    await vaultSyncGoals(goals);
-    setSynced(true);
-    setTimeout(() => setSynced(false), 2000);
+    setSyncState('saving');
+    setSyncError('');
+    const result = await vaultSyncGoals(goals);
+    if (!result.ok) {
+      setSyncState('error');
+      setSyncError(result.error);
+      return;
+    }
+    setSyncState('synced');
   };
 
   return (
@@ -384,8 +418,13 @@ export function GoalsSection({ data }) {
         subtitle="Set milestones, track tasks, sync to Obsidian"
         action={
           <div className="flex items-center gap-2">
-            <button onClick={handleSync} className="btn-ghost text-[10px]">
-              {synced ? '✓ SYNCED' : '⬆ SYNC'}
+            <button
+              onClick={handleSync}
+              disabled={syncState !== 'unsynced' && syncState !== 'error'}
+              className="btn-ghost text-[10px] disabled:opacity-40 disabled:cursor-not-allowed"
+              title={syncState === 'idle' ? 'Create or edit a goal before syncing' : 'Sync current session goals to the managed vault document'}
+            >
+              {syncState === 'saving' ? 'SYNCING…' : syncState === 'synced' ? '✓ SYNCED' : '⬆ SYNC'}
             </button>
             <button onClick={() => setAdding(a => !a)} className="btn-gold">
               + ADD GOAL
@@ -393,6 +432,17 @@ export function GoalsSection({ data }) {
           </div>
         }
       />
+      <SourceNotice source={data.selfSources?.goals} />
+      {syncState === 'unsynced' && (
+        <div className="font-mono text-[10px]" style={{ color: '#f59e0b' }}>
+          Local session changes are not synced to the vault.
+        </div>
+      )}
+      {syncError && (
+        <div className="font-mono text-[10px]" style={{ color: '#ef4444' }}>
+          Sync failed: {syncError}
+        </div>
+      )}
 
       {/* New goal form */}
       <AnimatePresence>
@@ -499,7 +549,8 @@ export function JournalSection({ data }) {
   const [body,      setBody]      = useState('');
   const [mood,      setMood]      = useState('focused');
   const [composing, setComposing] = useState(false);
-  const [saved,     setSaved]     = useState(false);
+  const [saveState, setSaveState] = useState('idle');
+  const [saveError, setSaveError] = useState('');
   const [expanded,  setExpanded]  = useState(null);
 
   const todayEntries = entries.filter(e => (e.date || '').slice(0, 10) === today);
@@ -517,11 +568,18 @@ export function JournalSection({ data }) {
       mood,
       tags:  [],
     };
-    await vaultSaveJournal({ ...entry, date: now });
+    setSaveState('saving');
+    setSaveError('');
+    const result = await vaultSaveJournal({ ...entry, date: now });
+    if (!result.ok) {
+      setSaveState('error');
+      setSaveError(result.error);
+      return;
+    }
     setEntries(prev => [entry, ...prev]);
-    setSaved(true);
+    setSaveState('saved');
     setTimeout(() => {
-      setSaved(false);
+      setSaveState('idle');
       setComposing(false);
       setTitle('');
       setBody('');
@@ -541,6 +599,7 @@ export function JournalSection({ data }) {
           </button>
         }
       />
+      <SourceNotice source={data.selfSources?.journal} />
 
       {/* Compose form */}
       <AnimatePresence>
@@ -622,15 +681,20 @@ export function JournalSection({ data }) {
               >
                 <button
                   onClick={handleSave}
-                  disabled={!body.trim()}
+                  disabled={!body.trim() || saveState === 'saving'}
                   className="btn-gold disabled:opacity-30"
                 >
-                  {saved ? '✓ SAVED TO VAULT' : 'SAVE TO VAULT'}
+                  {saveState === 'saving' ? 'SAVING…' : saveState === 'saved' ? '✓ SAVED TO VAULT' : 'SAVE TO VAULT'}
                 </button>
                 <button onClick={() => setComposing(false)} className="btn-ghost">
                   CANCEL
                 </button>
               </div>
+              {saveError && (
+                <div className="font-mono text-[10px]" style={{ color: '#ef4444' }}>
+                  Save failed: {saveError}
+                </div>
+              )}
             </div>
           </motion.div>
         )}
@@ -768,6 +832,7 @@ const SOURCE_ICON = { Obsidian: '🗂', 'Google Drive': '📁', Manual: '✍️'
 
 export function MemoryVaultSection({ data }) {
   const { memory } = data;
+  const source = data.selfSources?.memory;
   const [search, setSearch] = useState('');
   const [filter, setFilter] = useState('All');
 
@@ -776,7 +841,7 @@ export function MemoryVaultSection({ data }) {
     const matchesCat = filter === 'All' || m.category === filter;
     const matchesSearch = !search ||
       m.title.toLowerCase().includes(search.toLowerCase()) ||
-      m.content.toLowerCase().includes(search.toLowerCase());
+      (m.content || '').toLowerCase().includes(search.toLowerCase());
     return matchesCat && matchesSearch;
   });
 
@@ -797,8 +862,9 @@ export function MemoryVaultSection({ data }) {
           </button>
         )}
       />
+      <SourceNotice source={source} />
 
-      <motion.div variants={fadeUp} className="flex gap-3 flex-wrap">
+      {memory?.length > 0 && <motion.div variants={fadeUp} className="flex gap-3 flex-wrap">
         <input
           type="text"
           value={search}
@@ -821,7 +887,7 @@ export function MemoryVaultSection({ data }) {
             </button>
           ))}
         </div>
-      </motion.div>
+      </motion.div>}
 
       <div className="space-y-3">
         {filtered?.map((mem, i) => (
@@ -838,25 +904,36 @@ export function MemoryVaultSection({ data }) {
                     {mem.category}
                   </span>
                 </div>
-                <p className="font-body text-xs text-[#8892a4] leading-relaxed line-clamp-2">{mem.content}</p>
+                <p className="font-body text-xs text-[#8892a4] leading-relaxed line-clamp-2">
+                  {mem.content || 'Indexed vault note. Contents are not exposed by the safe vault index.'}
+                </p>
                 <div className="flex items-center gap-3 mt-2">
-                  {mem.tags.map(t => (
+                  {(mem.tags || []).map(t => (
                     <span key={t} className="font-mono text-[9px] text-[#4b5563]">#{t}</span>
                   ))}
                 </div>
               </div>
               <div className="text-right flex-shrink-0">
                 <div className="font-mono text-[9px] text-[#4b5563] mb-1">
-                  {SOURCE_ICON[mem.source]} {mem.source}
+                  {SOURCE_ICON[mem.source] || '🗂'} {mem.source}
                 </div>
-                <div className="font-mono text-[9px] text-[#4b5563]">
-                  {format(parseISO(mem.lastAccessed), 'MMM d HH:mm')}
-                </div>
+                {mem.lastAccessed && (
+                  <div className="font-mono text-[9px] text-[#4b5563]">
+                    {format(parseISO(mem.lastAccessed), 'MMM d HH:mm')}
+                  </div>
+                )}
               </div>
             </div>
           </motion.div>
         ))}
       </div>
+      {!filtered?.length && (
+        <div className="self-empty-state">
+          <span>MEMORY</span>
+          <h2>No verified memory records available</h2>
+          <p>{source?.message || 'No safe memory source is connected.'}</p>
+        </div>
+      )}
     </motion.div>
   );
 }

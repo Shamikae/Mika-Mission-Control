@@ -9,7 +9,6 @@ export default async function handler(req, res) {
     return res.status(200).json({
       status:    'DISABLED',
       agentId:   cfg.agentId,
-      workspace: cfg.workspace,
       enabled:   cfg.enabled,
       lastChecked: new Date().toISOString(),
     });
@@ -31,7 +30,6 @@ export default async function handler(req, res) {
       status:    r.ok ? 'LIVE' : 'DEGRADED',
       latencyMs,
       agentId:   cfg.agentId,
-      workspace: cfg.workspace,
       enabled:   true,
       lastChecked: new Date().toISOString(),
     });
@@ -41,7 +39,6 @@ export default async function handler(req, res) {
       status:    'OFFLINE',
       error:     err.name === 'AbortError' ? 'Health check timed out' : err.message,
       agentId:   cfg.agentId,
-      workspace: cfg.workspace,
       enabled:   true,
       lastChecked: new Date().toISOString(),
     });

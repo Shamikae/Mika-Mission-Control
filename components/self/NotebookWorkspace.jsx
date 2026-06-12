@@ -9,7 +9,7 @@ const TABS = [
   { id: 'obsidian', label: 'Obsidian' },
 ];
 
-function NotebookIndex({ memory = [] }) {
+function NotebookIndex({ memory = [], source }) {
   const records = useMemo(() => (
     memory.filter(item => {
       const searchable = `${item.category || ''} ${(item.tags || []).join(' ')}`.toLowerCase();
@@ -22,8 +22,8 @@ function NotebookIndex({ memory = [] }) {
       <div className="self-empty-state">
         <span>NOTES & RESEARCH</span>
         <h2>No notebook-specific records found</h2>
-        <p>Existing memory remains available below. Records are not duplicated or moved into a new data store.</p>
-        <MemoryVaultSection data={{ memory }} />
+        <p>{source?.message || 'No safe notebook source is connected.'}</p>
+        <MemoryVaultSection data={{ memory, selfSources: { memory: source } }} />
       </div>
     );
   }
@@ -36,7 +36,7 @@ function NotebookIndex({ memory = [] }) {
             <span>{record.category || 'Note'}</span>
             <h2>{record.title}</h2>
           </div>
-          <p>{record.content}</p>
+          <p>{record.content || 'Indexed Obsidian note. Contents are not exposed by the safe vault index.'}</p>
           {(record.tags || []).length ? (
             <div className="notebook-tags">
               {record.tags.map(tag => <span key={tag}>#{tag}</span>)}
@@ -72,7 +72,9 @@ export default function NotebookWorkspace({ data }) {
       </div>
 
       {activeTab === 'prompts' && <PromptLibrarySection data={data} />}
-      {activeTab === 'notes' && <NotebookIndex memory={data.memory || []} />}
+      {activeTab === 'notes' && (
+        <NotebookIndex memory={data.memory || []} source={data.selfSources?.memory} />
+      )}
       {activeTab === 'obsidian' && <ObsidianGraph defaultTab="VAULT" />}
     </SelfWorkspace>
   );

@@ -1,7 +1,7 @@
 import { loadQueue } from '../../../lib/queue/loadQueue';
 import { updateQueueStatus } from '../../../lib/queue/saveQueue';
 
-const VALID_STATUSES = ['queued', 'approved', 'dispatched', 'completed', 'failed'];
+const VALID_STATUSES = ['queued', 'approved', 'rejected', 'dispatched', 'completed', 'failed'];
 
 export default function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
