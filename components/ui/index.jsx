@@ -120,8 +120,10 @@ export function AgentCard({ agent, onRestart, onStop }) {
           </div>
           <p className="font-body text-xs text-[#8892a4] truncate">{agent.task}</p>
           <div className="flex items-center gap-3 mt-1.5">
-            <span className="font-mono text-[9px] text-[#4b5563]">{agent.model}</span>
-            <span className="font-mono text-[9px] text-[#4b5563]">{(agent.tokens / 1000).toFixed(1)}k tokens</span>
+            <span className="font-mono text-[9px] text-[#4b5563]">{agent.model || '—'}</span>
+            {agent.tokens != null && (
+              <span className="font-mono text-[9px] text-[#4b5563]">{(agent.tokens / 1000).toFixed(1)}k tokens</span>
+            )}
           </div>
         </div>
         <div className="flex gap-1 flex-shrink-0">

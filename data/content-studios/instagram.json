@@ -1,0 +1,70 @@
+{
+  "id": "instagram",
+  "name": "Instagram Studio",
+  "platform": "Instagram",
+  "color": "#e1306c",
+  "icon": "📸",
+  "tagline": "Visual storytelling · Reels-first · Brand aesthetic",
+  "assignedAgents": ["hookr", "twin", "trend-hunter", "hook-engineer", "visual-designer", "publisher"],
+  "activeCampaigns": [
+    {
+      "id": "ig-1",
+      "name": "Hotel Hooker — Weekend Lifestyle Drops",
+      "status": "active",
+      "stage": "publishing",
+      "progress": 85,
+      "pieces": 8,
+      "published": 6,
+      "target": "100 DM booking enquiries",
+      "dueDate": "2026-06-10",
+      "brand": "hotel-hooker"
+    },
+    {
+      "id": "ig-2",
+      "name": "Mika Twin — ADHD Founder Series (Reels)",
+      "status": "active",
+      "stage": "editing",
+      "progress": 55,
+      "pieces": 6,
+      "published": 2,
+      "target": "500 new followers per Reel",
+      "dueDate": "2026-06-20",
+      "brand": "ai-twin"
+    }
+  ],
+  "contentQueue": [
+    { "id": "igq-1", "title": "Hotel Hooker weekend suite Reel — script + visual brief", "type": "script", "status": "in_progress", "agent": "hookr", "priority": "high" },
+    { "id": "igq-2", "title": "ADHD founder morning routine Reel ×3 scripts", "type": "script", "status": "todo", "agent": "twin", "priority": "high" },
+    { "id": "igq-3", "title": "Carousel: 5 AI tools I use every morning", "type": "carousel", "status": "todo", "agent": "twin", "priority": "medium" },
+    { "id": "igq-4", "title": "Story sequence for Digital Diamond client win", "type": "story", "status": "todo", "agent": "diamond", "priority": "medium" },
+    { "id": "igq-5", "title": "Hook batch ×5 — 'POV you hired an AI team'", "type": "hooks", "status": "todo", "agent": "hook-engineer", "priority": "low" }
+  ],
+  "publishingSchedule": [
+    { "time": "09:00", "days": ["Mon", "Wed", "Fri"], "type": "Reel" },
+    { "time": "18:00", "days": ["Tue", "Thu", "Sat"], "type": "Story or carousel" }
+  ],
+  "analytics": {
+    "placeholder": true,
+    "views": 38400,
+    "viewsTrend": 14,
+    "engagement": 5.1,
+    "followers": 4200,
+    "followersTrend": 9,
+    "watchTime": "1m 48s avg Reel",
+    "saves": 2800,
+    "shares": 1100,
+    "topPost": "POV: my AI booked 3 clients while I slept",
+    "topPostViews": 12900
+  },
+  "quickActions": [
+    { "id": "qa-1", "label": "Generate 5 Reel Hooks", "icon": "🪝", "agent": "hook-engineer", "dispatch": "task-dispatch" },
+    { "id": "qa-2", "label": "Write Carousel Copy", "icon": "📸", "agent": "twin", "dispatch": "task-dispatch" },
+    { "id": "qa-3", "label": "Research Trending Audios", "icon": "🔭", "agent": "trend-hunter", "dispatch": "hermes-chat" }
+  ],
+  "repurposingOptions": [
+    { "to": "tiktok",    "label": "→ TikTok Reel",        "effort": "low"    },
+    { "to": "youtube",   "label": "→ YouTube Short",       "effort": "low"    },
+    { "to": "pinterest", "label": "→ Pinterest Pin",       "effort": "low"    },
+    { "to": "linkedin",  "label": "→ LinkedIn carousel",   "effort": "medium" }
+  ]
+}

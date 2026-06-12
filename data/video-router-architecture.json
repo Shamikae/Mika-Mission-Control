@@ -1,0 +1,32 @@
+{
+  "version": "1.0",
+  "status": "architecture-only",
+  "description": "Video Router architecture. No providers are connected. This defines the routing logic for when video generation is implemented.",
+  "providers": {
+    "commercial": [
+      { "id": "higgsfield", "name": "Higgsfield",    "status": "planned", "strength": "Luxury & cinematic founder content",   "url": "https://higgsfield.ai"    },
+      { "id": "heygen",     "name": "HeyGen",        "status": "planned", "strength": "AI avatar & talking head videos",      "url": "https://heygen.com"       },
+      { "id": "veo",        "name": "Veo (Google)",  "status": "planned", "strength": "Narrative & storytelling content",     "url": "https://deepmind.google"  },
+      { "id": "kling",      "name": "Kling",         "status": "planned", "strength": "Fast social & short-form content",     "url": "https://kling.ai"         },
+      { "id": "openart",    "name": "OpenArt",       "status": "planned", "strength": "Creative design & artistic assets",    "url": "https://openart.ai"       },
+      { "id": "hyperframes","name": "HyperFrames",   "status": "planned", "strength": "Cinematic product & B-roll generation",  "url": "https://hyperframes.ai"   }
+    ],
+    "openSource": [
+      { "id": "wan",           "name": "Wan",           "status": "planned", "strength": "Open source video generation",          "repo": "wan-video/Wan2.1"    },
+      { "id": "hunyuanvideo",  "name": "HunyuanVideo",  "status": "planned", "strength": "Experimental high-quality generation",  "repo": "Tencent/HunyuanVideo" },
+      { "id": "open-sora",     "name": "Open-Sora",     "status": "planned", "strength": "Open source Sora-style generation",     "repo": "hpcaitech/Open-Sora" },
+      { "id": "comfyui",       "name": "ComfyUI",       "status": "planned", "strength": "Custom node-based generation workflows", "repo": "comfyanonymous/ComfyUI" }
+    ]
+  },
+  "routingRules": [
+    { "contentType": "Luxury Founder Content",   "brand": "digital-diamond", "provider": "higgsfield", "reason": "Premium cinematic quality matches brand positioning"        },
+    { "contentType": "AI Twin Content",          "brand": "ai-twin",         "provider": "heygen",     "reason": "AI avatar + talking head native to HeyGen"                 },
+    { "contentType": "Storytelling Content",     "brand": null,              "provider": "veo",        "reason": "Best narrative coherence for longer-form stories"          },
+    { "contentType": "Fast Social Content",      "brand": null,              "provider": "kling",      "reason": "Speed + TikTok/Reels optimization"                         },
+    { "contentType": "Creative Design Assets",   "brand": null,              "provider": "openart",    "reason": "Art-direction control for brand assets"                    },
+    { "contentType": "Open Source Workflows",    "brand": null,              "provider": "wan",        "reason": "No API cost, local execution, full control"                },
+    { "contentType": "Experimental Content",     "brand": null,              "provider": "hunyuanvideo","reason": "Cutting-edge quality for experimental creative direction"  },
+    { "contentType": "Custom Workflows",         "brand": null,              "provider": "comfyui",    "reason": "Maximum control via custom node pipelines"                 },
+    { "contentType": "Cinematic Product / B-Roll","brand": null,             "provider": "hyperframes", "reason": "Purpose-built for cinematic product shots and B-roll with visual prompt pack compatibility" }
+  ]
+}

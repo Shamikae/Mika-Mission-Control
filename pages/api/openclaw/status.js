@@ -15,6 +15,10 @@ function joinUrl(baseUrl, endpointPath) {
 function normalizeStatus(responseOk, payload) {
   if (!responseOk) return 'DEGRADED';
 
+  // { ok: true } shape (OpenClaw /health)
+  if (payload?.ok === true) return 'LIVE';
+  if (payload?.ok === false) return 'OFFLINE';
+
   const raw = String(
     payload?.status ||
     payload?.health ||
@@ -23,13 +27,9 @@ function normalizeStatus(responseOk, payload) {
     ''
   ).toLowerCase();
 
-  if (['degraded', 'warning', 'warn', 'partial', 'unhealthy'].includes(raw)) {
-    return 'DEGRADED';
-  }
-
-  if (['offline', 'down', 'error', 'failed'].includes(raw)) {
-    return 'OFFLINE';
-  }
+  if (['degraded', 'warning', 'warn', 'partial', 'unhealthy'].includes(raw)) return 'DEGRADED';
+  if (['offline', 'down', 'error', 'failed'].includes(raw)) return 'OFFLINE';
+  if (['live', 'ok', 'healthy', 'online', 'up', 'running'].includes(raw)) return 'LIVE';
 
   return 'LIVE';
 }
@@ -37,11 +37,16 @@ function normalizeStatus(responseOk, payload) {
 export default async function handler(req, res) {
   if (req.method !== 'GET') return res.status(405).json({ error: 'Method not allowed' });
 
+  const enabled = process.env.OPENCLAW_ENABLED !== 'false';
   const gatewayUrl = process.env.OPENCLAW_GATEWAY_URL || '';
   const statusPath = process.env.OPENCLAW_STATUS_PATH || '/api/status';
-  const apiKey = process.env.OPENCLAW_API_KEY || '';
+  const apiToken = process.env.OPENCLAW_API_TOKEN || '';
   const timeoutMs = Number(process.env.OPENCLAW_STATUS_TIMEOUT_MS || 5000);
   const lastChecked = new Date().toISOString();
+
+  if (!enabled) {
+    return res.status(200).json({ status: 'DISABLED', latencyMs: 0, lastChecked, error: null, source: 'openclaw' });
+  }
 
   if (!gatewayUrl) {
     return res.status(200).json({ ...MOCK_STATUS, lastChecked });
@@ -57,7 +62,7 @@ export default async function handler(req, res) {
       signal: controller.signal,
       headers: {
         Accept: 'application/json',
-        ...(apiKey ? { Authorization: `Bearer ${apiKey}` } : {}),
+        ...(apiToken ? { Authorization: `Bearer ${apiToken}` } : {}),
       },
     });
 

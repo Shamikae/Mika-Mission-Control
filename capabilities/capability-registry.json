@@ -1,0 +1,203 @@
+{
+  "schemaVersion": 1,
+  "records": [
+    {
+      "id": "omi",
+      "displayName": "Omi",
+      "entityType": "capability",
+      "category": "memory",
+      "description": "Hidden memory-capture capability for workflow and personal context ingestion.",
+      "status": "configuration_pending",
+      "visibleInSidebar": false,
+      "hiddenByDefault": true,
+      "workspaceRoute": null
+    },
+    {
+      "id": "claw3d",
+      "displayName": "Claw3D",
+      "entityType": "capability",
+      "category": "spatial",
+      "description": "Spatial and 3D workspace visualization capability.",
+      "status": "staged",
+      "visibleInSidebar": false,
+      "hiddenByDefault": true,
+      "workspaceRoute": null
+    },
+    {
+      "id": "graphify",
+      "displayName": "Graphify",
+      "entityType": "capability",
+      "category": "knowledge",
+      "description": "Knowledge relationship mapping and graph construction capability.",
+      "status": "staged",
+      "visibleInSidebar": false,
+      "hiddenByDefault": true,
+      "workspaceRoute": null
+    },
+    {
+      "id": "ruflo-swarm",
+      "displayName": "Ruflo Swarm",
+      "entityType": "capability",
+      "category": "orchestration",
+      "description": "Workflow orchestration and swarm coordination capability.",
+      "status": "staged",
+      "visibleInSidebar": false,
+      "hiddenByDefault": true,
+      "workspaceRoute": null
+    },
+    {
+      "id": "heygen",
+      "displayName": "HeyGen",
+      "entityType": "capability",
+      "category": "video",
+      "description": "Avatar and talking-head video generation capability.",
+      "status": "available_when_configured",
+      "visibleInSidebar": false,
+      "hiddenByDefault": true,
+      "workspaceRoute": null
+    },
+    {
+      "id": "higgsfield",
+      "displayName": "Higgsfield",
+      "entityType": "capability",
+      "category": "video",
+      "description": "AI video generation capability for cinematic and branded content.",
+      "status": "available_when_configured",
+      "visibleInSidebar": false,
+      "hiddenByDefault": true,
+      "workspaceRoute": null
+    },
+    {
+      "id": "openrouter",
+      "displayName": "OpenRouter",
+      "entityType": "capability",
+      "category": "model-routing",
+      "description": "Model routing capability for configured providers and workflows.",
+      "status": "available_when_configured",
+      "visibleInSidebar": false,
+      "hiddenByDefault": true,
+      "workspaceRoute": null
+    },
+    {
+      "id": "notebooklm",
+      "displayName": "NotebookLM",
+      "entityType": "capability",
+      "category": "research",
+      "description": "Research notebook and source-grounded synthesis capability.",
+      "status": "available_when_configured",
+      "visibleInSidebar": false,
+      "hiddenByDefault": true,
+      "workspaceRoute": null
+    },
+    {
+      "id": "openart",
+      "displayName": "OpenArt",
+      "entityType": "capability",
+      "category": "image",
+      "description": "AI image and creative asset generation capability.",
+      "status": "available_when_configured",
+      "visibleInSidebar": false,
+      "hiddenByDefault": true,
+      "workspaceRoute": null
+    },
+    {
+      "id": "comfyui",
+      "displayName": "ComfyUI",
+      "entityType": "capability",
+      "category": "workflow",
+      "description": "Node-based local image and video workflow capability.",
+      "status": "available_when_configured",
+      "visibleInSidebar": false,
+      "hiddenByDefault": true,
+      "workspaceRoute": null
+    },
+    {
+      "id": "wan",
+      "displayName": "Wan",
+      "entityType": "capability",
+      "category": "video",
+      "description": "AI video generation capability.",
+      "status": "available_when_configured",
+      "visibleInSidebar": false,
+      "hiddenByDefault": true,
+      "workspaceRoute": null
+    },
+    {
+      "id": "veo",
+      "displayName": "Veo",
+      "entityType": "capability",
+      "category": "video",
+      "description": "AI video generation capability for narrative and cinematic workflows.",
+      "status": "available_when_configured",
+      "visibleInSidebar": false,
+      "hiddenByDefault": true,
+      "workspaceRoute": null
+    },
+    {
+      "id": "kling",
+      "displayName": "Kling",
+      "entityType": "capability",
+      "category": "video",
+      "description": "AI video generation capability for social and short-form workflows.",
+      "status": "available_when_configured",
+      "visibleInSidebar": false,
+      "hiddenByDefault": true,
+      "workspaceRoute": null
+    },
+    {
+      "id": "hyperframes",
+      "displayName": "HyperFrames",
+      "entityType": "capability",
+      "category": "video",
+      "description": "Cinematic product and B-roll generation capability.",
+      "status": "available_when_configured",
+      "visibleInSidebar": false,
+      "hiddenByDefault": true,
+      "workspaceRoute": null
+    },
+    {
+      "id": "minimax",
+      "displayName": "MiniMax",
+      "entityType": "capability",
+      "category": "multimodal",
+      "description": "Configured multimodal generation capability.",
+      "status": "available_when_configured",
+      "visibleInSidebar": false,
+      "hiddenByDefault": true,
+      "workspaceRoute": null
+    },
+    {
+      "id": "grok",
+      "displayName": "Grok",
+      "entityType": "capability",
+      "category": "model",
+      "description": "Configured model capability for supported research and workflow tasks.",
+      "status": "available_when_configured",
+      "visibleInSidebar": false,
+      "hiddenByDefault": true,
+      "workspaceRoute": null
+    },
+    {
+      "id": "elevenlabs",
+      "displayName": "ElevenLabs",
+      "entityType": "capability",
+      "category": "audio",
+      "description": "Voice generation and audio synthesis capability.",
+      "status": "available_when_configured",
+      "visibleInSidebar": false,
+      "hiddenByDefault": true,
+      "workspaceRoute": null
+    },
+    {
+      "id": "paperclip",
+      "displayName": "Paperclip",
+      "entityType": "external_workspace",
+      "category": "workforce",
+      "description": "External workforce workspace integration metadata.",
+      "status": "configuration_pending",
+      "visibleInSidebar": true,
+      "hiddenByDefault": false,
+      "workspaceRoute": "paperclip"
+    }
+  ]
+}

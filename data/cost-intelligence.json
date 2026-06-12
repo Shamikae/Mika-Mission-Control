@@ -1,0 +1,436 @@
+{
+  "updatedAt": "2026-06-10T06:20:53.326Z",
+  "summary": {
+    "today": {
+      "dispatches": 42,
+      "estimatedCost": 0.332
+    },
+    "week": {
+      "dispatches": 500,
+      "estimatedCost": 3.784
+    },
+    "month": {
+      "dispatches": 500,
+      "estimatedCost": 3.784
+    },
+    "allTime": {
+      "dispatches": 500,
+      "estimatedCost": 3.784
+    },
+    "projectedMonth": {
+      "dispatches": 2143,
+      "estimatedCost": 16.2182
+    },
+    "avgCostPerDispatch": 0.0076
+  },
+  "byAgent": [
+    {
+      "agentId": "openclaw",
+      "displayName": "OpenClaw",
+      "department": "OPERATIONS",
+      "adapterId": "openclaw",
+      "status": "active",
+      "totalDispatches": 168,
+      "todayDispatches": 14,
+      "weekDispatches": 168,
+      "monthDispatches": 168,
+      "estimatedCostTotal": 2.184,
+      "estimatedCostToday": 0.182,
+      "estimatedCostWeek": 2.184,
+      "estimatedCostMonth": 2.184,
+      "avgCostPerDispatch": 0.013
+    },
+    {
+      "agentId": "claude-code",
+      "displayName": "Claude Code",
+      "department": "ENGINEERING",
+      "adapterId": "claude-code",
+      "status": "inactive",
+      "totalDispatches": 64,
+      "todayDispatches": 6,
+      "weekDispatches": 64,
+      "monthDispatches": 64,
+      "estimatedCostTotal": 1.6,
+      "estimatedCostToday": 0.15,
+      "estimatedCostWeek": 1.6,
+      "estimatedCostMonth": 1.6,
+      "avgCostPerDispatch": 0.025
+    },
+    {
+      "agentId": "hermes",
+      "displayName": "Hermes",
+      "department": "OPERATIONS",
+      "adapterId": "hermes",
+      "status": "active",
+      "totalDispatches": 220,
+      "todayDispatches": 18,
+      "weekDispatches": 220,
+      "monthDispatches": 220,
+      "estimatedCostTotal": 0,
+      "estimatedCostToday": 0,
+      "estimatedCostWeek": 0,
+      "estimatedCostMonth": 0,
+      "avgCostPerDispatch": 0
+    },
+    {
+      "agentId": "editor",
+      "displayName": "Editor",
+      "department": "CONTENT",
+      "adapterId": "hermes",
+      "status": "staged",
+      "totalDispatches": 23,
+      "todayDispatches": 2,
+      "weekDispatches": 23,
+      "monthDispatches": 23,
+      "estimatedCostTotal": 0,
+      "estimatedCostToday": 0,
+      "estimatedCostWeek": 0,
+      "estimatedCostMonth": 0,
+      "avgCostPerDispatch": 0
+    },
+    {
+      "agentId": "prompt-engineer",
+      "displayName": "Prompt Engineer",
+      "department": "CONTENT",
+      "adapterId": "hermes",
+      "status": "staged",
+      "totalDispatches": 25,
+      "todayDispatches": 2,
+      "weekDispatches": 25,
+      "monthDispatches": 25,
+      "estimatedCostTotal": 0,
+      "estimatedCostToday": 0,
+      "estimatedCostWeek": 0,
+      "estimatedCostMonth": 0,
+      "avgCostPerDispatch": 0
+    }
+  ],
+  "byAdapter": [
+    {
+      "adapterId": "openclaw",
+      "displayName": "OpenClaw Gateway",
+      "tier": "low",
+      "basis": "per-dispatch",
+      "perDispatch": 0.013,
+      "note": "~GPT-4o: 800 input + 600 output tokens",
+      "activationRisk": "low",
+      "totalDispatches": 168,
+      "todayDispatches": 14,
+      "weekDispatches": 168,
+      "monthDispatches": 168,
+      "estimatedCostTotal": 2.184,
+      "estimatedCostToday": 0.182,
+      "estimatedCostWeek": 2.184,
+      "estimatedCostMonth": 2.184,
+      "projectedMonthlyDispatches": 720,
+      "projectedMonthlyCost": 9.36
+    },
+    {
+      "adapterId": "claude-code",
+      "displayName": "Claude Code",
+      "tier": "variable",
+      "basis": "per-dispatch",
+      "perDispatch": 0.025,
+      "note": "Estimate: ~2k tokens at Anthropic Sonnet rates",
+      "activationRisk": "medium",
+      "totalDispatches": 64,
+      "todayDispatches": 6,
+      "weekDispatches": 64,
+      "monthDispatches": 64,
+      "estimatedCostTotal": 1.6,
+      "estimatedCostToday": 0.15,
+      "estimatedCostWeek": 1.6,
+      "estimatedCostMonth": 1.6,
+      "projectedMonthlyDispatches": 274,
+      "projectedMonthlyCost": 6.85
+    },
+    {
+      "adapterId": "hermes",
+      "displayName": "Hermes Agent",
+      "tier": "free",
+      "basis": "per-dispatch",
+      "perDispatch": 0,
+      "note": "Self-hosted VPS — compute cost only, no API fee",
+      "activationRisk": "none",
+      "totalDispatches": 268,
+      "todayDispatches": 22,
+      "weekDispatches": 268,
+      "monthDispatches": 268,
+      "estimatedCostTotal": 0,
+      "estimatedCostToday": 0,
+      "estimatedCostWeek": 0,
+      "estimatedCostMonth": 0,
+      "projectedMonthlyDispatches": 1149,
+      "projectedMonthlyCost": 0
+    },
+    {
+      "adapterId": "codex",
+      "displayName": "Codex",
+      "tier": "low",
+      "basis": "per-dispatch",
+      "perDispatch": 0.02,
+      "note": "Estimate: code tasks at GPT-4o pricing",
+      "activationRisk": "low",
+      "totalDispatches": 0,
+      "todayDispatches": 0,
+      "weekDispatches": 0,
+      "monthDispatches": 0,
+      "estimatedCostTotal": 0,
+      "estimatedCostToday": 0,
+      "estimatedCostWeek": 0,
+      "estimatedCostMonth": 0,
+      "projectedMonthlyDispatches": 0,
+      "projectedMonthlyCost": 0
+    },
+    {
+      "adapterId": "heygen",
+      "displayName": "HeyGen",
+      "tier": "medium",
+      "basis": "per-video-minute",
+      "perDispatch": 0.25,
+      "note": "Estimate: ~1 min avatar video at $0.25/min",
+      "activationRisk": "high",
+      "totalDispatches": 0,
+      "todayDispatches": 0,
+      "weekDispatches": 0,
+      "monthDispatches": 0,
+      "estimatedCostTotal": 0,
+      "estimatedCostToday": 0,
+      "estimatedCostWeek": 0,
+      "estimatedCostMonth": 0,
+      "projectedMonthlyDispatches": 0,
+      "projectedMonthlyCost": 0
+    },
+    {
+      "adapterId": "higgsfield",
+      "displayName": "Higgsfield",
+      "tier": "high",
+      "basis": "per-generation",
+      "perDispatch": 0.5,
+      "note": "Estimate: cinematic video generation per job",
+      "activationRisk": "high",
+      "totalDispatches": 0,
+      "todayDispatches": 0,
+      "weekDispatches": 0,
+      "monthDispatches": 0,
+      "estimatedCostTotal": 0,
+      "estimatedCostToday": 0,
+      "estimatedCostWeek": 0,
+      "estimatedCostMonth": 0,
+      "projectedMonthlyDispatches": 0,
+      "projectedMonthlyCost": 0
+    },
+    {
+      "adapterId": "openart",
+      "displayName": "OpenArt",
+      "tier": "low",
+      "basis": "per-image",
+      "perDispatch": 0.005,
+      "note": "Estimate: ~$0.005 per generated image",
+      "activationRisk": "low",
+      "totalDispatches": 0,
+      "todayDispatches": 0,
+      "weekDispatches": 0,
+      "monthDispatches": 0,
+      "estimatedCostTotal": 0,
+      "estimatedCostToday": 0,
+      "estimatedCostWeek": 0,
+      "estimatedCostMonth": 0,
+      "projectedMonthlyDispatches": 0,
+      "projectedMonthlyCost": 0
+    },
+    {
+      "adapterId": "wan",
+      "displayName": "Wan",
+      "tier": "variable",
+      "basis": "per-generation",
+      "perDispatch": 0.1,
+      "note": "Estimate: self-hosted GPU compute or cloud API",
+      "activationRisk": "medium",
+      "totalDispatches": 0,
+      "todayDispatches": 0,
+      "weekDispatches": 0,
+      "monthDispatches": 0,
+      "estimatedCostTotal": 0,
+      "estimatedCostToday": 0,
+      "estimatedCostWeek": 0,
+      "estimatedCostMonth": 0,
+      "projectedMonthlyDispatches": 0,
+      "projectedMonthlyCost": 0
+    },
+    {
+      "adapterId": "comfyui",
+      "displayName": "ComfyUI",
+      "tier": "free",
+      "basis": "per-generation",
+      "perDispatch": 0,
+      "note": "Self-hosted local GPU — no per-call API fee",
+      "activationRisk": "none",
+      "totalDispatches": 0,
+      "todayDispatches": 0,
+      "weekDispatches": 0,
+      "monthDispatches": 0,
+      "estimatedCostTotal": 0,
+      "estimatedCostToday": 0,
+      "estimatedCostWeek": 0,
+      "estimatedCostMonth": 0,
+      "projectedMonthlyDispatches": 0,
+      "projectedMonthlyCost": 0
+    }
+  ],
+  "byLane": [
+    {
+      "laneId": "none",
+      "displayName": "General / No Lane",
+      "totalDispatches": 468,
+      "weekDispatches": 468,
+      "monthDispatches": 468,
+      "estimatedCostTotal": 3.321,
+      "estimatedCostWeek": 3.321,
+      "estimatedCostMonth": 3.321
+    },
+    {
+      "laneId": "engineering",
+      "displayName": "engineering",
+      "totalDispatches": 18,
+      "weekDispatches": 18,
+      "monthDispatches": 18,
+      "estimatedCostTotal": 0.45,
+      "estimatedCostWeek": 0.45,
+      "estimatedCostMonth": 0.45
+    },
+    {
+      "laneId": "digital-diamond",
+      "displayName": "Digital Diamond AI",
+      "totalDispatches": 12,
+      "weekDispatches": 12,
+      "monthDispatches": 12,
+      "estimatedCostTotal": 0.013,
+      "estimatedCostWeek": 0.013,
+      "estimatedCostMonth": 0.013
+    },
+    {
+      "laneId": "ai-twin",
+      "displayName": "AI Twin Studio",
+      "totalDispatches": 2,
+      "weekDispatches": 2,
+      "monthDispatches": 2,
+      "estimatedCostTotal": 0,
+      "estimatedCostWeek": 0,
+      "estimatedCostMonth": 0
+    }
+  ],
+  "workflowAverages": [
+    {
+      "workflowType": "unknown",
+      "workflowCount": 2,
+      "totalDispatches": 12,
+      "estimatedCostTotal": 0.013,
+      "avgCostPerWorkflow": 0.0065,
+      "avgDispatchesPerWorkflow": 6
+    }
+  ],
+  "activationProjections": [
+    {
+      "adapterId": "heygen",
+      "displayName": "HeyGen",
+      "perDispatch": 0.25,
+      "tier": "medium",
+      "activationRisk": "high",
+      "projectedMonthlyDispatches": 30,
+      "projectedMonthlyCost": 7.5,
+      "projectedAnnualCost": 90,
+      "note": "Estimate: ~1 min avatar video at $0.25/min"
+    },
+    {
+      "adapterId": "openart",
+      "displayName": "OpenArt",
+      "perDispatch": 0.005,
+      "tier": "low",
+      "activationRisk": "low",
+      "projectedMonthlyDispatches": 30,
+      "projectedMonthlyCost": 0.15,
+      "projectedAnnualCost": 1.8,
+      "note": "Estimate: ~$0.005 per generated image"
+    },
+    {
+      "adapterId": "hermes",
+      "displayName": "Hermes Agent",
+      "perDispatch": 0,
+      "tier": "free",
+      "activationRisk": "none",
+      "projectedMonthlyDispatches": 30,
+      "projectedMonthlyCost": 0,
+      "projectedAnnualCost": 0,
+      "note": "Self-hosted VPS — compute cost only, no API fee"
+    }
+  ],
+  "alerts": [
+    {
+      "type": "high-cost-staged",
+      "severity": "warning",
+      "adapterId": "heygen",
+      "title": "HeyGen is staged — 1 agent waiting",
+      "detail": "At $0.25/dispatch, 30 dispatches/month = $7.50/mo. Activate only when needed.",
+      "cost": 0.25
+    },
+    {
+      "type": "hermes-savings",
+      "severity": "info",
+      "adapterId": "hermes",
+      "title": "Hermes running 268 dispatches free",
+      "detail": "Self-hosted advantage — equivalent OpenClaw cost would be $3.48 total.",
+      "cost": 0
+    }
+  ],
+  "opportunities": [
+    {
+      "type": "route-to-hermes",
+      "title": "Route content tasks to Hermes",
+      "detail": "Hermes handles the same task types as OpenClaw at $0 cost. 168 OpenClaw dispatches could partially route to Hermes.",
+      "potentialSaving": 0.8736,
+      "action": "Review task routing rules in dispatchTask.js — some content tasks can prefer hermes adapter",
+      "priority": "medium"
+    },
+    {
+      "type": "use-comfyui",
+      "title": "Use ComfyUI (free) instead of OpenArt ($0.005/image)",
+      "detail": "ComfyUI is self-hosted and free. At 100 images/month, OpenArt costs $0.50/mo. ComfyUI is already in the adapter registry.",
+      "potentialSaving": 0.5,
+      "action": "Assign visual-designer to comfyui adapter; activate ComfyUI locally first",
+      "priority": "low"
+    },
+    {
+      "type": "stagger-heygen",
+      "title": "Delay HeyGen activation until content pipeline is proven",
+      "detail": "HeyGen at $0.25/video is the highest API cost in the stack. Prove the content brief → script pipeline first with Hermes before adding video spend.",
+      "potentialSaving": 7.5,
+      "action": "Keep video-producer staged until OpenClaw + Hermes pipeline is stable",
+      "priority": "high"
+    },
+    {
+      "type": "artifact-reuse",
+      "title": "Cache and reuse content artifacts across lanes",
+      "detail": "If the same brief or script is dispatched to multiple lanes, cache the artifact and reuse. Reduces repeat dispatches.",
+      "potentialSaving": null,
+      "action": "Add artifact deduplication check in dispatchTask.js using content hash",
+      "priority": "medium"
+    }
+  ],
+  "highlights": {
+    "highestCostAgent": {
+      "agentId": "openclaw",
+      "displayName": "OpenClaw",
+      "estimatedCostTotal": 2.184,
+      "adapterId": "openclaw"
+    },
+    "highestCostAdapter": {
+      "adapterId": "openclaw",
+      "displayName": "OpenClaw Gateway",
+      "estimatedCostTotal": 2.184
+    },
+    "costToday": 0.332,
+    "costMonth": 3.784,
+    "projCost": 16.2182
+  }
+}

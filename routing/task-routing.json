@@ -1,0 +1,247 @@
+{
+  "_version": "1.0",
+  "_updated": "2026-06-03",
+  "_description": "Deterministic routing rules for MIKA AGENTIC OS. Each taskType maps to a primary agent, fallback agent, approval rules, and execution constraints. Source of truth for dispatchTask.js.",
+  "routes": [
+    {
+      "taskType": "Research",
+      "primaryAgentId": "hermes",
+      "fallbackAgentId": "openclaw",
+      "requiresApproval": false,
+      "allowedExecutionModes": ["ssh-http", "gateway"],
+      "maxRuntimeSeconds": 120,
+      "costTier": "free",
+      "notes": "Hermes is the primary research engine. OpenClaw is a capable fallback for summarization."
+    },
+    {
+      "taskType": "Market Research",
+      "primaryAgentId": "hermes",
+      "fallbackAgentId": "openclaw",
+      "requiresApproval": false,
+      "allowedExecutionModes": ["ssh-http", "gateway"],
+      "maxRuntimeSeconds": 180,
+      "costTier": "free",
+      "notes": "Deep market research. Hermes handles cross-brand research queries. Routes to OpenClaw if Hermes is unavailable."
+    },
+    {
+      "taskType": "Trend Research",
+      "primaryAgentId": "trend-hunter",
+      "fallbackAgentId": "hermes",
+      "requiresApproval": false,
+      "allowedExecutionModes": ["api"],
+      "maxRuntimeSeconds": 90,
+      "costTier": "low",
+      "notes": "Trend Hunter scans platforms for emerging patterns. Staged — falls back to Hermes for manual research."
+    },
+    {
+      "taskType": "Hook Creation",
+      "primaryAgentId": "hook-engineer",
+      "fallbackAgentId": "hermes",
+      "requiresApproval": false,
+      "allowedExecutionModes": ["api"],
+      "maxRuntimeSeconds": 60,
+      "costTier": "low",
+      "notes": "Hook Engineer generates scroll-stopping openings. Staged — falls back to Hermes for freeform generation."
+    },
+    {
+      "taskType": "Script Creation",
+      "primaryAgentId": "content-architect",
+      "fallbackAgentId": "hermes",
+      "requiresApproval": false,
+      "allowedExecutionModes": ["api"],
+      "maxRuntimeSeconds": 120,
+      "costTier": "low",
+      "notes": "Content Architect builds full scripts and outlines. Staged — falls back to Hermes for basic script drafting."
+    },
+    {
+      "taskType": "Content Strategy",
+      "primaryAgentId": "creative-director",
+      "fallbackAgentId": "openclaw",
+      "requiresApproval": true,
+      "allowedExecutionModes": ["api"],
+      "maxRuntimeSeconds": 180,
+      "costTier": "medium",
+      "notes": "Creative Director develops high-level concepts and brand voice alignment. Requires approval — strategy decisions affect multiple pieces. Staged."
+    },
+    {
+      "taskType": "Video Prompting",
+      "primaryAgentId": "prompt-engineer",
+      "fallbackAgentId": "visual-designer",
+      "requiresApproval": false,
+      "allowedExecutionModes": ["api"],
+      "maxRuntimeSeconds": 60,
+      "costTier": "low",
+      "notes": "Prompt Engineer generates AI image and video prompts. Staged — no provider connected yet. Falls back to Visual Designer."
+    },
+    {
+      "taskType": "Repurposing",
+      "primaryAgentId": "content-architect",
+      "fallbackAgentId": "hermes",
+      "requiresApproval": false,
+      "allowedExecutionModes": ["api"],
+      "maxRuntimeSeconds": 120,
+      "costTier": "low",
+      "notes": "Content Architect handles content repurposing across formats. Staged. Falls back to Hermes for cross-format adaptation."
+    },
+    {
+      "taskType": "Publishing Prep",
+      "primaryAgentId": "editor",
+      "fallbackAgentId": null,
+      "requiresApproval": true,
+      "allowedExecutionModes": ["api"],
+      "maxRuntimeSeconds": 60,
+      "costTier": "low",
+      "notes": "Editor assembles and copy-edits final content before the Publisher schedules it. Requires approval before any publishing action. Staged."
+    },
+    {
+      "taskType": "Analytics Review",
+      "primaryAgentId": "analytics-agent",
+      "fallbackAgentId": "hermes",
+      "requiresApproval": false,
+      "allowedExecutionModes": ["api"],
+      "maxRuntimeSeconds": 90,
+      "costTier": "low",
+      "notes": "Analytics Agent reviews platform performance and recommends repurposing. Staged — falls back to Hermes for manual data summarization."
+    },
+    {
+      "taskType": "Code Architecture",
+      "primaryAgentId": "claude-code",
+      "fallbackAgentId": null,
+      "requiresApproval": true,
+      "allowedExecutionModes": ["local-cli"],
+      "maxRuntimeSeconds": 300,
+      "costTier": "free",
+      "notes": "Claude Code is the designated senior engineer. STAGED — do not connect programmatically until auth pattern is established. All code changes require human review before deploy."
+    },
+    {
+      "taskType": "Code Review",
+      "primaryAgentId": "codex",
+      "fallbackAgentId": "claude-code",
+      "requiresApproval": true,
+      "allowedExecutionModes": ["api"],
+      "maxRuntimeSeconds": 180,
+      "costTier": "medium",
+      "notes": "Codex provides independent code review. STAGED — not yet connected. Falls back to Claude Code if available. Both require human approval before any changes land."
+    },
+    {
+      "taskType": "Documentation",
+      "primaryAgentId": "hermes",
+      "fallbackAgentId": "openclaw",
+      "requiresApproval": false,
+      "allowedExecutionModes": ["ssh-http", "gateway"],
+      "maxRuntimeSeconds": 120,
+      "costTier": "free",
+      "notes": "Hermes serves as the knowledge agent — research, summarize, and document to vault. OpenClaw handles vault writes."
+    },
+    {
+      "taskType": "Operations",
+      "primaryAgentId": "openclaw",
+      "fallbackAgentId": null,
+      "requiresApproval": false,
+      "allowedExecutionModes": ["gateway"],
+      "maxRuntimeSeconds": 60,
+      "costTier": "free",
+      "notes": "OpenClaw is the Chief Orchestrator for all operations tasks — health checks, monitoring, routing, status synthesis."
+    },
+    {
+      "taskType": "Revenue Strategy",
+      "primaryAgentId": "openclaw",
+      "fallbackAgentId": "recovery",
+      "requiresApproval": true,
+      "allowedExecutionModes": ["gateway", "openclaw"],
+      "maxRuntimeSeconds": 180,
+      "costTier": "free",
+      "notes": "OpenClaw synthesizes revenue strategy from agent data. Recovery handles lead reactivation. All revenue decisions require Mika approval."
+    },
+    {
+      "taskType": "Content",
+      "primaryAgentId": "hermes",
+      "fallbackAgentId": "openclaw",
+      "requiresApproval": false,
+      "allowedExecutionModes": ["ssh-http", "gateway"],
+      "maxRuntimeSeconds": 120,
+      "costTier": "free",
+      "notes": "Generic content task. Routes to Hermes for drafting. For studio-specific content, use a more specific task type (Script Creation, Hook Creation, etc.)."
+    },
+    {
+      "taskType": "Lead Recovery",
+      "primaryAgentId": "recovery",
+      "fallbackAgentId": "openclaw",
+      "requiresApproval": true,
+      "allowedExecutionModes": ["openclaw"],
+      "maxRuntimeSeconds": 120,
+      "costTier": "free",
+      "notes": "Recovery agent handles WhatsApp and email lead reactivation sequences. Always requires approval — direct contact with leads."
+    },
+    {
+      "taskType": "Automation",
+      "primaryAgentId": "openclaw",
+      "fallbackAgentId": "hermes",
+      "requiresApproval": true,
+      "allowedExecutionModes": ["gateway", "ssh-http"],
+      "maxRuntimeSeconds": 180,
+      "costTier": "free",
+      "notes": "Automation setup and management routed through OpenClaw. Requires approval before any new automation is activated."
+    },
+    {
+      "taskType": "Client Delivery",
+      "primaryAgentId": "openclaw",
+      "fallbackAgentId": "hermes",
+      "requiresApproval": true,
+      "allowedExecutionModes": ["gateway"],
+      "maxRuntimeSeconds": 180,
+      "costTier": "free",
+      "notes": "Client-facing deliverables always require human approval before sending. OpenClaw synthesizes and formats."
+    },
+    {
+      "taskType": "System Maintenance",
+      "primaryAgentId": "openclaw",
+      "fallbackAgentId": null,
+      "requiresApproval": true,
+      "allowedExecutionModes": ["gateway"],
+      "maxRuntimeSeconds": 300,
+      "costTier": "free",
+      "notes": "System maintenance tasks are handled by OpenClaw. Always requires approval — maintenance can affect running systems."
+    },
+    {
+      "taskType": "code_architecture",
+      "primaryAgentId": "claude-code",
+      "fallbackAgentId": "hermes",
+      "requiresApproval": true,
+      "allowedExecutionModes": ["local-cli", "ssh-http"],
+      "maxRuntimeSeconds": 300,
+      "costTier": "variable",
+      "notes": "Architecture analysis — Claude Code (activated via gate) reviews and proposes architecture decisions. Falls back to Hermes if Claude Code is not yet activated. Analysis-only: no file writes."
+    },
+    {
+      "taskType": "code_review",
+      "primaryAgentId": "claude-code",
+      "fallbackAgentId": "hermes",
+      "requiresApproval": true,
+      "allowedExecutionModes": ["local-cli", "ssh-http"],
+      "maxRuntimeSeconds": 180,
+      "costTier": "variable",
+      "notes": "Code review — Claude Code provides detailed feedback on code quality, patterns, and improvements. Falls back to Hermes. Analysis-only: no file writes."
+    },
+    {
+      "taskType": "refactor_plan",
+      "primaryAgentId": "claude-code",
+      "fallbackAgentId": "hermes",
+      "requiresApproval": true,
+      "allowedExecutionModes": ["local-cli", "ssh-http"],
+      "maxRuntimeSeconds": 300,
+      "costTier": "variable",
+      "notes": "Refactor planning — Claude Code produces a detailed refactor plan with risks and sequencing. Recommendations only — no auto-apply. Falls back to Hermes."
+    },
+    {
+      "taskType": "bug_diagnosis",
+      "primaryAgentId": "claude-code",
+      "fallbackAgentId": "hermes",
+      "requiresApproval": true,
+      "allowedExecutionModes": ["local-cli", "ssh-http"],
+      "maxRuntimeSeconds": 180,
+      "costTier": "variable",
+      "notes": "Bug diagnosis — Claude Code investigates bugs and suggests root causes and fixes. Never applies fixes automatically. Falls back to Hermes."
+    }
+  ]
+}

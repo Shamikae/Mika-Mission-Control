@@ -169,6 +169,22 @@ const config = {
    */
   agents: [
     {
+      id:         'openclaw',
+      label:      'OpenClaw',
+      project:    null,
+      model:      null,
+      systemType: 'custom',
+      systemId:   'openclaw',
+      systemConfig: {
+        baseUrl: 'http://127.0.0.1:28789',
+        auth: { type: 'bearer', token: '' },
+      },
+      capabilities: ['health_check', 'monitor'],
+      schedule:   null,
+      memory:     false,
+      description: 'OpenClaw gateway — the VPS control plane for all AI agents.',
+    },
+    {
       id:         'mika',
       label:      'Mika',
       project:    'managed-by-mika',

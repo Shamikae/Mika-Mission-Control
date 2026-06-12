@@ -1,0 +1,56 @@
+{
+  "id": "twitter",
+  "name": "X / Twitter Studio",
+  "platform": "X / Twitter",
+  "color": "#1d9bf0",
+  "icon": "𝕏",
+  "tagline": "Real-time · Thread authority · Thought leadership",
+  "assignedAgents": ["twin", "hook-engineer", "content-architect", "diamond", "editor", "publisher"],
+  "activeCampaigns": [
+    {
+      "id": "tw-1",
+      "name": "Mika Twin — AI Founder Thought Leadership",
+      "status": "active",
+      "stage": "script",
+      "progress": 30,
+      "pieces": 10,
+      "published": 2,
+      "target": "1,000 followers by end of June",
+      "dueDate": "2026-06-30",
+      "brand": "ai-twin"
+    }
+  ],
+  "contentQueue": [
+    { "id": "twq-1", "title": "Thread: '10 things I learned letting AI run my business for 30 days'", "type": "thread", "status": "in_progress", "agent": "twin", "priority": "high" },
+    { "id": "twq-2", "title": "Single tweet: AI client win hook + CTA", "type": "tweet", "status": "todo", "agent": "hook-engineer", "priority": "high" },
+    { "id": "twq-3", "title": "Thread: 'How I replaced a $5k/mo team with AI agents'", "type": "thread", "status": "todo", "agent": "content-architect", "priority": "medium" },
+    { "id": "twq-4", "title": "Reply engagement plan — 20 accounts to engage daily", "type": "strategy", "status": "todo", "agent": "twin", "priority": "low" }
+  ],
+  "publishingSchedule": [
+    { "time": "08:30", "days": ["Mon", "Tue", "Wed", "Thu", "Fri"], "type": "single tweet or thread opener" },
+    { "time": "20:00", "days": ["Mon", "Wed", "Fri"], "type": "full thread" }
+  ],
+  "analytics": {
+    "placeholder": true,
+    "views": 9800,
+    "viewsTrend": 22,
+    "engagement": 3.8,
+    "followers": 1400,
+    "followersTrend": 18,
+    "watchTime": null,
+    "saves": 610,
+    "shares": 290,
+    "topPost": "I let AI handle my DMs for a week — here's what happened",
+    "topPostViews": 3200
+  },
+  "quickActions": [
+    { "id": "qa-1", "label": "Write a Thread", "icon": "🧵", "agent": "content-architect", "dispatch": "task-dispatch" },
+    { "id": "qa-2", "label": "Generate Tweet Hooks", "icon": "🪝", "agent": "hook-engineer", "dispatch": "task-dispatch" },
+    { "id": "qa-3", "label": "Research Trending Topics", "icon": "🔭", "agent": "trend-hunter", "dispatch": "hermes-chat" }
+  ],
+  "repurposingOptions": [
+    { "to": "linkedin", "label": "→ LinkedIn article",    "effort": "low"    },
+    { "to": "blog",     "label": "→ Blog post",           "effort": "medium" },
+    { "to": "tiktok",   "label": "→ TikTok talking points","effort": "medium" }
+  ]
+}

@@ -9,6 +9,7 @@ import {
   agentDispatch, agentGetLogs, agentGetMemory, agentGetConfig,
   agentSetConfig, testSystemConnection,
 } from '../../lib/agent-systems';
+import { sendHermesChat } from '../../lib/api';
 import { vaultAppendChat } from '../../lib/vault';
 import { format, parseISO } from 'date-fns';
 import clsx from 'clsx';
@@ -202,6 +203,41 @@ function ControlTab({ agent, status, onAction }) {
         </div>
       </div>
 
+      {/* Claude Code capability contract — only shown for claude-code agent */}
+      {(agent.adapterId === 'claude-code' || agent.id === 'claude-code') && agent.health && (
+        <div className="panel-raised p-4 space-y-2">
+          <div className="font-mono text-[9px] tracking-widest mb-2" style={{ color: 'var(--text-muted)' }}>CAPABILITY CONTRACT</div>
+          <div className="grid grid-cols-2 gap-2">
+            {[
+              { label: 'MODE',          value: agent.health.capabilityMode || '—' },
+              { label: 'INSPECT FILES', value: agent.health.canInspectFiles ? 'YES' : 'NO', color: agent.health.canInspectFiles ? '#0dd3c5' : '#ef4444' },
+              { label: 'WRITE FILES',   value: 'NO',   color: '#ef4444' },
+              { label: 'RUN SHELL',     value: 'NO',   color: '#ef4444' },
+            ].map(({ label, value, color }) => (
+              <div key={label} className="rounded-sm px-2 py-1.5" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)' }}>
+                <div className="font-mono text-[7px] tracking-widest mb-0.5" style={{ color: 'var(--text-muted)' }}>{label}</div>
+                <div className="font-mono text-[9px]" style={{ color: color || agentColor }}>{value}</div>
+              </div>
+            ))}
+          </div>
+          {agent.health.allowedTools?.length > 0 && (
+            <div className="rounded-sm px-2 py-1.5" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)' }}>
+              <div className="font-mono text-[7px] tracking-widest mb-1" style={{ color: 'var(--text-muted)' }}>ALLOWED TOOLS</div>
+              <div className="flex flex-wrap gap-1">
+                {agent.health.allowedTools.map(t => (
+                  <span key={t} className="font-mono text-[8px] px-1.5 py-0.5 rounded-sm" style={{ background: 'rgba(13,211,197,0.08)', border: '1px solid rgba(13,211,197,0.2)', color: '#0dd3c5' }}>{t}</span>
+                ))}
+              </div>
+            </div>
+          )}
+          {agent.health.safetyNotice && (
+            <div className="font-mono text-[8px] leading-relaxed px-2 py-1.5 rounded-sm" style={{ background: 'rgba(245,158,11,0.06)', border: '1px solid rgba(245,158,11,0.2)', color: '#f59e0b' }}>
+              ⚠ {agent.health.safetyNotice}
+            </div>
+          )}
+        </div>
+      )}
+
       {/* Description */}
       <div className="panel-raised p-4">
         <div className="font-mono text-[9px] tracking-widest mb-2" style={{ color: 'var(--text-muted)' }}>DESCRIPTION</div>
@@ -320,6 +356,21 @@ function ChatTab({ agent, onDispatch }) {
     setInput('');
     setSelCap('');
     setTyping(true);
+
+    if (agent.id === 'hermes') {
+      try {
+        const res     = await sendHermesChat(content, 'default');
+        const agentTs = new Date().toISOString();
+        const agentMsg = res.ok ? (res.reply || 'No response') : (res.error || 'Hermes error');
+        setTyping(false);
+        appendChatMessage(agent.id, { id: Date.now() + 1, role: 'agent', content: agentMsg, ts: agentTs, error: !res.ok });
+        vaultAppendChat(agent.label, 'agent', agentMsg, agentTs, undefined);
+      } catch (err) {
+        setTyping(false);
+        appendChatMessage(agent.id, { id: Date.now() + 1, role: 'agent', content: err.message, ts: new Date().toISOString(), error: true });
+      }
+      return;
+    }
 
     try {
       const cap      = capability || selCap || agent.capabilities?.[0] || 'general';
@@ -627,7 +678,14 @@ function MemoryTab({ agent, memory }) {
     <div className="space-y-3">
       <div className="flex items-center justify-between">
         <div className="font-mono text-[9px] tracking-widest" style={{ color: 'var(--text-muted)' }}>{memory.length} MEMORY KEYS</div>
-        <button className="btn-ghost text-[9px] px-2 py-1">+ INJECT KEY</button>
+        <button
+          type="button"
+          className="btn-ghost text-[9px] px-2 py-1 opacity-60 cursor-not-allowed"
+          disabled
+          title="Memory injection is not connected"
+        >
+          INJECT KEY · NOT CONNECTED
+        </button>
       </div>
       {memory.length === 0 ? (
         <div className="panel-raised p-8 text-center">

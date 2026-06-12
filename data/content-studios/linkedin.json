@@ -1,0 +1,68 @@
+{
+  "id": "linkedin",
+  "name": "LinkedIn Studio",
+  "platform": "LinkedIn",
+  "color": "#0a7abf",
+  "icon": "💼",
+  "tagline": "Thought leadership · Authority building · B2B reach",
+  "assignedAgents": ["diamond", "twin", "content-architect", "editor", "publisher"],
+  "activeCampaigns": [
+    {
+      "id": "lc-1",
+      "name": "AI Consulting Thought Leadership Series",
+      "status": "active",
+      "stage": "script",
+      "progress": 40,
+      "pieces": 8,
+      "published": 2,
+      "target": "500 qualified leads from inbound",
+      "dueDate": "2026-07-01",
+      "brand": "digital-diamond"
+    },
+    {
+      "id": "lc-2",
+      "name": "Founder ADHD & AI — Personal Brand Series",
+      "status": "active",
+      "stage": "editing",
+      "progress": 70,
+      "pieces": 5,
+      "published": 1,
+      "target": "10k impressions per post",
+      "dueDate": "2026-06-15",
+      "brand": "ai-twin"
+    }
+  ],
+  "contentQueue": [
+    { "id": "lq-1", "title": "'Your competitors are already using AI' — cold outreach article", "type": "article", "status": "in_progress", "agent": "diamond", "priority": "high" },
+    { "id": "lq-2", "title": "Carousel: 5 AI tools every founder should be using", "type": "carousel", "status": "todo", "agent": "twin", "priority": "high" },
+    { "id": "lq-3", "title": "Thought piece: Why ADHD entrepreneurs win with AI", "type": "article", "status": "todo", "agent": "twin", "priority": "medium" },
+    { "id": "lq-4", "title": "Digital Diamond case study post — NutraStar AI install", "type": "case_study", "status": "todo", "agent": "diamond", "priority": "medium" }
+  ],
+  "publishingSchedule": [
+    { "time": "08:00", "days": ["Tue", "Thu"], "type": "article or carousel" },
+    { "time": "12:00", "days": ["Mon"], "type": "short insight post" }
+  ],
+  "analytics": {
+    "placeholder": true,
+    "views": 12400,
+    "viewsTrend": 8,
+    "engagement": 3.1,
+    "followers": 2300,
+    "followersTrend": 5,
+    "watchTime": null,
+    "saves": 420,
+    "shares": 187,
+    "topPost": "I replaced my VA with AI — here's what happened",
+    "topPostViews": 4800
+  },
+  "quickActions": [
+    { "id": "qa-1", "label": "Draft Thought Piece", "icon": "✍", "agent": "twin", "dispatch": "task-dispatch" },
+    { "id": "qa-2", "label": "Write Cold Outreach Article", "icon": "💎", "agent": "diamond", "dispatch": "task-dispatch" },
+    { "id": "qa-3", "label": "Research B2B AI Trends", "icon": "🔭", "agent": "trend-hunter", "dispatch": "hermes-chat" }
+  ],
+  "repurposingOptions": [
+    { "to": "blog", "label": "→ Full Blog Post", "effort": "low" },
+    { "to": "email", "label": "→ Email Newsletter", "effort": "low" },
+    { "to": "tiktok", "label": "→ TikTok talking head", "effort": "medium" }
+  ]
+}

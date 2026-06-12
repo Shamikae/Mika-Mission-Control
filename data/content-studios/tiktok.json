@@ -1,0 +1,70 @@
+{
+  "id": "tiktok",
+  "name": "TikTok Studio",
+  "platform": "TikTok",
+  "color": "#69c9d0",
+  "icon": "📱",
+  "tagline": "Viral-first · Short-form · Hook-driven",
+  "assignedAgents": ["twin", "hookr", "trend-hunter", "hook-engineer", "content-architect", "publisher"],
+  "activeCampaigns": [
+    {
+      "id": "tc-1",
+      "name": "AI Does My Job — Episode Series",
+      "status": "active",
+      "stage": "video",
+      "progress": 60,
+      "pieces": 10,
+      "published": 3,
+      "target": "1M views per episode",
+      "dueDate": "2026-06-20",
+      "brand": "ai-twin"
+    },
+    {
+      "id": "tc-2",
+      "name": "Hotel Hooker Weekend Drop",
+      "status": "awaiting_approval",
+      "stage": "publishing",
+      "progress": 90,
+      "pieces": 4,
+      "published": 0,
+      "target": "50 DM bookings",
+      "dueDate": "2026-06-05",
+      "brand": "hotel-hooker"
+    }
+  ],
+  "contentQueue": [
+    { "id": "tq-1", "title": "'3 things AI entrepreneurs never tell you' — hook batch ×10", "type": "hooks", "status": "ready", "agent": "hook-engineer", "priority": "high" },
+    { "id": "tq-2", "title": "AI Does My Job — Episode 4 full script", "type": "script", "status": "in_progress", "agent": "twin", "priority": "high" },
+    { "id": "tq-3", "title": "Hotel Hooker weekend availability stories ×4", "type": "video", "status": "awaiting_approval", "agent": "hookr", "priority": "high" },
+    { "id": "tq-4", "title": "ADHD founder morning routine — concept brief", "type": "concept", "status": "todo", "agent": "creative-director", "priority": "medium" },
+    { "id": "tq-5", "title": "Trending sound research — June week 1", "type": "research", "status": "todo", "agent": "trend-hunter", "priority": "medium" }
+  ],
+  "publishingSchedule": [
+    { "time": "09:00", "days": ["Mon", "Wed", "Fri"], "type": "main video" },
+    { "time": "18:00", "days": ["Tue", "Thu"], "type": "short hook" }
+  ],
+  "analytics": {
+    "placeholder": true,
+    "views": 47200,
+    "viewsTrend": 18,
+    "engagement": 4.2,
+    "followers": 6800,
+    "followersTrend": 12,
+    "watchTime": "2m 14s avg",
+    "saves": 3100,
+    "shares": 892,
+    "topPost": "AI does my laundry — Episode 2",
+    "topPostViews": 18400
+  },
+  "quickActions": [
+    { "id": "qa-1", "label": "Generate 10 Hooks", "icon": "🪝", "agent": "hook-engineer", "dispatch": "task-dispatch" },
+    { "id": "qa-2", "label": "Research Trending Sounds", "icon": "🔭", "agent": "trend-hunter", "dispatch": "hermes-chat" },
+    { "id": "qa-3", "label": "Batch Week Scripts", "icon": "📐", "agent": "content-architect", "dispatch": "task-dispatch" }
+  ],
+  "repurposingOptions": [
+    { "to": "youtube", "label": "→ YouTube Shorts", "effort": "low" },
+    { "to": "instagram", "label": "→ Instagram Reels", "effort": "low" },
+    { "to": "linkedin", "label": "→ LinkedIn clip", "effort": "medium" },
+    { "to": "podcast", "label": "→ Podcast audio rip", "effort": "low" }
+  ]
+}

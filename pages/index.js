@@ -8,23 +8,65 @@ import AgentWorkspace from '../components/sections/AgentWorkspace';
 import AgentsHub from '../components/sections/AgentsHub';
 import MissionControl from '../components/sections/MissionControl';
 import OpenClawStatus from '../components/sections/OpenClawStatus';
+import HermesStatus from '../components/sections/HermesStatus';
+import HermesChat from '../components/sections/HermesChat';
+import TaskDispatch from '../components/sections/TaskDispatch';
 import TelegramApproval from '../components/sections/TelegramApproval';
 import {
   DigitalDiamondSection, ManagedByMikaSection, MedAISection,
   CannaOpsSection, HotelHookerSection, AITwinSection, LeadRecoverySection,
 } from '../components/sections/BrandSections';
 import {
-  PromptLibrarySection, GoalsSection, JournalSection, MemoryVaultSection,
+  PromptLibrarySection,
 } from '../components/sections/IntelligenceSections';
+import ObsidianGraph from '../components/sections/ObsidianGraph';
+import ExecutiveFloor from '../components/sections/ExecutiveFloor';
+import ProjectRoom from '../components/sections/ProjectRoom';
+import WorkforceDivision from '../components/sections/WorkforceDivision';
+import ContentDivision from '../components/sections/ContentDivision';
+import AgentDispatchCenter from '../components/sections/AgentDispatchCenter';
+import ExecutiveIntelligence from '../components/sections/ExecutiveIntelligence';
+import RevenueOpportunities from '../components/sections/RevenueOpportunities';
+import OfferLibrary  from '../components/sections/OfferLibrary';
+import LeadPipeline    from '../components/sections/LeadPipeline';
+import ProposalCenter  from '../components/sections/ProposalCenter';
+import ClientDelivery   from '../components/sections/ClientDelivery';
+import RevenueTracking    from '../components/sections/RevenueTracking';
+import AgentControlCenter  from '../components/sections/AgentControlCenter';
+import CostIntelligence   from '../components/sections/CostIntelligence';
+import ActivationGate     from '../components/sections/ActivationGate';
+import EngineeringDivision from '../components/sections/EngineeringDivision';
+import DiamondControlWorkspace from '../components/workspaces/DiamondControlWorkspace';
+import BoardroomWorkspace from '../components/workspaces/BoardroomWorkspace';
+import PlaceholderWorkspace from '../components/workspaces/PlaceholderWorkspace';
+import PaperclipWorkspace from '../components/workspaces/PaperclipWorkspace';
+import HermesWorkspace from '../components/workspaces/HermesWorkspace';
+import GoalsWorkspace from '../components/self/GoalsWorkspace';
+import JournalWorkspace from '../components/self/JournalWorkspace';
+import MemoryWorkspace from '../components/self/MemoryWorkspace';
+import NotebookWorkspace from '../components/self/NotebookWorkspace';
+import BuildGuide from '../components/self/BuildGuide';
+import LeadsWorkspace from '../components/business/LeadsWorkspace';
+import OffersWorkspace from '../components/business/OffersWorkspace';
+import ClientsWorkspace from '../components/business/ClientsWorkspace';
+import RevenueWorkspace from '../components/business/RevenueWorkspace';
+import ProjectsWorkspace from '../components/business/ProjectsWorkspace';
+import ContentPipelineBoard from '../components/content/ContentPipelineBoard';
+import StudioWorkspace from '../components/content/StudioWorkspace';
+import VideoWorkspace from '../components/content/VideoWorkspace';
+import ThumbnailStudio from '../components/content/ThumbnailStudio';
+import SEOWorkspace from '../components/content/SEOWorkspace';
+import ContentKanban from '../components/content/ContentKanban';
 import {
   fetchGatewayStatus, fetchActiveAgents, fetchPendingApprovals,
-  fetchOpenClawStatus,
-  fetchMissionQueue, fetchTaskOutputs, fetchWeeklyMetrics,
+  fetchOpenClawStatus, fetchSubmittedTasks, fetchHermesStatus,
+  fetchMissionQueue, fetchTaskOutputs, fetchWeeklyMetrics, fetchRevenueBrands,
   fetchGoals, fetchJournalEntries, fetchMemoryVault, fetchPrompts,
   fetchLeadMetrics, fetchCannaOpsData, fetchMedAIData,
 } from '../lib/api';
 import { useStore } from '../lib/store';
 import config from '../lib/config';
+import { resolveSectionId } from '../lib/navigation/workspaceRegistry';
 
 const pageTransition = {
   initial: { opacity: 0, x: 8 },
@@ -32,28 +74,40 @@ const pageTransition = {
   exit:    { opacity: 0, x: -8, transition: { duration: 0.18 } },
 };
 
+function StagedWorkspace({ title, description, note }) {
+  return (
+    <PlaceholderWorkspace
+      eyebrow="MIKA AGENTIC OS · STAGED WORKSPACE"
+      title={title}
+      description={description}
+      note={note || 'Available as a staged workspace. No connection or execution state is being claimed.'}
+    />
+  );
+}
+
 export default function Home() {
   const { activeSection, activeAgentId, setPendingApprovals, setGatewayStatus } = useStore();
 
   const [data, setData] = useState({
     gateway: null, agents: [], approvals: [], queue: [], outputs: [],
-    metrics: [], goals: [], journal: [], memory: [], prompts: [],
-    leads: null, cannaops: null, medai: null, openclaw: null,
+    metrics: [], revenueBrands: [], goals: [], journal: [], memory: [], prompts: [],
+    leads: null, cannaops: null, medai: null, openclaw: null, tasks: [], hermes: null,
   });
   const [loading, setLoading] = useState(true);
 
   const load = useCallback(async () => {
     try {
       const [
-        gateway, openclaw, agents, approvals, queue, outputs, metrics,
-        goals, journal, memory, prompts, leads, cannaops, medai,
+        gateway, openclaw, tasks, agents, approvals, queue, outputs, metrics, revenueBrands,
+        goals, journal, memory, prompts, leads, cannaops, medai, hermes,
       ] = await Promise.all([
-        fetchGatewayStatus(), fetchOpenClawStatus(), fetchActiveAgents(), fetchPendingApprovals(),
-        fetchMissionQueue(), fetchTaskOutputs(), fetchWeeklyMetrics(),
+        fetchGatewayStatus(), fetchOpenClawStatus(), fetchSubmittedTasks(),
+        fetchActiveAgents(), fetchPendingApprovals(),
+        fetchMissionQueue(), fetchTaskOutputs(), fetchWeeklyMetrics(), fetchRevenueBrands(),
         fetchGoals(), fetchJournalEntries(), fetchMemoryVault(), fetchPrompts(),
-        fetchLeadMetrics(), fetchCannaOpsData(), fetchMedAIData(),
+        fetchLeadMetrics(), fetchCannaOpsData(), fetchMedAIData(), fetchHermesStatus(),
       ]);
-      const next = { gateway, openclaw, agents, approvals, queue, outputs, metrics, goals, journal, memory, prompts, leads, cannaops, medai };
+      const next = { gateway, openclaw, tasks, agents, approvals, queue, outputs, metrics, revenueBrands, goals, journal, memory, prompts, leads, cannaops, medai, hermes };
       setData(next);
       setGatewayStatus(gateway);
       setPendingApprovals(approvals);
@@ -70,6 +124,8 @@ export default function Home() {
     const id = setInterval(() => {
       fetchGatewayStatus().then(s => { setGatewayStatus(s); setData(p => ({ ...p, gateway: s })); });
       fetchOpenClawStatus().then(s => setData(p => ({ ...p, openclaw: s })));
+      fetchHermesStatus().then(s => setData(p => ({ ...p, hermes: s })));
+      fetchSubmittedTasks().then(t => setData(p => ({ ...p, tasks: t })));
       fetchPendingApprovals().then(a => { setPendingApprovals(a); setData(p => ({ ...p, approvals: a })); });
     }, config.ui.liveRefreshMs);
     return () => clearInterval(id);
@@ -106,27 +162,70 @@ export default function Home() {
     }
 
     const sectionMap = {
-      'mission-control': <MissionControl data={data} />,
+      'diamond-control':        <DiamondControlWorkspace data={data} />,
+      'boardroom':              <BoardroomWorkspace />,
+      'build-guide':            <BuildGuide />,
+      'paperclip':              <PaperclipWorkspace />,
+      'ai-workforce':           <PaperclipWorkspace />,
+      'claude-code':            <StagedWorkspace title="Claude" description="Claude Code is registered in Mika's adapter layer, but this direct workspace is not activated." />,
+      'gemini':                 <StagedWorkspace title="Gemini" description="Gemini is an approved agent destination with no verified Mika workspace connection yet." />,
+      'codex':                  <StagedWorkspace title="Codex" description="Codex is registered in Mika's adapter layer, but this direct workspace is not activated." />,
+      'antigravity':            <StagedWorkspace title="Antigravity" description="Antigravity is an approved agent destination with no verified Mika workspace connection yet." />,
+      'free-claude-code':       <StagedWorkspace title="Free Claude Code" description="Free Claude Code is an approved agent destination with no verified Mika workspace connection yet." />,
+      'hermes-workspace':       <HermesWorkspace data={data} />,
+      'pipeline':               <ContentPipelineBoard />,
+      'studio':                 <StudioWorkspace />,
+      'video':                  <VideoWorkspace />,
+      'thumbnails':             <ThumbnailStudio />,
+      'seo':                    <SEOWorkspace />,
+      'kanban':                 <ContentKanban />,
+      'leads':                  <LeadsWorkspace />,
+      'offers':                 <OffersWorkspace />,
+      'clients':                <ClientsWorkspace />,
+      'revenue':                <RevenueWorkspace />,
+      'projects':               <ProjectsWorkspace data={data} />,
+      'executive-floor':        <ExecutiveFloor data={data} />,
+      'executive-intelligence': <ExecutiveIntelligence />,
+      'revenue-opportunities':  <RevenueOpportunities />,
+      'offer-library':          <OfferLibrary />,
+      'lead-pipeline':          <LeadPipeline />,
+      'proposal-center':        <ProposalCenter />,
+      'client-delivery':        <ClientDelivery />,
+      'revenue-tracking':       <RevenueTracking />,
+      'cost-intelligence':       <CostIntelligence />,
+      'agent-control-center':   <AgentControlCenter />,
+      'activation-gate':        <ActivationGate />,
+      'engineering-division':   <EngineeringDivision />,
+      'mission-control':        <MissionControl data={data} />,
+      'workforce':       <WorkforceDivision />,
+      'content-division':<ContentDivision />,
       'agents-hub':      <AgentsHub agents={config.agents} />,
       'openclaw-status': <OpenClawStatus data={data} />,
+      'hermes-status':   <HermesStatus data={data} />,
+      'hermes-chat':     <HermesChat />,
+      'task-dispatch':   <TaskDispatch />,
+      'agent-dispatch':  <AgentDispatchCenter />,
       'telegram':        <TelegramApproval data={data} />,
-      'digital-diamond': <DigitalDiamondSection />,
-      'managed-by-mika': <ManagedByMikaSection />,
-      'medai':           <MedAISection data={data} />,
-      'cannaops':        <CannaOpsSection data={data} />,
-      'hotel-hooker':    <HotelHookerSection />,
-      'ai-twin':         <AITwinSection />,
-      'lead-recovery':   <LeadRecoverySection data={data} />,
+      'digital-diamond': <ProjectRoom projectId="digital-diamond"><DigitalDiamondSection /></ProjectRoom>,
+      'managed-by-mika': <ProjectRoom projectId="managed-by-mika"><ManagedByMikaSection /></ProjectRoom>,
+      'medai':           <ProjectRoom projectId="medai"><MedAISection data={data} /></ProjectRoom>,
+      'cannaops':        <ProjectRoom projectId="cannaops"><CannaOpsSection data={data} /></ProjectRoom>,
+      'hotel-hooker':    <ProjectRoom projectId="hotel-hooker"><HotelHookerSection /></ProjectRoom>,
+      'ai-twin':         <ProjectRoom projectId="ai-twin"><AITwinSection /></ProjectRoom>,
+      'lead-recovery':   <ProjectRoom projectId="lead-recovery"><LeadRecoverySection data={data} /></ProjectRoom>,
       'prompt-library':  <PromptLibrarySection data={data} />,
-      'goals':           <GoalsSection data={data} />,
-      'journal':         <JournalSection data={data} />,
-      'memory-vault':    <MemoryVaultSection data={data} />,
+      'goals':           <GoalsWorkspace data={data} />,
+      'journal':         <JournalWorkspace data={data} />,
+      'memory-vault':    <MemoryWorkspace data={data} />,
+      'notebook':        <NotebookWorkspace data={data} />,
+      'knowledge-graph': <ObsidianGraph />,
     };
+    const resolvedSection = resolveSectionId(activeSection);
 
     return (
       <AnimatePresence mode="wait">
-        <motion.div key={activeSection} {...pageTransition}>
-          {sectionMap[activeSection] || (
+        <motion.div key={resolvedSection} {...pageTransition}>
+          {sectionMap[resolvedSection] || (
             <div className="flex items-center justify-center h-32">
               <p className="font-mono text-sm" style={{ color: 'var(--text-muted)' }}>Section not found</p>
             </div>
@@ -139,34 +238,18 @@ export default function Home() {
   return (
     <>
       <Head>
-        <title>Mika Mission Control</title>
-        <meta name="description" content="AI business cockpit" />
+        <title>MIKA AGENTIC OS™</title>
+        <meta name="description" content="Mika's agentic business command center" />
       </Head>
       <div className="flex h-screen overflow-hidden bg-cockpit">
-      <Sidebar />
-      <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
-        <TopBar gatewayStatus={data.gateway} />
-        <main className="flex-1 overflow-y-auto overflow-x-hidden">
-          <div className="max-w-6xl mx-auto px-6 py-6">
+        <Sidebar />
+        <main className="flex-1 min-w-0 overflow-y-auto overflow-x-hidden">
+          <div className="agent-os-canvas">
+            <TopBar gatewayStatus={data.gateway} openclawStatus={data.openclaw} />
             {renderContent()}
           </div>
         </main>
-        <footer
-          className="h-7 border-t flex items-center px-4 gap-6 flex-shrink-0"
-          style={{ background: 'var(--bg-topbar)', borderColor: 'var(--border-default)' }}
-        >
-          <span className="font-mono text-[9px]" style={{ color: 'var(--text-muted)' }}>MIKA MISSION CONTROL</span>
-          <span className="font-mono text-[9px]" style={{ color: 'var(--text-muted)' }}>MODE: MOCK DATA</span>
-          <div className="flex items-center gap-1.5">
-            <div className="status-dot online" style={{ width: 4, height: 4 }} />
-            <span className="font-mono text-[9px]" style={{ color: 'var(--teal)' }}>GATEWAY CONNECTED</span>
-          </div>
-          <span className="font-mono text-[9px] ml-auto" style={{ color: 'var(--text-muted)' }}>
-            v2.0.0 · {new Date().toLocaleDateString()}
-          </span>
-        </footer>
       </div>
-    </div>
     </>
   );
 }

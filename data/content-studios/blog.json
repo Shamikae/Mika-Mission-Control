@@ -1,0 +1,56 @@
+{
+  "id": "blog",
+  "name": "Blog Studio",
+  "platform": "Blog",
+  "color": "#c9a84c",
+  "icon": "✍",
+  "tagline": "SEO authority · Deep dives · Lead generation",
+  "assignedAgents": ["diamond", "twin", "content-architect", "editor", "publisher", "analytics-agent"],
+  "activeCampaigns": [
+    {
+      "id": "bc-1",
+      "name": "AI Implementation Guide Series — Digital Diamond",
+      "status": "active",
+      "stage": "script",
+      "progress": 35,
+      "pieces": 12,
+      "published": 3,
+      "target": "Rank page 1 for 'AI consulting' keywords",
+      "dueDate": "2026-08-01",
+      "brand": "digital-diamond"
+    }
+  ],
+  "contentQueue": [
+    { "id": "bq-1", "title": "'How to build an AI team for your business in 30 days' — 2500 word guide", "type": "article", "status": "in_progress", "agent": "content-architect", "priority": "high" },
+    { "id": "bq-2", "title": "MedAI case study: 40% reduction in no-shows", "type": "case_study", "status": "todo", "agent": "diamond", "priority": "high" },
+    { "id": "bq-3", "title": "Top 10 AI tools for property managers — SEO post", "type": "seo", "status": "todo", "agent": "twin", "priority": "medium" },
+    { "id": "bq-4", "title": "ADHD and AI: Why neurodivergent founders win", "type": "thought_leadership", "status": "todo", "agent": "twin", "priority": "low" }
+  ],
+  "publishingSchedule": [
+    { "time": "08:00", "days": ["Mon", "Thu"], "type": "full article" }
+  ],
+  "analytics": {
+    "placeholder": true,
+    "views": 5800,
+    "viewsTrend": 15,
+    "engagement": 6.2,
+    "followers": null,
+    "followersTrend": null,
+    "watchTime": "4m 30s avg read time",
+    "saves": 890,
+    "shares": 210,
+    "topPost": "I let AI run my business for a week — here's what happened",
+    "topPostViews": 2400
+  },
+  "quickActions": [
+    { "id": "qa-1", "label": "Draft Blog Post", "icon": "✍", "agent": "content-architect", "dispatch": "task-dispatch" },
+    { "id": "qa-2", "label": "Research SEO Keywords", "icon": "🔭", "agent": "trend-hunter", "dispatch": "hermes-chat" },
+    { "id": "qa-3", "label": "Write Case Study", "icon": "💎", "agent": "diamond", "dispatch": "task-dispatch" }
+  ],
+  "repurposingOptions": [
+    { "to": "linkedin", "label": "→ LinkedIn article", "effort": "low" },
+    { "to": "email", "label": "→ Email newsletter", "effort": "low" },
+    { "to": "tiktok", "label": "→ TikTok talking points", "effort": "medium" },
+    { "to": "podcast", "label": "→ Podcast episode", "effort": "medium" }
+  ]
+}

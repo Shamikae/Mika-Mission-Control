@@ -149,6 +149,6 @@ export default function handler(req, res) {
     res.json({ ok: true });
   } catch (e) {
     console.error('[vault]', e);
-    res.status(500).json({ error: e.message });
+    res.status(500).json({ error: 'Vault operation failed' });
   }
 }

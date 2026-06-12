@@ -132,7 +132,7 @@ export default function AgentsHub({ agents = [] }) {
                     border: `1px solid ${avatar.color}25`,
                   }}
                 >
-                  {agent.model.replace('gpt-4o', 'GPT-4o').replace('claude-3-5-sonnet-20241022', 'Sonnet 3.5')}
+                  {(agent.model || '—').replace('gpt-4o', 'GPT-4o').replace('claude-3-5-sonnet-20241022', 'Sonnet 3.5')}
                 </span>
                 {agent.memory && (
                   <span className="font-mono text-[9px] px-2 py-0.5 rounded-md"

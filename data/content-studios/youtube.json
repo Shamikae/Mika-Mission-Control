@@ -1,0 +1,57 @@
+{
+  "id": "youtube",
+  "name": "YouTube Studio",
+  "platform": "YouTube",
+  "color": "#ef4444",
+  "icon": "▶",
+  "tagline": "Long-form · SEO-driven · Authority content",
+  "assignedAgents": ["twin", "content-architect", "visual-designer", "video-producer", "editor", "publisher"],
+  "activeCampaigns": [
+    {
+      "id": "yc-1",
+      "name": "I Built an AI Business Team — Documentary Series",
+      "status": "active",
+      "stage": "script",
+      "progress": 25,
+      "pieces": 6,
+      "published": 0,
+      "target": "100k views by Q3",
+      "dueDate": "2026-08-01",
+      "brand": "ai-twin"
+    }
+  ],
+  "contentQueue": [
+    { "id": "yq-1", "title": "Episode 1: Building the AI team — full script", "type": "script", "status": "in_progress", "agent": "twin", "priority": "high" },
+    { "id": "yq-2", "title": "Thumbnail concepts for episode 1 — 3 variants", "type": "visual", "status": "todo", "agent": "visual-designer", "priority": "high" },
+    { "id": "yq-3", "title": "Video description + SEO tags — episode 1", "type": "seo", "status": "todo", "agent": "editor", "priority": "medium" },
+    { "id": "yq-4", "title": "Chapter markers and timestamps — episode 1", "type": "editing", "status": "todo", "agent": "editor", "priority": "low" }
+  ],
+  "publishingSchedule": [
+    { "time": "12:00", "days": ["Sat"], "type": "long-form video" },
+    { "time": "09:00", "days": ["Wed"], "type": "YouTube Short" }
+  ],
+  "analytics": {
+    "placeholder": true,
+    "views": 8200,
+    "viewsTrend": 4,
+    "engagement": 5.8,
+    "followers": 1100,
+    "followersTrend": 3,
+    "watchTime": "8m 42s avg",
+    "saves": 340,
+    "shares": 92,
+    "topPost": "How I automate my entire business with AI",
+    "topPostViews": 5100
+  },
+  "quickActions": [
+    { "id": "qa-1", "label": "Write Episode Script", "icon": "📐", "agent": "content-architect", "dispatch": "task-dispatch" },
+    { "id": "qa-2", "label": "Generate Thumbnail Brief", "icon": "🖼", "agent": "visual-designer", "dispatch": "task-dispatch" },
+    { "id": "qa-3", "label": "Research SEO Keywords", "icon": "🔭", "agent": "trend-hunter", "dispatch": "hermes-chat" }
+  ],
+  "repurposingOptions": [
+    { "to": "tiktok", "label": "→ TikTok clips (3-5)", "effort": "medium" },
+    { "to": "podcast", "label": "→ Podcast episode", "effort": "low" },
+    { "to": "blog", "label": "→ Blog post (transcript)", "effort": "low" },
+    { "to": "linkedin", "label": "→ LinkedIn article", "effort": "medium" }
+  ]
+}

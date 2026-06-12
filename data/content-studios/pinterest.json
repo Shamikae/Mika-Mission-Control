@@ -1,0 +1,65 @@
+{
+  "id": "pinterest",
+  "name": "Pinterest Studio",
+  "platform": "Pinterest",
+  "color": "#bd081c",
+  "icon": "📌",
+  "tagline": "Visual discovery · Long-tail SEO · Passive traffic",
+  "assignedAgents": ["hookr", "visual-designer", "prompt-engineer", "publisher"],
+  "activeCampaigns": [
+    {
+      "id": "pc-1",
+      "name": "AI Tools for Entrepreneurs — Board Series",
+      "status": "active",
+      "stage": "visuals",
+      "progress": 50,
+      "pieces": 20,
+      "published": 8,
+      "target": "50k monthly viewers",
+      "dueDate": "2026-06-30",
+      "brand": "digital-diamond"
+    },
+    {
+      "id": "pc-2",
+      "name": "Hotel Hooker Aesthetic Board",
+      "status": "active",
+      "stage": "publishing",
+      "progress": 80,
+      "pieces": 15,
+      "published": 12,
+      "target": "Drive booking link clicks",
+      "dueDate": "2026-06-10",
+      "brand": "hotel-hooker"
+    }
+  ],
+  "contentQueue": [
+    { "id": "pq-1", "title": "AI workflow infographic — 5 steps to automate your business", "type": "visual", "status": "in_progress", "agent": "visual-designer", "priority": "high" },
+    { "id": "pq-2", "title": "Hotel Hooker suite aesthetic pins ×5", "type": "visual", "status": "todo", "agent": "hookr", "priority": "medium" },
+    { "id": "pq-3", "title": "ADHD entrepreneur morning routine — checklist pin", "type": "visual", "status": "todo", "agent": "visual-designer", "priority": "low" }
+  ],
+  "publishingSchedule": [
+    { "time": "20:00", "days": ["Mon", "Wed", "Fri", "Sun"], "type": "pin batch" }
+  ],
+  "analytics": {
+    "placeholder": true,
+    "views": 31000,
+    "viewsTrend": 22,
+    "engagement": 2.4,
+    "followers": 890,
+    "followersTrend": 8,
+    "watchTime": null,
+    "saves": 2100,
+    "shares": 340,
+    "topPost": "AI tools for solopreneurs — 2026 edition",
+    "topPostViews": 9200
+  },
+  "quickActions": [
+    { "id": "qa-1", "label": "Create 5 Pins", "icon": "📌", "agent": "visual-designer", "dispatch": "task-dispatch" },
+    { "id": "qa-2", "label": "Research Trending Boards", "icon": "🔭", "agent": "trend-hunter", "dispatch": "hermes-chat" },
+    { "id": "qa-3", "label": "Generate Pin Descriptions", "icon": "✍", "agent": "editor", "dispatch": "task-dispatch" }
+  ],
+  "repurposingOptions": [
+    { "to": "instagram", "label": "→ Instagram posts", "effort": "low" },
+    { "to": "blog", "label": "→ Blog embedded visual", "effort": "low" }
+  ]
+}

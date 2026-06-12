@@ -116,7 +116,14 @@ export function PromptLibrarySection({ data }) {
           placeholder="Search prompts, tags, categories..."
           className="flex-1 bg-transparent border border-[rgba(201,168,76,0.15)] rounded-sm px-3 py-2 font-mono text-xs text-[#f0ede6] placeholder-[#4b5563] focus:outline-none focus:border-[rgba(201,168,76,0.4)] transition-colors"
         />
-        <button className="btn-gold">+ NEW PROMPT</button>
+        <button
+          type="button"
+          className="btn-ghost opacity-60 cursor-not-allowed"
+          disabled
+          title="Prompt creation is not connected yet"
+        >
+          NEW PROMPT · COMING SOON
+        </button>
       </motion.div>
 
       <div className="grid grid-cols-2 gap-3">
@@ -779,7 +786,16 @@ export function MemoryVaultSection({ data }) {
         icon="⬡"
         title="Memory Vault"
         subtitle="Persistent knowledge base — clients, SOPs, brand context, technical notes"
-        action={<button className="btn-gold">+ ADD MEMORY</button>}
+        action={(
+          <button
+            type="button"
+            className="btn-ghost opacity-60 cursor-not-allowed"
+            disabled
+            title="Memory creation requires a governed write workflow"
+          >
+            ADD MEMORY · CONFIGURATION PENDING
+          </button>
+        )}
       />
 
       <motion.div variants={fadeUp} className="flex gap-3 flex-wrap">

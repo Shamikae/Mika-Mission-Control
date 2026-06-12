@@ -1,0 +1,38 @@
+{
+  "version": "1.0",
+  "description": "Content Division skills registry. All skills are architectural definitions — none are implemented yet.",
+  "workflows": [
+    {
+      "id": "viral-content-workflow",
+      "name": "Viral Content Workflow",
+      "description": "End-to-end pipeline from trend discovery to published and repurposed content.",
+      "status": "planned",
+      "steps": [
+        { "step": 1, "id": "trend-discovery",  "label": "Trend Discovery",  "agent": "trend-hunter",      "output": "trending topic list" },
+        { "step": 2, "id": "trend-scoring",    "label": "Trend Scoring",    "agent": "pattern-hunter",    "output": "scored opportunity list" },
+        { "step": 3, "id": "hook-generation",  "label": "Hook Generation",  "agent": "hook-engineer",     "output": "hook batch ×10" },
+        { "step": 4, "id": "content-creation", "label": "Content Creation", "agent": "content-architect", "output": "full script" },
+        { "step": 5, "id": "video-creation",   "label": "Video Creation",   "agent": "video-producer",    "output": "video file" },
+        { "step": 6, "id": "publishing",       "label": "Publishing",       "agent": "publisher",         "output": "published post" },
+        { "step": 7, "id": "analytics",        "label": "Analytics",        "agent": "analytics-agent",   "output": "performance report" },
+        { "step": 8, "id": "repurposing",      "label": "Repurposing",      "agent": "content-architect", "output": "repurposed content batch" }
+      ]
+    }
+  ],
+  "skills": [
+    { "id": "viral-content-workflow", "name": "Viral Content Workflow",   "status": "planned",  "category": "workflow"    },
+    { "id": "trend-hunter",           "name": "Trend Hunter",             "status": "planned",  "category": "research"    },
+    { "id": "pattern-hunter",         "name": "Pattern Hunter",           "status": "planned",  "category": "research"    },
+    { "id": "creator-research",       "name": "Creator Research",         "status": "planned",  "category": "research"    },
+    { "id": "hook-engineer",          "name": "Hook Engineer",            "status": "planned",  "category": "creation"    },
+    { "id": "content-architect",      "name": "Content Architect",        "status": "planned",  "category": "creation"    },
+    { "id": "image-prompt-generator", "name": "Image Prompt Generator",   "status": "planned",  "category": "generation"  },
+    { "id": "caption-generator",      "name": "Caption Generator",        "status": "planned",  "category": "creation"    },
+    { "id": "repurposing-engine",     "name": "Repurposing Engine",       "status": "planned",  "category": "workflow"    },
+    { "id": "higgsfield-director",    "name": "Higgsfield Director",      "status": "planned",  "category": "video"       },
+    { "id": "veo-director",           "name": "Veo Director",             "status": "planned",  "category": "video"       },
+    { "id": "kling-director",         "name": "Kling Director",           "status": "planned",  "category": "video"       },
+    { "id": "heygen-director",        "name": "HeyGen Director",          "status": "planned",  "category": "video"       },
+    { "id": "video-router",           "name": "Video Router",             "status": "planned",  "category": "routing"     }
+  ]
+}

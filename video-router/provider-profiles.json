@@ -1,0 +1,315 @@
+{
+  "_version": "1.0",
+  "_updated": "2026-06-03",
+  "_description": "MIKA AGENTIC OS — Video Router provider profiles. All providers are STAGED. No API connections or video generation will occur. This file defines prompt formatting requirements and routing logic for when providers are activated.",
+  "_governance": "All video generation requires human approval. No provider may be called autonomously.",
+
+  "providers": [
+    {
+      "providerId": "higgsfield",
+      "displayName": "Higgsfield",
+      "emoji": "🎥",
+      "status": "staged",
+      "approvalRequired": true,
+      "costTier": "premium",
+      "inputTypes": ["text-to-video", "image-to-video"],
+      "outputTypes": ["cinematic", "short-form", "b-roll", "talking-head"],
+      "bestFor": "Luxury founder content, premium brand storytelling, cinematic quality",
+      "strengths": [
+        "Highest visual quality of commercial providers",
+        "Excellent camera motion and cinematic framing",
+        "Great for luxury and premium brand positioning",
+        "Handles complex lighting and atmosphere well"
+      ],
+      "limitations": [
+        "Higher cost per generation",
+        "Slower generation times",
+        "Less suited for fast-turnaround social content"
+      ],
+      "promptStyle": "cinematic-detailed",
+      "promptGuidance": "Use rich, detailed scene descriptions. Include camera movement, lighting quality, atmospheric details, and emotional tone. Longer prompts (3-5 sentences) perform better. Include negative prompt to exclude unwanted elements.",
+      "promptStructure": {
+        "fields": ["scene", "lighting", "camera", "motion", "mood", "style", "negativePrompt"],
+        "example": "A confident female entrepreneur sits in a minimalist studio, golden hour light streaming through floor-to-ceiling windows. Camera slowly pushes in from wide to medium close-up. Warm, aspirational atmosphere. Luxury tech aesthetic — clean, premium, focused. --negative ugly, distorted, low quality"
+      },
+      "recommendedUseCases": ["digital-diamond", "ai-twin", "managed-by-mika"],
+      "routingPriority": {
+        "luxury-founder": 1,
+        "cinematic": 1,
+        "premium-brand": 1,
+        "ugc-ad": 2,
+        "short-form": 3
+      }
+    },
+    {
+      "providerId": "heygen",
+      "displayName": "HeyGen",
+      "emoji": "🧑‍💻",
+      "status": "staged",
+      "approvalRequired": true,
+      "costTier": "medium",
+      "inputTypes": ["text-to-avatar", "script-to-video", "photo-avatar"],
+      "outputTypes": ["talking-head", "ai-twin", "product-demo", "explainer"],
+      "bestFor": "AI Twin content, avatar-based talking head videos, scripted explainers",
+      "strengths": [
+        "Best-in-class AI avatar quality",
+        "Excellent lip sync and natural expression",
+        "Supports custom avatar creation from photos",
+        "Fast generation for scripted content"
+      ],
+      "limitations": [
+        "Limited to talking-head and presenter formats",
+        "Less suited for cinematic or abstract content",
+        "Avatar variety limited to pre-built or custom uploads"
+      ],
+      "promptStyle": "script-avatar",
+      "promptGuidance": "Structure as: Avatar Selection, Background, Script, Voice, and Style settings. The 'prompt' is primarily the script the avatar will deliver. Background can be custom image/video or preset. Keep script clear and natural-sounding.",
+      "promptStructure": {
+        "fields": ["avatarId", "background", "script", "voiceId", "captionsEnabled", "resolution"],
+        "example": "Avatar: [Custom Avatar — Mika]\nBackground: [AI studio background — dark minimalist]\nScript: 'I 10x\\'d my content output in 3 days. No team, no agency. Here\\'s exactly how I did it.'\nVoice: [ElevenLabs — Confident Female]\nCaptions: Enabled\nResolution: 1080x1920 (vertical)"
+      },
+      "recommendedUseCases": ["ai-twin", "digital-diamond"],
+      "routingPriority": {
+        "ai-twin": 1,
+        "avatar": 1,
+        "talking-head": 1,
+        "explainer": 1,
+        "cinematic": 4
+      }
+    },
+    {
+      "providerId": "openart",
+      "displayName": "OpenArt",
+      "emoji": "🎨",
+      "status": "staged",
+      "approvalRequired": true,
+      "costTier": "low",
+      "inputTypes": ["text-to-image", "text-to-video", "image-to-video", "controlnet"],
+      "outputTypes": ["creative-image", "animated-still", "b-roll", "brand-asset", "thumbnail"],
+      "bestFor": "Creative brand assets, thumbnails, carousels, animated stills, B-roll imagery",
+      "strengths": [
+        "Excellent creative and artistic control",
+        "Wide model selection (SDXL, Flux, etc.)",
+        "Strong for brand assets and thumbnails",
+        "Good price-to-quality ratio",
+        "ControlNet support for precise composition"
+      ],
+      "limitations": [
+        "Less suited for realistic video/motion",
+        "Shorter video durations",
+        "Motion quality less refined than dedicated video providers"
+      ],
+      "promptStyle": "diffusion-artistic",
+      "promptGuidance": "Use Stable Diffusion / Flux prompt syntax. Include style keywords, quality boosters, and negative prompts. Supports ControlNet for reference images. Use :: weight syntax for emphasis. Keep prompts 50-150 words.",
+      "promptStructure": {
+        "fields": ["positivePrompt", "negativePrompt", "model", "style", "aspectRatio", "steps"],
+        "example": "Confident female creator in minimalist studio, golden hour lighting, shallow depth of field, professional headshot, luxury aesthetic, 8k resolution, photorealistic, cinematic color grade\n--negative ugly, deformed, blurry, amateur, busy background\nModel: Flux 1.1 Pro | AR: 9:16 | Steps: 30"
+      },
+      "recommendedUseCases": ["ai-twin", "hotel-hooker", "digital-diamond"],
+      "routingPriority": {
+        "b-roll": 1,
+        "brand-asset": 1,
+        "thumbnail": 1,
+        "creative-image": 1,
+        "cinematic": 3
+      }
+    },
+    {
+      "providerId": "veo",
+      "displayName": "Veo (Google DeepMind)",
+      "emoji": "🌊",
+      "status": "staged",
+      "approvalRequired": true,
+      "costTier": "premium",
+      "inputTypes": ["text-to-video", "image-to-video"],
+      "outputTypes": ["cinematic", "storytelling", "narrative", "long-form"],
+      "bestFor": "Cinematic storytelling, narrative content, coherent long-form scenes",
+      "strengths": [
+        "Best narrative coherence across all providers",
+        "Excellent subject and motion consistency across frames",
+        "Strong for storytelling and branded content",
+        "Good at following complex scene descriptions"
+      ],
+      "limitations": [
+        "Premium cost",
+        "Access currently limited via Google Vertex AI",
+        "Less suited for fast-turnaround short-form social"
+      ],
+      "promptStyle": "narrative-cinematic",
+      "promptGuidance": "Write as a director's shot description. Include: Subject description, setting, action, camera movement, duration (4s or 8s), aspect ratio, mood. Veo responds well to clear action and motion descriptions.",
+      "promptStructure": {
+        "fields": ["subject", "setting", "action", "cameraMovement", "duration", "aspectRatio", "mood"],
+        "example": "A female entrepreneur walks confidently through a glass-walled office at golden hour. Camera tracks alongside her at shoulder height, smooth dolly movement. She pauses, looks directly at camera with a knowing smile. Duration: 8s. Aspect: 16:9. Mood: confident, aspirational, premium."
+      },
+      "recommendedUseCases": ["digital-diamond", "ai-twin"],
+      "routingPriority": {
+        "cinematic": 2,
+        "storytelling": 1,
+        "narrative": 1,
+        "short-form": 4
+      }
+    },
+    {
+      "providerId": "kling",
+      "displayName": "Kling",
+      "emoji": "⚡",
+      "status": "staged",
+      "approvalRequired": true,
+      "costTier": "low",
+      "inputTypes": ["text-to-video", "image-to-video"],
+      "outputTypes": ["short-form", "social-video", "product-demo", "ugc-style"],
+      "bestFor": "Fast social video, TikTok/Reels, UGC-style content, quick product demos",
+      "strengths": [
+        "Fast generation speed",
+        "Optimised for short-form social formats",
+        "Good image-to-video consistency",
+        "Cost-effective for high-volume content",
+        "TikTok/Instagram Reels aspect ratios native"
+      ],
+      "limitations": [
+        "Lower cinematic quality than Higgsfield/Veo",
+        "Less detailed atmospheric control",
+        "Better suited for 5-10 second clips"
+      ],
+      "promptStyle": "social-brief",
+      "promptGuidance": "Keep prompts concise and action-focused (1-2 sentences). Lead with the subject and primary action. Include aspect ratio and duration. Kling responds better to direct, clear descriptions than poetic/atmospheric ones.",
+      "promptStructure": {
+        "fields": ["subject", "action", "setting", "aspectRatio", "duration"],
+        "example": "Female creator talking directly to camera in modern studio, gesturing confidently, natural lighting. Vertical 9:16, 8 seconds."
+      },
+      "recommendedUseCases": ["ai-twin", "hotel-hooker", "cannaops"],
+      "routingPriority": {
+        "short-form": 1,
+        "ugc-ad": 1,
+        "social-video": 1,
+        "cinematic": 4
+      }
+    },
+    {
+      "providerId": "wan",
+      "displayName": "Wan (Wan2.1)",
+      "emoji": "🔓",
+      "status": "staged",
+      "approvalRequired": true,
+      "costTier": "free",
+      "inputTypes": ["text-to-video", "image-to-video"],
+      "outputTypes": ["open-source", "experimental", "b-roll", "abstract"],
+      "bestFor": "Open-source generation, zero API cost, local execution, experimental workflows",
+      "strengths": [
+        "No API cost — runs locally or on own infrastructure",
+        "Full control over generation parameters",
+        "Good for experimental and non-commercial content",
+        "Open weights — can be fine-tuned",
+        "Active community and LoRA support"
+      ],
+      "limitations": [
+        "Requires local GPU (VRAM 12GB+) or hosted setup",
+        "Lower quality ceiling than commercial providers",
+        "Slower without dedicated hardware",
+        "Less consistent for brand-critical content"
+      ],
+      "promptStyle": "open-source-detailed",
+      "promptGuidance": "Use Wan-style prompts: positive prompt, negative prompt, and optional motion score. Include subject, environment, lighting, and quality descriptors. Add 'masterpiece, best quality, high resolution' for quality boosting. Use negative prompt to control artifacts.",
+      "promptStructure": {
+        "fields": ["positivePrompt", "negativePrompt", "motionScore", "resolution", "fps"],
+        "example": "Masterpiece, best quality, high resolution. Confident woman at desk in modern office, natural window lighting, shallow depth of field, professional look, smooth motion.\n--negative low quality, artifacts, distorted face, jerky motion, blurry\nMotion Score: 4 | 720p | 16fps"
+      },
+      "recommendedUseCases": ["cannaops", "medai"],
+      "routingPriority": {
+        "low-cost": 1,
+        "experimental": 1,
+        "b-roll": 2,
+        "cinematic": 5
+      }
+    },
+    {
+      "providerId": "comfyui",
+      "displayName": "ComfyUI",
+      "emoji": "⚙",
+      "status": "staged",
+      "approvalRequired": true,
+      "costTier": "free",
+      "inputTypes": ["workflow-json", "text-to-image", "text-to-video", "image-processing"],
+      "outputTypes": ["custom-workflow", "image", "video", "animation"],
+      "bestFor": "Advanced local workflows, custom node pipelines, maximum control over generation",
+      "strengths": [
+        "Maximum workflow control via node graph",
+        "Supports every open-source model and LoRA",
+        "Can chain complex generation steps",
+        "No API cost — fully local",
+        "Hugely customisable for brand-specific outputs"
+      ],
+      "limitations": [
+        "Requires technical setup (GPU, node configuration)",
+        "Higher complexity — not suitable for quick iterations",
+        "Workflow design requires ComfyUI expertise",
+        "Primarily for power users"
+      ],
+      "promptStyle": "workflow-node",
+      "promptGuidance": "Define as a workflow brief: specify the node chain (model → sampling → upscaling), checkpoint, LoRA models, VAE, and sampler settings. The 'prompt' describes both the visual content AND the workflow configuration.",
+      "promptStructure": {
+        "fields": ["checkpointModel", "loraModels", "positivePrompt", "negativePrompt", "samplerSettings", "upscaleMethod"],
+        "example": "Checkpoint: RealVisXL v5.0\nLoRA: [brand-aesthetic v1.2 strength: 0.8]\nPositive: Confident woman at minimal desk, cinematic lighting, shallow DOF, editorial quality\nNegative: ugly, deformed, watermark, low quality\nSampler: DPM++ 2M Karras | Steps: 30 | CFG: 7\nUpscale: 4x UltraSharp"
+      },
+      "recommendedUseCases": ["digital-diamond"],
+      "routingPriority": {
+        "advanced-workflow": 1,
+        "custom-generation": 1,
+        "cinematic": 3,
+        "short-form": 5
+      }
+    },
+    {
+      "providerId": "hyperframes",
+      "displayName": "HyperFrames",
+      "emoji": "🎞",
+      "status": "staged",
+      "approvalRequired": true,
+      "costTier": "medium",
+      "inputTypes": ["text-to-video", "image-to-video", "prompt-pack"],
+      "outputTypes": ["cinematic-product", "b-roll", "brand-asset", "lifestyle-shot"],
+      "bestFor": "Cinematic product showcases, B-roll packages, lifestyle brand content",
+      "strengths": [
+        "Purpose-built for product and brand B-roll",
+        "High visual fidelity for physical product shots",
+        "Prompt pack native — reads video-prompt-pack.json directly",
+        "Excellent for lifestyle and aspirational brand content"
+      ],
+      "limitations": [
+        "Not suited for talking-head or avatar content",
+        "Less flexible for abstract or experimental styles",
+        "Requires detailed visual prompt packs for best results"
+      ],
+      "promptStyle": "product-cinematic",
+      "promptGuidance": "Structure prompts around the product or scene as subject. Specify surface, lighting rig, camera angle, motion speed, and background. Reference brand colour palette for consistency. Use the visual_prompting stage output from the viral workflow as the primary input.",
+      "promptStructure": {
+        "fields": ["subject", "surface", "lighting", "cameraAngle", "motion", "background", "colorPalette", "mood"],
+        "example": "Luxury skincare serum bottle on a dark slate surface. Soft side-lighting with warm gold highlights. Camera arcs slowly left to right at eye level. Background: deep obsidian bokeh. Color palette: gold and black. Mood: premium, confident, editorial."
+      },
+      "recommendedUseCases": ["digital-diamond", "managed-by-mika", "ecommerce"],
+      "routingPriority": {
+        "cinematic-product": 1,
+        "b-roll": 1,
+        "brand-asset": 1,
+        "cinematic": 2,
+        "short-form": 4
+      }
+    }
+  ],
+
+  "budgetModes": {
+    "low-cost":  { "preferredProviders": ["wan", "comfyui", "kling", "openart"], "label": "Low Cost",  "description": "Prioritise free/open-source and low-cost providers" },
+    "balanced":  { "preferredProviders": ["kling", "openart", "heygen"],         "label": "Balanced",  "description": "Best price-to-quality ratio with commercial providers" },
+    "premium":   { "preferredProviders": ["higgsfield", "veo", "heygen"],        "label": "Premium",   "description": "Highest quality commercial providers" }
+  },
+
+  "contentFormatRouting": {
+    "short-form":  { "primary": "kling",      "secondary": "wan",        "tertiary": "openart"   },
+    "avatar":      { "primary": "heygen",     "secondary": "higgsfield", "tertiary": "openart"   },
+    "cinematic":   { "primary": "higgsfield", "secondary": "veo",        "tertiary": "openart"   },
+    "ugc-ad":      { "primary": "kling",      "secondary": "higgsfield", "tertiary": "wan"       },
+    "b-roll":           { "primary": "hyperframes", "secondary": "openart",    "tertiary": "wan"        },
+    "cinematic-product":{ "primary": "hyperframes", "secondary": "higgsfield", "tertiary": "openart"   },
+    "ai-twin":     { "primary": "heygen",     "secondary": "higgsfield", "tertiary": "kling"     }
+  }
+}

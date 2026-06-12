@@ -1,0 +1,56 @@
+{
+  "id": "podcast",
+  "name": "Podcast Studio",
+  "platform": "Podcast",
+  "color": "#8b5cf6",
+  "icon": "🎙",
+  "tagline": "Deep conversations · AI voice · Long-form authority",
+  "assignedAgents": ["twin", "content-architect", "voice-producer", "editor", "publisher"],
+  "activeCampaigns": [
+    {
+      "id": "pod-1",
+      "name": "Built by Pressure — Founder AI Stories",
+      "status": "active",
+      "stage": "script",
+      "progress": 20,
+      "pieces": 4,
+      "published": 0,
+      "target": "500 listeners by episode 10",
+      "dueDate": "2026-07-15",
+      "brand": "ai-twin"
+    }
+  ],
+  "contentQueue": [
+    { "id": "podq-1", "title": "Episode 1: How I replaced a full team with AI — full script", "type": "script", "status": "in_progress", "agent": "twin", "priority": "high" },
+    { "id": "podq-2", "title": "Episode 1: AI voice production + audio mastering", "type": "audio", "status": "todo", "agent": "voice-producer", "priority": "high" },
+    { "id": "podq-3", "title": "Episode 1: Show notes + chapter markers", "type": "writing", "status": "todo", "agent": "editor", "priority": "medium" },
+    { "id": "podq-4", "title": "Episode 2: ADHD, AI, and building a company alone — outline", "type": "outline", "status": "todo", "agent": "content-architect", "priority": "low" }
+  ],
+  "publishingSchedule": [
+    { "time": "08:00", "days": ["Wed"], "type": "full episode" }
+  ],
+  "analytics": {
+    "placeholder": true,
+    "views": 0,
+    "viewsTrend": 0,
+    "engagement": 0,
+    "followers": 0,
+    "followersTrend": 0,
+    "watchTime": "Not yet live",
+    "saves": 0,
+    "shares": 0,
+    "topPost": null,
+    "topPostViews": 0
+  },
+  "quickActions": [
+    { "id": "qa-1", "label": "Write Episode Script", "icon": "📐", "agent": "content-architect", "dispatch": "task-dispatch" },
+    { "id": "qa-2", "label": "Generate Episode Outline", "icon": "✍", "agent": "twin", "dispatch": "task-dispatch" },
+    { "id": "qa-3", "label": "Produce Show Notes", "icon": "🎙", "agent": "editor", "dispatch": "task-dispatch" }
+  ],
+  "repurposingOptions": [
+    { "to": "youtube", "label": "→ YouTube video", "effort": "low" },
+    { "to": "tiktok", "label": "→ TikTok audio clip", "effort": "low" },
+    { "to": "blog", "label": "→ Blog transcript", "effort": "low" },
+    { "to": "linkedin", "label": "→ LinkedIn post", "effort": "low" }
+  ]
+}
