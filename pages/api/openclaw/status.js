@@ -1,10 +1,5 @@
-const MOCK_STATUS = {
-  status: 'LIVE',
-  latencyMs: 0,
-  lastChecked: null,
-  error: null,
-  source: 'mock',
-};
+import { persistHealthResults } from '../../../lib/adapters/adapterHealth';
+import { sanitizeAdapterHealthResult } from '../../../lib/security/sanitizeHealth';
 
 function joinUrl(baseUrl, endpointPath) {
   const base = baseUrl.replace(/\/+$/, '');
@@ -45,11 +40,25 @@ export default async function handler(req, res) {
   const lastChecked = new Date().toISOString();
 
   if (!enabled) {
+    persistHealthResults([sanitizeAdapterHealthResult({
+      adapterId: 'openclaw', displayName: 'OpenClaw Gateway', adapterStatus: 'active',
+      health: 'offline', ok: false, reason: 'disabled', checkedAt: lastChecked,
+    })], { appendLog: false });
     return res.status(200).json({ status: 'DISABLED', latencyMs: 0, lastChecked, error: null, source: 'openclaw' });
   }
 
   if (!gatewayUrl) {
-    return res.status(200).json({ ...MOCK_STATUS, lastChecked });
+    persistHealthResults([sanitizeAdapterHealthResult({
+      adapterId: 'openclaw', displayName: 'OpenClaw Gateway', adapterStatus: 'active',
+      health: 'misconfigured', ok: false, reason: 'not_configured', checkedAt: lastChecked,
+    })], { appendLog: false });
+    return res.status(200).json({
+      status: 'UNKNOWN',
+      latencyMs: null,
+      lastChecked,
+      error: 'OpenClaw is not configured.',
+      source: 'unavailable',
+    });
   }
 
   const controller = new AbortController();
@@ -78,6 +87,17 @@ export default async function handler(req, res) {
 
     const latencyMs = Date.now() - started;
     const status = normalizeStatus(response.ok, payload);
+    persistHealthResults([sanitizeAdapterHealthResult({
+      adapterId: 'openclaw',
+      displayName: 'OpenClaw Gateway',
+      adapterStatus: 'active',
+      health: status === 'LIVE' ? 'healthy' : status === 'DEGRADED' ? 'warning' : 'offline',
+      ok: status === 'LIVE',
+      latencyMs,
+      reason: status === 'LIVE' ? null : 'runtime_check_failed',
+      checkedAt: lastChecked,
+      rawStatus: status.toLowerCase(),
+    })], { appendLog: false });
 
     return res.status(200).json({
       status,
@@ -93,11 +113,23 @@ export default async function handler(req, res) {
     const latencyMs = Date.now() - started;
     const isTimeout = error.name === 'AbortError';
 
+    persistHealthResults([sanitizeAdapterHealthResult({
+      adapterId: 'openclaw',
+      displayName: 'OpenClaw Gateway',
+      adapterStatus: 'active',
+      health: 'offline',
+      ok: false,
+      latencyMs,
+      reason: isTimeout ? 'timeout' : 'unreachable',
+      checkedAt: lastChecked,
+      rawStatus: 'offline',
+    })], { appendLog: false });
+
     return res.status(200).json({
       status: 'OFFLINE',
       latencyMs,
       lastChecked,
-      error: isTimeout ? `OpenClaw status request timed out after ${timeoutMs}ms` : error.message,
+      error: isTimeout ? 'OpenClaw status request timed out.' : 'OpenClaw is unreachable.',
       source: 'openclaw',
     });
   } finally {

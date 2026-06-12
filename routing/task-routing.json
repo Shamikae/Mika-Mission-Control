@@ -146,12 +146,12 @@
     {
       "taskType": "Revenue Strategy",
       "primaryAgentId": "openclaw",
-      "fallbackAgentId": "recovery",
+      "fallbackAgentId": null,
       "requiresApproval": true,
       "allowedExecutionModes": ["gateway", "openclaw"],
       "maxRuntimeSeconds": 180,
       "costTier": "free",
-      "notes": "OpenClaw synthesizes revenue strategy from agent data. Recovery handles lead reactivation. All revenue decisions require Mika approval."
+      "notes": "OpenClaw synthesizes revenue strategy from agent data. No registered fallback is available. All revenue decisions require Mika approval."
     },
     {
       "taskType": "Content",
@@ -165,13 +165,13 @@
     },
     {
       "taskType": "Lead Recovery",
-      "primaryAgentId": "recovery",
-      "fallbackAgentId": "openclaw",
+      "primaryAgentId": "openclaw",
+      "fallbackAgentId": null,
       "requiresApproval": true,
       "allowedExecutionModes": ["openclaw"],
       "maxRuntimeSeconds": 120,
       "costTier": "free",
-      "notes": "Recovery agent handles WhatsApp and email lead reactivation sequences. Always requires approval — direct contact with leads."
+      "notes": "No dedicated recovery agent is registered. OpenClaw may prepare a lead reactivation plan, but all direct-contact actions remain approval-gated."
     },
     {
       "taskType": "Automation",

@@ -1,8 +1,13 @@
 // GET /api/adapters/status
-// Runs live healthCheck() on every registered adapter.
+// Runs and persists the same sanitized evidence used by dispatch.
 // Slow — pings real services. Use on-demand only (not on page load).
 
-import { healthCheckAll, listAdapters } from '../../../lib/adapters/loadAdapter';
+import {
+  runAllAdapterHealthChecks,
+  persistHealthResults,
+  getAdapterHealthSummary,
+} from '../../../lib/adapters/adapterHealth';
+import { sanitizeAdapterHealthResult } from '../../../lib/security/sanitizeHealth';
 import fs   from 'fs';
 import path from 'path';
 
@@ -16,23 +21,17 @@ export default async function handler(req, res) {
 
   const adapterMaint = readJson(path.join(ROOT, 'data', 'adapter-maintenance.json'), { maintenance: {} });
 
-  const results = await healthCheckAll();
+  const results = await runAllAdapterHealthChecks();
+  const store = persistHealthResults(results);
 
   // Merge maintenance state into results
   const enriched = results.map(r => ({
-    ...r,
+    ...sanitizeAdapterHealthResult(r),
     inMaintenance: adapterMaint.maintenance?.[r.adapterId]?.active === true,
     maintenanceReason: adapterMaint.maintenance?.[r.adapterId]?.reason || null,
   }));
 
-  const summary = {
-    total:         enriched.length,
-    healthy:       enriched.filter(r => r.ok && !r.inMaintenance).length,
-    failed:        enriched.filter(r => !r.ok && r.status !== 'staged' && r.status !== 'disabled').length,
-    staged:        enriched.filter(r => r.status === 'staged').length,
-    maintenance:   enriched.filter(r => r.inMaintenance).length,
-    misconfigured: enriched.filter(r => r.status === 'misconfigured').length,
-  };
+  const summary = getAdapterHealthSummary(store);
 
-  return res.status(200).json({ results: enriched, summary, checkedAt: new Date().toISOString() });
+  return res.status(200).json({ results: enriched, summary, checkedAt: store.checkedAt });
 }

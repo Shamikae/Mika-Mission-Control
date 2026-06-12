@@ -4,6 +4,7 @@
 
 import { loadAdapterHealth, getAdapterHealthSummary } from '../../../../lib/adapters/adapterHealth';
 import { listAdapters } from '../../../../lib/adapters/loadAdapter';
+import { sanitizeAdapterHealthResult } from '../../../../lib/security/sanitizeHealth';
 
 export default function handler(req, res) {
   if (req.method !== 'GET') return res.status(405).json({ error: 'Method not allowed' });
@@ -15,7 +16,10 @@ export default function handler(req, res) {
   const registered = listAdapters();
   const adapterList = registered.map(a => ({
     ...a,
-    ...(store.adapters[a.adapterId] || {
+    ...sanitizeAdapterHealthResult(store.adapters[a.adapterId] || {
+      adapterId:      a.adapterId,
+      displayName:    a.displayName,
+      adapterStatus:  a.status,
       health:         null,
       ok:             null,
       latencyMs:      null,
@@ -33,6 +37,5 @@ export default function handler(req, res) {
     neverChecked: !store.checkedAt,
     summary,
     adapters: adapterList,
-    raw: store.adapters,
   });
 }
