@@ -229,7 +229,7 @@ html, body {
   color: #07090f;
   font-family: 'Syne', sans-serif;
   font-weight: 700;
-  font-size: 0.7rem;
+  font-size: 0.8rem;
   letter-spacing: 0.08em;
   text-transform: uppercase;
   padding: 0.5rem 1.25rem;
@@ -249,7 +249,7 @@ html, body {
   color: var(--gold);
   font-family: 'Syne', sans-serif;
   font-weight: 600;
-  font-size: 0.7rem;
+  font-size: 0.8rem;
   letter-spacing: 0.07em;
   text-transform: uppercase;
   padding: 0.5rem 1.25rem;
@@ -267,7 +267,7 @@ html, body {
   color: #ef4444;
   font-family: 'Syne', sans-serif;
   font-weight: 600;
-  font-size: 0.7rem;
+  font-size: 0.8rem;
   letter-spacing: 0.07em;
   text-transform: uppercase;
   padding: 0.5rem 1.25rem;
@@ -329,7 +329,7 @@ html, body {
   border-radius: 4px 16px 16px 16px;
   padding: 12px 16px;
   max-width: 80%;
-  font-size: 0.875rem;
+  font-size: 0.9375rem;
   line-height: 1.6;
   color: var(--text-primary);
   word-break: break-word;
@@ -341,7 +341,7 @@ html, body {
   border-radius: 16px 4px 16px 16px;
   padding: 12px 16px;
   max-width: 72%;
-  font-size: 0.875rem;
+  font-size: 0.9375rem;
   line-height: 1.6;
   font-weight: 500;
   word-break: break-word;
@@ -408,7 +408,7 @@ html, body {
   display: inline-flex;
   align-items: center;
   font-family: 'JetBrains Mono', monospace;
-  font-size: 0.6rem;
+  font-size: 0.75rem;
   font-weight: 500;
   letter-spacing: 0.04em;
   padding: 2px 8px;
@@ -429,15 +429,15 @@ button, a, .btn-gold, .btn-ghost, .btn-danger {
 }
 
 /* ── Legibility scale ──────────────────────────────────────── */
-/* Bumps all tiny px-based text sizes up by 2px for readability.
+/* Bumps all tiny px-based text sizes up for readability.
    Placed after @tailwind utilities so cascade order takes effect. */
-.text-\[7px\]  { font-size:  9px; }
-.text-\[8px\]  { font-size: 10px; }
-.text-\[9px\]  { font-size: 11px; }
-.text-\[10px\] { font-size: 12px; }
-.text-\[11px\] { font-size: 13px; }
-.text-\[12px\] { font-size: 14px; }
-.text-\[13px\] { font-size: 15px; }
+.text-\[7px\]  { font-size: 11px; }
+.text-\[8px\]  { font-size: 12px; }
+.text-\[9px\]  { font-size: 13px; }
+.text-\[10px\] { font-size: 14px; }
+.text-\[11px\] { font-size: 15px; }
+.text-\[12px\] { font-size: 16px; }
+.text-\[13px\] { font-size: 17px; }
 
 /* ── MIKA AGENTIC OS shell ────────────────────────────────── */
 .mika-sidebar {
@@ -472,7 +472,7 @@ button, a, .btn-gold, .btn-ghost, .btn-danger {
 .mika-logo-mark span {
   color: #071020;
   font-family: 'Syne', sans-serif;
-  font-size: 10px;
+  font-size: 13px;
   font-weight: 800;
   letter-spacing: -0.04em;
 }
@@ -480,7 +480,7 @@ button, a, .btn-gold, .btn-ghost, .btn-danger {
 .nav-group-label,
 .workspace-eyebrow {
   font-family: 'JetBrains Mono', monospace;
-  font-size: 9px;
+  font-size: 12px;
   font-weight: 600;
   letter-spacing: 0.2em;
   text-transform: uppercase;
@@ -544,7 +544,7 @@ button, a, .btn-gold, .btn-ghost, .btn-danger {
   text-overflow: ellipsis;
   white-space: nowrap;
   font-family: 'Syne', sans-serif;
-  font-size: 11px;
+  font-size: 14px;
   font-weight: 600;
 }
 
@@ -571,7 +571,7 @@ button, a, .btn-gold, .btn-ghost, .btn-danger {
   border-radius: 6px;
   color: var(--text-muted);
   font-family: 'DM Sans', sans-serif;
-  font-size: 11px;
+  font-size: 14px;
   text-align: left;
 }
 
@@ -606,7 +606,7 @@ button, a, .btn-gold, .btn-ghost, .btn-danger {
 .nav-state-label {
   padding: 2px 5px;
   font-family: 'JetBrains Mono', monospace;
-  font-size: 7px;
+  font-size: 10px;
   letter-spacing: 0.08em;
 }
 
@@ -627,7 +627,7 @@ button, a, .btn-gold, .btn-ghost, .btn-danger {
   border: 1px solid rgba(239, 68, 68, 0.35);
   color: #fca5a5;
   font-family: 'JetBrains Mono', monospace;
-  font-size: 8px;
+  font-size: 11px;
 }
 
 .workspace-placeholder {
@@ -662,7 +662,7 @@ button, a, .btn-gold, .btn-ghost, .btn-danger {
   border: 1px solid;
   border-radius: 999px;
   font-family: 'JetBrains Mono', monospace;
-  font-size: 8px;
+  font-size: 11px;
   letter-spacing: 0.14em;
 }
 
@@ -673,7 +673,7 @@ button, a, .btn-gold, .btn-ghost, .btn-danger {
   background: rgba(216, 189, 120, 0.05);
   color: var(--text-muted);
   font-family: 'JetBrains Mono', monospace;
-  font-size: 10px;
+  font-size: 13px;
   line-height: 1.7;
 }
 
@@ -707,7 +707,7 @@ button, a, .btn-gold, .btn-ghost, .btn-danger {
 .agent-os-brand-subtitle {
   display: block;
   font-family: 'DM Sans', sans-serif;
-  font-size: 9px;
+  font-size: 12px;
   font-weight: 600;
   letter-spacing: 0.22em;
   text-transform: uppercase;
@@ -735,7 +735,7 @@ button, a, .btn-gold, .btn-ghost, .btn-danger {
 
 .agent-os-brand-subtitle {
   color: var(--champagne-gold);
-  font-size: 8px;
+  font-size: 11px;
 }
 
 .agent-os-nav {
@@ -753,7 +753,7 @@ button, a, .btn-gold, .btn-ghost, .btn-danger {
 .agent-os-section-label {
   padding: 0 20px 7px;
   font-family: 'DM Sans', sans-serif;
-  font-size: 9px;
+  font-size: 12px;
   font-weight: 700;
   letter-spacing: 0.2em;
   text-transform: uppercase;
@@ -814,7 +814,7 @@ button, a, .btn-gold, .btn-ghost, .btn-danger {
   flex: 1;
   overflow: hidden;
   font-family: 'Syne', sans-serif;
-  font-size: 12px;
+  font-size: 15px;
   font-weight: 500;
   line-height: 1.25;
   text-overflow: ellipsis;
@@ -838,7 +838,7 @@ button, a, .btn-gold, .btn-ghost, .btn-danger {
   border-radius: 999px;
   color: var(--champagne-gold);
   font-family: 'JetBrains Mono', monospace;
-  font-size: 8px;
+  font-size: 11px;
 }
 
 .agent-os-subnav {
@@ -857,7 +857,7 @@ button, a, .btn-gold, .btn-ghost, .btn-danger {
   padding: 5px 7px;
   color: var(--text-muted);
   font-family: 'DM Sans', sans-serif;
-  font-size: 11px;
+  font-size: 14px;
   text-align: left;
 }
 
@@ -887,7 +887,7 @@ button, a, .btn-gold, .btn-ghost, .btn-danger {
   flex-shrink: 0;
   border-radius: 6px;
   color: white;
-  font-size: 8px;
+  font-size: 11px;
 }
 
 .agent-os-sidebar-footer {
@@ -896,7 +896,7 @@ button, a, .btn-gold, .btn-ghost, .btn-danger {
   border-top: 1px solid var(--border-default);
   color: var(--text-muted);
   font-family: 'JetBrains Mono', monospace;
-  font-size: 9px;
+  font-size: 12px;
   line-height: 1.8;
 }
 
@@ -940,7 +940,7 @@ button, a, .btn-gold, .btn-ghost, .btn-danger {
   gap: 13px;
   color: var(--text-muted);
   font-family: 'DM Sans', sans-serif;
-  font-size: 10px;
+  font-size: 13px;
   font-weight: 600;
   letter-spacing: 0.2em;
   text-transform: uppercase;
@@ -998,7 +998,7 @@ button, a, .btn-gold, .btn-ghost, .btn-danger {
   margin-top: 16px;
   color: var(--text-muted);
   font-family: 'DM Sans', sans-serif;
-  font-size: 9px;
+  font-size: 12px;
   font-weight: 600;
   letter-spacing: 0.14em;
   text-transform: uppercase;
@@ -1034,7 +1034,7 @@ button, a, .btn-gold, .btn-ghost, .btn-danger {
 .agent-os-action-button {
   padding: 0 12px;
   font-family: 'DM Sans', sans-serif;
-  font-size: 10px;
+  font-size: 13px;
   text-transform: uppercase;
   letter-spacing: 0.1em;
 }
@@ -1065,7 +1065,7 @@ button, a, .btn-gold, .btn-ghost, .btn-danger {
 
 .agent-os-divider b {
   color: var(--champagne-gold);
-  font-size: 9px;
+  font-size: 12px;
   opacity: 0.5;
 }
 
@@ -1120,7 +1120,7 @@ button, a, .btn-gold, .btn-ghost, .btn-danger {
 .mika-vital-label {
   color: var(--text-muted);
   font-family: 'DM Sans', sans-serif;
-  font-size: 9px;
+  font-size: 12px;
   font-weight: 700;
   letter-spacing: 0.17em;
   text-transform: uppercase;
@@ -1138,7 +1138,7 @@ button, a, .btn-gold, .btn-ghost, .btn-danger {
   margin-top: 5px;
   color: var(--text-muted);
   font-family: 'DM Sans', sans-serif;
-  font-size: 10px;
+  font-size: 13px;
 }
 
 .mika-system-strip {
@@ -1157,7 +1157,7 @@ button, a, .btn-gold, .btn-ghost, .btn-danger {
   border-right: 1px solid var(--border-default);
   color: var(--text-muted);
   font-family: 'DM Sans', sans-serif;
-  font-size: 10px;
+  font-size: 13px;
 }
 
 .mika-system-strip > div:first-child {
@@ -1262,7 +1262,7 @@ button, a, .btn-gold, .btn-ghost, .btn-danger {
   margin-top: 6px;
   color: var(--text-muted);
   font-family: 'DM Sans', sans-serif;
-  font-size: 11px;
+  font-size: 14px;
   line-height: 1.55;
 }
 
@@ -1274,7 +1274,7 @@ button, a, .btn-gold, .btn-ghost, .btn-danger {
   margin-top: 16px;
   color: var(--text-muted);
   font-family: 'JetBrains Mono', monospace;
-  font-size: 8px;
+  font-size: 11px;
   text-transform: uppercase;
 }
 
@@ -1320,7 +1320,7 @@ button, a, .btn-gold, .btn-ghost, .btn-danger {
   margin-top: 13px;
   color: var(--electric-blue);
   font-family: 'DM Sans', sans-serif;
-  font-size: 9px;
+  font-size: 12px;
   font-weight: 700;
   letter-spacing: 0.12em;
   text-transform: uppercase;
@@ -1360,7 +1360,7 @@ button, a, .btn-gold, .btn-ghost, .btn-danger {
 .mika-activity-row strong {
   color: var(--text-secondary);
   font-family: 'DM Sans', sans-serif;
-  font-size: 11px;
+  font-size: 14px;
   font-weight: 600;
 }
 
@@ -1369,7 +1369,7 @@ button, a, .btn-gold, .btn-ghost, .btn-danger {
   overflow: hidden;
   color: var(--text-muted);
   font-family: 'DM Sans', sans-serif;
-  font-size: 10px;
+  font-size: 13px;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -1381,7 +1381,7 @@ button, a, .btn-gold, .btn-ghost, .btn-danger {
   gap: 4px;
   color: var(--text-muted);
   font-family: 'JetBrains Mono', monospace;
-  font-size: 8px;
+  font-size: 11px;
   text-transform: uppercase;
 }
 
@@ -1393,7 +1393,7 @@ button, a, .btn-gold, .btn-ghost, .btn-danger {
   gap: 9px;
   color: var(--text-muted);
   font-family: 'DM Sans', sans-serif;
-  font-size: 11px;
+  font-size: 14px;
 }
 
 .approved-workspace-tabs {
@@ -1413,7 +1413,7 @@ button, a, .btn-gold, .btn-ghost, .btn-danger {
   border-radius: 6px;
   color: var(--text-muted);
   font-family: 'DM Sans', sans-serif;
-  font-size: 9px;
+  font-size: 12px;
   font-weight: 700;
   letter-spacing: 0.1em;
   text-transform: uppercase;
@@ -1460,7 +1460,7 @@ button, a, .btn-gold, .btn-ghost, .btn-danger {
 .mission-status-card > strong {
   color: var(--text-muted);
   font-family: 'DM Sans', sans-serif;
-  font-size: 8px;
+  font-size: 11px;
   font-weight: 700;
   letter-spacing: 0.16em;
   text-transform: uppercase;
@@ -1478,7 +1478,7 @@ button, a, .btn-gold, .btn-ghost, .btn-danger {
   margin-top: 5px;
   color: var(--text-muted);
   font-family: 'DM Sans', sans-serif;
-  font-size: 9px;
+  font-size: 12px;
   line-height: 1.45;
 }
 
@@ -1527,7 +1527,7 @@ button, a, .btn-gold, .btn-ghost, .btn-danger {
   border-radius: 6px;
   color: white;
   font-family: 'DM Sans', sans-serif;
-  font-size: 9px;
+  font-size: 12px;
   font-weight: 700;
 }
 
@@ -1543,7 +1543,7 @@ button, a, .btn-gold, .btn-ghost, .btn-danger {
   margin-top: 5px;
   color: var(--text-muted);
   font-family: 'DM Sans', sans-serif;
-  font-size: 10px;
+  font-size: 13px;
   line-height: 1.5;
 }
 
@@ -1552,7 +1552,7 @@ button, a, .btn-gold, .btn-ghost, .btn-danger {
   margin-top: 13px;
   color: var(--champagne-gold);
   font-family: 'DM Sans', sans-serif;
-  font-size: 8px;
+  font-size: 11px;
   font-weight: 700;
   letter-spacing: 0.13em;
   text-transform: uppercase;
@@ -1596,7 +1596,7 @@ button, a, .btn-gold, .btn-ghost, .btn-danger {
   margin-top: 2px;
   color: var(--text-muted);
   font-family: 'DM Sans', sans-serif;
-  font-size: 10px;
+  font-size: 13px;
 }
 
 .paperclip-toolbar {
@@ -1628,7 +1628,7 @@ button, a, .btn-gold, .btn-ghost, .btn-danger {
   border-radius: 6px;
   color: var(--text-muted);
   font-family: 'DM Sans', sans-serif;
-  font-size: 10px;
+  font-size: 13px;
   font-weight: 600;
 }
 
@@ -1663,7 +1663,7 @@ button, a, .btn-gold, .btn-ghost, .btn-danger {
   color: var(--text-secondary);
   background: rgba(255, 255, 255, 0.02);
   font-family: 'DM Sans', sans-serif;
-  font-size: 9px;
+  font-size: 12px;
   font-weight: 600;
 }
 
@@ -1687,7 +1687,7 @@ button, a, .btn-gold, .btn-ghost, .btn-danger {
   border-radius: 999px;
   color: var(--text-muted);
   font-family: 'JetBrains Mono', monospace;
-  font-size: 7px;
+  font-size: 10px;
   letter-spacing: 0.1em;
   text-transform: uppercase;
 }
@@ -1757,7 +1757,7 @@ button, a, .btn-gold, .btn-ghost, .btn-danger {
   margin-top: 7px;
   color: var(--text-muted);
   font-family: 'DM Sans', sans-serif;
-  font-size: 11px;
+  font-size: 14px;
   line-height: 1.6;
 }
 
@@ -1772,7 +1772,7 @@ button, a, .btn-gold, .btn-ghost, .btn-danger {
   color: var(--champagne-gold);
   background: rgba(216, 189, 120, 0.06);
   font-family: 'DM Sans', sans-serif;
-  font-size: 10px;
+  font-size: 13px;
   font-weight: 600;
 }
 
@@ -1790,7 +1790,7 @@ button, a, .btn-gold, .btn-ghost, .btn-danger {
 .paperclip-frame-loading {
   gap: 9px;
   font-family: 'DM Sans', sans-serif;
-  font-size: 10px;
+  font-size: 13px;
 }
 
 .paperclip-gallery {
@@ -1833,7 +1833,7 @@ button, a, .btn-gold, .btn-ghost, .btn-danger {
   margin-top: 5px;
   color: var(--text-muted);
   font-family: 'DM Sans', sans-serif;
-  font-size: 10px;
+  font-size: 13px;
 }
 
 .paperclip-notice,
@@ -1853,7 +1853,7 @@ button, a, .btn-gold, .btn-ghost, .btn-danger {
 .paperclip-empty strong {
   color: var(--text-secondary);
   font-family: 'DM Sans', sans-serif;
-  font-size: 11px;
+  font-size: 14px;
 }
 
 .paperclip-notice p,
@@ -1861,7 +1861,7 @@ button, a, .btn-gold, .btn-ghost, .btn-danger {
   margin-top: 2px;
   color: var(--text-muted);
   font-family: 'DM Sans', sans-serif;
-  font-size: 9px;
+  font-size: 12px;
 }
 
 .paperclip-empty {
@@ -1929,7 +1929,7 @@ button, a, .btn-gold, .btn-ghost, .btn-danger {
   color: var(--electric-blue);
   background: rgba(5, 11, 24, 0.82);
   font-family: 'JetBrains Mono', monospace;
-  font-size: 7px;
+  font-size: 10px;
   letter-spacing: 0.08em;
   text-transform: uppercase;
 }
@@ -1944,7 +1944,7 @@ button, a, .btn-gold, .btn-ghost, .btn-danger {
   color: var(--ice-white);
   background: rgba(5, 11, 24, 0.68);
   font-family: 'DM Sans', sans-serif;
-  font-size: 10px;
+  font-size: 13px;
   font-weight: 600;
   opacity: 0;
   transition: opacity 0.2s ease;
@@ -1973,7 +1973,7 @@ button, a, .btn-gold, .btn-ghost, .btn-danger {
   margin-top: 7px;
   color: var(--text-muted);
   font-family: 'DM Sans', sans-serif;
-  font-size: 9px;
+  font-size: 12px;
 }
 
 .paperclip-build-meta span + span::before {
@@ -1998,7 +1998,7 @@ button, a, .btn-gold, .btn-ghost, .btn-danger {
   border-radius: 6px;
   color: var(--text-secondary);
   font-family: 'DM Sans', sans-serif;
-  font-size: 9px;
+  font-size: 12px;
 }
 
 .paperclip-build-actions a:first-child {
@@ -2157,7 +2157,7 @@ button, a, .btn-gold, .btn-ghost, .btn-danger {
 .boardroom-panel-kicker {
   color: var(--electric-blue);
   font-family: 'JetBrains Mono', monospace;
-  font-size: 8px;
+  font-size: 11px;
   font-weight: 600;
   letter-spacing: 0.18em;
 }
@@ -2173,7 +2173,7 @@ button, a, .btn-gold, .btn-ghost, .btn-danger {
 .boardroom-header p {
   margin: 0;
   color: var(--text-secondary);
-  font-size: 12px;
+  font-size: 15px;
 }
 
 .boardroom-mode {
@@ -2186,7 +2186,7 @@ button, a, .btn-gold, .btn-ghost, .btn-danger {
   background: rgba(216, 189, 120, 0.07);
   color: var(--champagne-gold);
   font-family: 'JetBrains Mono', monospace;
-  font-size: 9px;
+  font-size: 12px;
   white-space: nowrap;
 }
 
@@ -2213,7 +2213,7 @@ button, a, .btn-gold, .btn-ghost, .btn-danger {
   border-radius: var(--radius-sm);
   color: var(--text-muted);
   font-family: 'JetBrains Mono', monospace;
-  font-size: 9px;
+  font-size: 12px;
 }
 
 .boardroom-session-types button:hover,
@@ -2229,7 +2229,7 @@ button, a, .btn-gold, .btn-ghost, .btn-danger {
   gap: 7px;
   color: var(--text-muted);
   font-family: 'JetBrains Mono', monospace;
-  font-size: 8px;
+  font-size: 11px;
 }
 
 .boardroom-gate-summary.required {
@@ -2246,7 +2246,7 @@ button, a, .btn-gold, .btn-ghost, .btn-danger {
   border: 1px solid rgba(216, 189, 120, 0.16);
   border-radius: 3px;
   color: var(--text-muted);
-  font-size: 7px;
+  font-size: 10px;
 }
 
 .boardroom-layout {
@@ -2282,7 +2282,7 @@ button, a, .btn-gold, .btn-ghost, .btn-danger {
   overflow: hidden;
   color: var(--ice-white);
   font-family: 'Syne', sans-serif;
-  font-size: 12px;
+  font-size: 15px;
   font-weight: 600;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -2330,7 +2330,7 @@ button, a, .btn-gold, .btn-ghost, .btn-danger {
   background: rgba(56, 189, 248, 0.08);
   color: var(--electric-blue);
   font-family: 'JetBrains Mono', monospace;
-  font-size: 8px;
+  font-size: 11px;
 }
 
 .boardroom-agent-copy {
@@ -2344,7 +2344,7 @@ button, a, .btn-gold, .btn-ghost, .btn-danger {
 .boardroom-agent-copy strong {
   overflow: hidden;
   color: var(--text-primary);
-  font-size: 10px;
+  font-size: 13px;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -2352,7 +2352,7 @@ button, a, .btn-gold, .btn-ghost, .btn-danger {
 .boardroom-agent-copy small {
   overflow: hidden;
   color: var(--text-muted);
-  font-size: 8px;
+  font-size: 11px;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -2361,7 +2361,7 @@ button, a, .btn-gold, .btn-ghost, .btn-danger {
   width: fit-content;
   margin-top: 2px;
   font-family: 'JetBrains Mono', monospace;
-  font-size: 7px;
+  font-size: 10px;
   letter-spacing: 0.05em;
   text-transform: uppercase;
 }
@@ -2378,7 +2378,7 @@ button, a, .btn-gold, .btn-ghost, .btn-danger {
   border-radius: 3px;
   color: var(--champagne-gold);
   font-family: 'JetBrains Mono', monospace;
-  font-size: 6px;
+  font-size: 9px;
 }
 
 .boardroom-conversation {
@@ -2402,7 +2402,7 @@ button, a, .btn-gold, .btn-ghost, .btn-danger {
   background: rgba(216, 189, 120, 0.05);
   color: var(--champagne-gold);
   font-family: 'JetBrains Mono', monospace;
-  font-size: 8px;
+  font-size: 11px;
 }
 
 .boardroom-empty {
@@ -2422,17 +2422,17 @@ button, a, .btn-gold, .btn-ghost, .btn-danger {
   min-height: 90px;
   flex: 0 0 auto;
   font-family: 'JetBrains Mono', monospace;
-  font-size: 8px;
+  font-size: 11px;
 }
 
 .boardroom-empty p {
   margin: 0;
   color: var(--text-secondary);
-  font-size: 11px;
+  font-size: 14px;
 }
 
 .boardroom-empty span {
-  font-size: 9px;
+  font-size: 12px;
 }
 
 .boardroom-empty button {
@@ -2440,7 +2440,7 @@ button, a, .btn-gold, .btn-ghost, .btn-danger {
   align-items: center;
   gap: 5px;
   color: var(--electric-blue);
-  font-size: 9px;
+  font-size: 12px;
 }
 
 .boardroom-message-list {
@@ -2460,13 +2460,13 @@ button, a, .btn-gold, .btn-ghost, .btn-danger {
   justify-content: space-between;
   color: var(--electric-blue);
   font-family: 'JetBrains Mono', monospace;
-  font-size: 8px;
+  font-size: 11px;
 }
 
 .boardroom-message p {
   margin: 8px 0;
   color: var(--text-primary);
-  font-size: 11px;
+  font-size: 14px;
   line-height: 1.55;
   white-space: pre-wrap;
 }
@@ -2474,7 +2474,7 @@ button, a, .btn-gold, .btn-ghost, .btn-danger {
 .boardroom-message-targets {
   color: var(--text-muted);
   font-family: 'JetBrains Mono', monospace;
-  font-size: 7px;
+  font-size: 10px;
 }
 
 .boardroom-composer {
@@ -2491,7 +2491,7 @@ button, a, .btn-gold, .btn-ghost, .btn-danger {
   margin-bottom: 7px;
   color: var(--text-muted);
   font-family: 'JetBrains Mono', monospace;
-  font-size: 8px;
+  font-size: 11px;
 }
 
 .boardroom-composer-context span:first-child {
@@ -2505,7 +2505,7 @@ button, a, .btn-gold, .btn-ghost, .btn-danger {
   outline: 0;
   background: transparent;
   color: var(--text-primary);
-  font-size: 11px;
+  font-size: 14px;
   line-height: 1.5;
 }
 
@@ -2528,7 +2528,7 @@ button, a, .btn-gold, .btn-ghost, .btn-danger {
   gap: 6px;
   color: var(--text-muted);
   font-family: 'JetBrains Mono', monospace;
-  font-size: 8px;
+  font-size: 11px;
 }
 
 .boardroom-vault-option input {
@@ -2547,7 +2547,7 @@ button, a, .btn-gold, .btn-ghost, .btn-danger {
   background: rgba(29, 78, 216, 0.18);
   color: var(--ice-white);
   font-family: 'JetBrains Mono', monospace;
-  font-size: 8px;
+  font-size: 11px;
 }
 
 .boardroom-composer-actions button:disabled {
@@ -2583,7 +2583,7 @@ button, a, .btn-gold, .btn-ghost, .btn-danger {
 .boardroom-session-list span {
   width: 100%;
   overflow: hidden;
-  font-size: 9px;
+  font-size: 12px;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -2591,7 +2591,7 @@ button, a, .btn-gold, .btn-ghost, .btn-danger {
 .boardroom-session-list small {
   color: var(--text-muted);
   font-family: 'JetBrains Mono', monospace;
-  font-size: 7px;
+  font-size: 10px;
 }
 
 @media (max-width: 1180px) {
@@ -2686,7 +2686,7 @@ button, a, .btn-gold, .btn-ghost, .btn-danger {
 .diamond-panel-heading span {
   color: var(--electric-blue);
   font-family: 'JetBrains Mono', monospace;
-  font-size: 8px;
+  font-size: 11px;
   font-weight: 600;
   letter-spacing: 0.18em;
 }
@@ -2702,7 +2702,7 @@ button, a, .btn-gold, .btn-ghost, .btn-danger {
 .diamond-control-header p {
   margin: 0;
   color: var(--text-secondary);
-  font-size: 11px;
+  font-size: 14px;
 }
 
 .diamond-control-mode {
@@ -2715,7 +2715,7 @@ button, a, .btn-gold, .btn-ghost, .btn-danger {
   background: rgba(29, 78, 216, 0.1);
   color: var(--electric-blue);
   font-family: 'JetBrains Mono', monospace;
-  font-size: 8px;
+  font-size: 11px;
   white-space: nowrap;
 }
 
@@ -2757,7 +2757,7 @@ button, a, .btn-gold, .btn-ghost, .btn-danger {
   outline: 0;
   background: transparent;
   color: var(--text-primary);
-  font-size: 12px;
+  font-size: 15px;
   line-height: 1.5;
 }
 
@@ -2775,7 +2775,7 @@ button, a, .btn-gold, .btn-ghost, .btn-danger {
   background: rgba(29, 78, 216, 0.2);
   color: var(--ice-white);
   font-family: 'JetBrains Mono', monospace;
-  font-size: 8px;
+  font-size: 11px;
 }
 
 .diamond-command-input > button:disabled {
@@ -2796,7 +2796,7 @@ button, a, .btn-gold, .btn-ghost, .btn-danger {
   border-radius: 999px;
   color: var(--text-muted);
   font-family: 'JetBrains Mono', monospace;
-  font-size: 7px;
+  font-size: 10px;
 }
 
 .diamond-quick-actions button:hover {
@@ -2818,7 +2818,7 @@ button, a, .btn-gold, .btn-ghost, .btn-danger {
   gap: 7px;
   color: var(--electric-blue);
   font-family: 'Syne', sans-serif;
-  font-size: 10px;
+  font-size: 13px;
   font-weight: 600;
 }
 
@@ -2830,14 +2830,14 @@ button, a, .btn-gold, .btn-ghost, .btn-danger {
 .diamond-voice-input p {
   margin: 9px 0 4px;
   color: var(--text-secondary);
-  font-size: 9px;
+  font-size: 12px;
   line-height: 1.4;
 }
 
 .diamond-voice-input span {
   color: var(--text-muted);
   font-family: 'JetBrains Mono', monospace;
-  font-size: 7px;
+  font-size: 10px;
 }
 
 .diamond-control-grid {
@@ -2872,7 +2872,7 @@ button, a, .btn-gold, .btn-ghost, .btn-danger {
   margin: 2px 0 0;
   color: var(--ice-white);
   font-family: 'Syne', sans-serif;
-  font-size: 12px;
+  font-size: 15px;
   font-weight: 600;
 }
 
@@ -2891,17 +2891,17 @@ button, a, .btn-gold, .btn-ghost, .btn-danger {
 .diamond-empty-state.compact {
   min-height: 100px;
   font-family: 'JetBrains Mono', monospace;
-  font-size: 8px;
+  font-size: 11px;
 }
 
 .diamond-empty-state p {
   margin: 0;
   color: var(--text-secondary);
-  font-size: 11px;
+  font-size: 14px;
 }
 
 .diamond-empty-state span {
-  font-size: 9px;
+  font-size: 12px;
 }
 
 .diamond-intent-body {
@@ -2914,7 +2914,7 @@ button, a, .btn-gold, .btn-ghost, .btn-danger {
   border-left: 2px solid var(--champagne-gold);
   background: rgba(216, 189, 120, 0.05);
   color: var(--text-primary);
-  font-size: 12px;
+  font-size: 15px;
   line-height: 1.55;
 }
 
@@ -2936,7 +2936,7 @@ button, a, .btn-gold, .btn-ghost, .btn-danger {
   margin-bottom: 4px;
   color: var(--text-muted);
   font-family: 'JetBrains Mono', monospace;
-  font-size: 7px;
+  font-size: 10px;
   letter-spacing: 0.12em;
 }
 
@@ -2945,7 +2945,7 @@ button, a, .btn-gold, .btn-ghost, .btn-danger {
   align-items: center;
   gap: 5px;
   color: var(--text-secondary);
-  font-size: 10px;
+  font-size: 13px;
   font-weight: 600;
 }
 
@@ -2978,13 +2978,13 @@ button, a, .btn-gold, .btn-ghost, .btn-danger {
 .diamond-approval-state strong {
   display: block;
   color: inherit;
-  font-size: 9px;
+  font-size: 12px;
 }
 
 .diamond-approval-state p {
   margin: 3px 0 0;
   color: var(--text-muted);
-  font-size: 8px;
+  font-size: 11px;
   line-height: 1.45;
 }
 
@@ -3001,7 +3001,7 @@ button, a, .btn-gold, .btn-ghost, .btn-danger {
   border-radius: 4px;
   color: var(--champagne-gold);
   font-family: 'JetBrains Mono', monospace;
-  font-size: 7px;
+  font-size: 10px;
 }
 
 .diamond-route-list {
@@ -3036,14 +3036,14 @@ button, a, .btn-gold, .btn-ghost, .btn-danger {
 .diamond-route-list small {
   color: var(--text-muted);
   font-family: 'JetBrains Mono', monospace;
-  font-size: 6px;
+  font-size: 9px;
   letter-spacing: 0.12em;
 }
 
 .diamond-route-list strong {
   margin-top: 2px;
   color: var(--text-primary);
-  font-size: 9px;
+  font-size: 12px;
 }
 
 .diamond-route-unavailable {
@@ -3052,14 +3052,14 @@ button, a, .btn-gold, .btn-ghost, .btn-danger {
 
 .diamond-route-unavailable strong {
   color: #f59e0b;
-  font-size: 10px;
+  font-size: 13px;
 }
 
 .diamond-route-unavailable p,
 .diamond-route-note {
   margin: 4px 0 0;
   color: var(--text-muted);
-  font-size: 8px;
+  font-size: 11px;
   line-height: 1.45;
 }
 
@@ -3082,7 +3082,7 @@ button, a, .btn-gold, .btn-ghost, .btn-danger {
   margin: 8px 9px 0;
   color: var(--text-muted);
   font-family: 'JetBrains Mono', monospace;
-  font-size: 7px;
+  font-size: 10px;
 }
 
 .diamond-command-history {
@@ -3114,7 +3114,7 @@ button, a, .btn-gold, .btn-ghost, .btn-danger {
   display: -webkit-box;
   overflow: hidden;
   color: var(--text-secondary);
-  font-size: 9px;
+  font-size: 12px;
   font-weight: 500;
   line-height: 1.4;
   -webkit-box-orient: vertical;
@@ -3124,7 +3124,7 @@ button, a, .btn-gold, .btn-ghost, .btn-danger {
 .diamond-command-history span {
   color: var(--text-muted);
   font-family: 'JetBrains Mono', monospace;
-  font-size: 7px;
+  font-size: 10px;
   text-transform: capitalize;
 }
 
@@ -3187,7 +3187,7 @@ button, a, .btn-gold, .btn-ghost, .btn-danger {
 .creative-asset-gallery-heading span {
   color: var(--electric-blue);
   font-family: 'JetBrains Mono', monospace;
-  font-size: 8px;
+  font-size: 11px;
   font-weight: 600;
   letter-spacing: 0.18em;
 }
@@ -3203,7 +3203,7 @@ button, a, .btn-gold, .btn-ghost, .btn-danger {
 .content-workspace-header p {
   margin: 0;
   color: var(--text-secondary);
-  font-size: 11px;
+  font-size: 14px;
 }
 
 .content-workspace-header-actions {
@@ -3223,7 +3223,7 @@ button, a, .btn-gold, .btn-ghost, .btn-danger {
   border-radius: 5px;
   color: var(--text-muted);
   font-family: 'JetBrains Mono', monospace;
-  font-size: 7px;
+  font-size: 10px;
   letter-spacing: 0.05em;
   text-transform: uppercase;
 }
@@ -3273,13 +3273,13 @@ button, a, .btn-gold, .btn-ghost, .btn-danger {
 .content-pipeline-stage-heading > span {
   color: var(--electric-blue);
   font-family: 'JetBrains Mono', monospace;
-  font-size: 7px;
+  font-size: 10px;
 }
 
 .content-pipeline-stage-heading strong {
   color: var(--text-primary);
   font-family: 'Syne', sans-serif;
-  font-size: 9px;
+  font-size: 12px;
 }
 
 .content-pipeline-stage-heading small {
@@ -3291,7 +3291,7 @@ button, a, .btn-gold, .btn-ghost, .btn-danger {
   background: rgba(56, 189, 248, 0.09);
   color: var(--electric-blue);
   font-family: 'JetBrains Mono', monospace;
-  font-size: 7px;
+  font-size: 10px;
 }
 
 .content-pipeline-stage-body {
@@ -3314,7 +3314,7 @@ button, a, .btn-gold, .btn-ghost, .btn-danger {
   display: -webkit-box;
   overflow: hidden;
   color: var(--text-secondary);
-  font-size: 9px;
+  font-size: 12px;
   line-height: 1.35;
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 3;
@@ -3323,7 +3323,7 @@ button, a, .btn-gold, .btn-ghost, .btn-danger {
 .content-task-card p {
   margin: 5px 0;
   color: var(--text-muted);
-  font-size: 8px;
+  font-size: 11px;
 }
 
 .content-task-state {
@@ -3332,7 +3332,7 @@ button, a, .btn-gold, .btn-ghost, .btn-danger {
   gap: 4px;
   color: var(--text-muted);
   font-family: 'JetBrains Mono', monospace;
-  font-size: 7px;
+  font-size: 10px;
   text-transform: uppercase;
 }
 
@@ -3347,7 +3347,7 @@ button, a, .btn-gold, .btn-ghost, .btn-danger {
   margin-top: 4px;
   color: var(--champagne-gold);
   font-family: 'JetBrains Mono', monospace;
-  font-size: 6px;
+  font-size: 9px;
   text-transform: uppercase;
 }
 
@@ -3356,7 +3356,7 @@ button, a, .btn-gold, .btn-ghost, .btn-danger {
   padding: 14px 8px;
   color: var(--text-muted);
   font-family: 'JetBrains Mono', monospace;
-  font-size: 8px;
+  font-size: 11px;
   text-align: center;
 }
 
@@ -3377,7 +3377,7 @@ button, a, .btn-gold, .btn-ghost, .btn-danger {
   margin: 0;
   color: var(--text-muted);
   font-family: 'JetBrains Mono', monospace;
-  font-size: 7px;
+  font-size: 10px;
 }
 
 .content-focus-tabs,
@@ -3394,7 +3394,7 @@ button, a, .btn-gold, .btn-ghost, .btn-danger {
   border-radius: 5px;
   color: var(--text-muted);
   font-family: 'JetBrains Mono', monospace;
-  font-size: 8px;
+  font-size: 11px;
 }
 
 .content-focus-tabs button.active,
@@ -3430,7 +3430,7 @@ button, a, .btn-gold, .btn-ghost, .btn-danger {
   margin-right: 3px;
   color: var(--text-muted);
   font-family: 'JetBrains Mono', monospace;
-  font-size: 7px;
+  font-size: 10px;
   letter-spacing: 0.14em;
 }
 
@@ -3440,7 +3440,7 @@ button, a, .btn-gold, .btn-ghost, .btn-danger {
   border-radius: 4px;
   color: var(--electric-blue);
   font-family: 'JetBrains Mono', monospace;
-  font-size: 7px;
+  font-size: 10px;
   text-transform: capitalize;
 }
 
@@ -3473,7 +3473,7 @@ button, a, .btn-gold, .btn-ghost, .btn-danger {
   border-radius: 5px;
   color: var(--electric-blue);
   font-family: 'JetBrains Mono', monospace;
-  font-size: 8px;
+  font-size: 11px;
 }
 
 .content-staged-visual {
@@ -3501,7 +3501,7 @@ button, a, .btn-gold, .btn-ghost, .btn-danger {
   margin: 0;
   max-width: 280px;
   color: var(--text-muted);
-  font-size: 9px;
+  font-size: 12px;
   line-height: 1.5;
 }
 
@@ -3514,7 +3514,7 @@ button, a, .btn-gold, .btn-ghost, .btn-danger {
 .content-staged-fields label {
   color: var(--text-muted);
   font-family: 'JetBrains Mono', monospace;
-  font-size: 7px;
+  font-size: 10px;
 }
 
 .content-staged-fields input,
@@ -3528,7 +3528,7 @@ button, a, .btn-gold, .btn-ghost, .btn-danger {
   border-radius: 6px;
   background: rgba(5, 11, 24, 0.54);
   color: var(--text-muted);
-  font-size: 9px;
+  font-size: 12px;
 }
 
 .content-staged-fields textarea {
@@ -3546,7 +3546,7 @@ button, a, .btn-gold, .btn-ghost, .btn-danger {
   gap: 7px;
   color: var(--champagne-gold);
   font-family: 'JetBrains Mono', monospace;
-  font-size: 8px;
+  font-size: 11px;
 }
 
 .content-kanban-board {
@@ -3567,13 +3567,13 @@ button, a, .btn-gold, .btn-ghost, .btn-danger {
 .content-kanban-column > header strong {
   color: var(--text-primary);
   font-family: 'Syne', sans-serif;
-  font-size: 9px;
+  font-size: 12px;
 }
 
 .content-kanban-column > header span {
   color: var(--electric-blue);
   font-family: 'JetBrains Mono', monospace;
-  font-size: 8px;
+  font-size: 11px;
 }
 
 .content-kanban-column > div {
@@ -3593,7 +3593,7 @@ button, a, .btn-gold, .btn-ghost, .btn-danger {
 
 .content-kanban-column article strong {
   color: var(--text-secondary);
-  font-size: 9px;
+  font-size: 12px;
   line-height: 1.4;
 }
 
@@ -3601,7 +3601,7 @@ button, a, .btn-gold, .btn-ghost, .btn-danger {
 .content-kanban-column > div > p {
   margin: 5px 0;
   color: var(--text-muted);
-  font-size: 8px;
+  font-size: 11px;
 }
 
 .content-kanban-column article div {
@@ -3610,7 +3610,7 @@ button, a, .btn-gold, .btn-ghost, .btn-danger {
   gap: 5px;
   color: var(--electric-blue);
   font-family: 'JetBrains Mono', monospace;
-  font-size: 7px;
+  font-size: 10px;
   text-transform: uppercase;
 }
 
@@ -3642,7 +3642,7 @@ button, a, .btn-gold, .btn-ghost, .btn-danger {
   gap: 5px;
   color: var(--text-muted);
   font-family: 'JetBrains Mono', monospace;
-  font-size: 8px;
+  font-size: 11px;
 }
 
 .creative-asset-grid {
@@ -3673,19 +3673,19 @@ button, a, .btn-gold, .btn-ghost, .btn-danger {
 .creative-asset-grid article > span {
   color: var(--electric-blue);
   font-family: 'JetBrains Mono', monospace;
-  font-size: 7px;
+  font-size: 10px;
 }
 
 .creative-asset-grid h3 {
   margin: 4px 0;
   color: var(--text-primary);
-  font-size: 11px;
+  font-size: 14px;
 }
 
 .creative-asset-grid p {
   margin: 0;
   color: var(--text-muted);
-  font-size: 8px;
+  font-size: 11px;
 }
 
 .creative-asset-stages {
@@ -3702,14 +3702,14 @@ button, a, .btn-gold, .btn-ghost, .btn-danger {
   border-radius: 3px;
   color: var(--text-muted);
   font-family: 'JetBrains Mono', monospace;
-  font-size: 6px;
+  font-size: 9px;
   text-transform: capitalize;
 }
 
 .creative-asset-grid article > button {
   color: var(--champagne-gold);
   font-family: 'JetBrains Mono', monospace;
-  font-size: 8px;
+  font-size: 11px;
 }
 
 .artifact-drawer-backdrop {
@@ -3744,7 +3744,7 @@ button, a, .btn-gold, .btn-ghost, .btn-danger {
 .artifact-preview-drawer > header span {
   color: var(--electric-blue);
   font-family: 'JetBrains Mono', monospace;
-  font-size: 7px;
+  font-size: 10px;
   letter-spacing: 0.15em;
 }
 
@@ -3769,7 +3769,7 @@ button, a, .btn-gold, .btn-ghost, .btn-danger {
   border-radius: 4px;
   color: var(--text-muted);
   font-family: 'JetBrains Mono', monospace;
-  font-size: 7px;
+  font-size: 10px;
 }
 
 .artifact-drawer-tabs button.active {
@@ -3788,14 +3788,14 @@ button, a, .btn-gold, .btn-ghost, .btn-danger {
 .artifact-drawer-content > p {
   color: var(--text-muted);
   font-family: 'JetBrains Mono', monospace;
-  font-size: 8px;
+  font-size: 11px;
 }
 
 .artifact-drawer-content pre {
   margin: 0;
   color: var(--text-secondary);
   font-family: 'JetBrains Mono', monospace;
-  font-size: 9px;
+  font-size: 12px;
   line-height: 1.65;
   white-space: pre-wrap;
 }
@@ -3811,7 +3811,7 @@ button, a, .btn-gold, .btn-ghost, .btn-danger {
   border-radius: 5px;
   color: var(--champagne-gold);
   font-family: 'JetBrains Mono', monospace;
-  font-size: 7px;
+  font-size: 10px;
 }
 
 @media (max-width: 1100px) {
@@ -3869,7 +3869,7 @@ button, a, .btn-gold, .btn-ghost, .btn-danger {
 .business-overview-heading span {
   color: var(--electric-blue);
   font-family: 'JetBrains Mono', monospace;
-  font-size: 8px;
+  font-size: 11px;
   font-weight: 600;
   letter-spacing: 0.18em;
 }
@@ -3885,7 +3885,7 @@ button, a, .btn-gold, .btn-ghost, .btn-danger {
 .business-workspace-header p {
   margin: 0;
   color: var(--text-secondary);
-  font-size: 11px;
+  font-size: 14px;
 }
 
 .business-workspace-actions {
@@ -3904,7 +3904,7 @@ button, a, .btn-gold, .btn-ghost, .btn-danger {
   border-radius: 5px;
   color: var(--electric-blue);
   font-family: 'JetBrains Mono', monospace;
-  font-size: 7px;
+  font-size: 10px;
   letter-spacing: 0.05em;
   text-transform: uppercase;
 }
@@ -3925,7 +3925,7 @@ button, a, .btn-gold, .btn-ghost, .btn-danger {
   background: rgba(216, 189, 120, 0.045);
   color: var(--champagne-gold);
   font-family: 'JetBrains Mono', monospace;
-  font-size: 7px;
+  font-size: 10px;
   line-height: 1.45;
 }
 
@@ -3941,7 +3941,7 @@ button, a, .btn-gold, .btn-ghost, .btn-danger {
   border-radius: 5px;
   color: var(--text-muted);
   font-family: 'JetBrains Mono', monospace;
-  font-size: 8px;
+  font-size: 11px;
 }
 
 .business-focus-tabs button:hover,
@@ -3985,7 +3985,7 @@ button, a, .btn-gold, .btn-ghost, .btn-danger {
   gap: 5px;
   color: var(--text-muted);
   font-family: 'JetBrains Mono', monospace;
-  font-size: 7px;
+  font-size: 10px;
 }
 
 .business-summary-grid {
@@ -4006,7 +4006,7 @@ button, a, .btn-gold, .btn-ghost, .btn-danger {
   display: block;
   color: var(--text-muted);
   font-family: 'JetBrains Mono', monospace;
-  font-size: 7px;
+  font-size: 10px;
   letter-spacing: 0.12em;
   text-transform: uppercase;
 }
@@ -4024,7 +4024,7 @@ button, a, .btn-gold, .btn-ghost, .btn-danger {
 
 .business-summary-grid small {
   color: var(--text-muted);
-  font-size: 8px;
+  font-size: 11px;
 }
 
 .business-empty-state {
@@ -4035,7 +4035,7 @@ button, a, .btn-gold, .btn-ghost, .btn-danger {
   border-radius: 7px;
   color: var(--text-muted);
   font-family: 'JetBrains Mono', monospace;
-  font-size: 8px;
+  font-size: 11px;
   text-align: center;
 }
 
@@ -4064,19 +4064,19 @@ button, a, .btn-gold, .btn-ghost, .btn-danger {
 .business-followup-list strong {
   display: block;
   color: var(--text-primary);
-  font-size: 9px;
+  font-size: 12px;
 }
 
 .business-followup-list p {
   margin: 3px 0 0;
   color: var(--text-muted);
-  font-size: 8px;
+  font-size: 11px;
 }
 
 .business-followup-list span {
   color: var(--champagne-gold);
   font-family: 'JetBrains Mono', monospace;
-  font-size: 7px;
+  font-size: 10px;
   text-transform: uppercase;
 }
 
@@ -4098,7 +4098,7 @@ button, a, .btn-gold, .btn-ghost, .btn-danger {
   max-width: 650px;
   margin: 7px 0 13px;
   color: var(--text-muted);
-  font-size: 9px;
+  font-size: 12px;
   line-height: 1.55;
 }
 
@@ -4115,7 +4115,7 @@ button, a, .btn-gold, .btn-ghost, .btn-danger {
   border-radius: 4px;
   color: var(--champagne-gold);
   font-family: 'JetBrains Mono', monospace;
-  font-size: 7px;
+  font-size: 10px;
   text-transform: capitalize;
 }
 
@@ -4164,7 +4164,7 @@ button, a, .btn-gold, .btn-ghost, .btn-danger {
   margin-bottom: 7px;
   color: var(--champagne-gold);
   font-family: 'JetBrains Mono', monospace;
-  font-size: 9px;
+  font-size: 12px;
   letter-spacing: 0.18em;
   text-transform: uppercase;
 }
@@ -4182,7 +4182,7 @@ button, a, .btn-gold, .btn-ghost, .btn-danger {
   max-width: 700px;
   margin: 7px 0 0;
   color: var(--text-secondary);
-  font-size: 12px;
+  font-size: 15px;
   line-height: 1.65;
 }
 
@@ -4205,7 +4205,7 @@ button, a, .btn-gold, .btn-ghost, .btn-danger {
   flex: 0 0 auto;
   color: var(--champagne-gold);
   font-family: 'JetBrains Mono', monospace;
-  font-size: 8px;
+  font-size: 11px;
   letter-spacing: 0.13em;
   text-transform: uppercase;
 }
@@ -4214,7 +4214,7 @@ button, a, .btn-gold, .btn-ghost, .btn-danger {
   margin: 0;
   color: var(--text-muted);
   font-family: 'JetBrains Mono', monospace;
-  font-size: 9px;
+  font-size: 12px;
   line-height: 1.5;
 }
 
@@ -4234,7 +4234,7 @@ button, a, .btn-gold, .btn-ghost, .btn-danger {
   background: transparent;
   color: var(--text-muted);
   font-family: 'JetBrains Mono', monospace;
-  font-size: 9px;
+  font-size: 12px;
   letter-spacing: 0.08em;
   text-transform: uppercase;
   transition: 160ms ease;
@@ -4274,7 +4274,7 @@ button, a, .btn-gold, .btn-ghost, .btn-danger {
 .notebook-record span {
   color: var(--champagne-gold);
   font-family: 'JetBrains Mono', monospace;
-  font-size: 8px;
+  font-size: 11px;
   letter-spacing: 0.08em;
   text-transform: uppercase;
 }
@@ -4289,7 +4289,7 @@ button, a, .btn-gold, .btn-ghost, .btn-danger {
 .notebook-record p {
   margin: 12px 0 0;
   color: var(--text-secondary);
-  font-size: 11px;
+  font-size: 14px;
   line-height: 1.65;
 }
 
@@ -4315,7 +4315,7 @@ button, a, .btn-gold, .btn-ghost, .btn-danger {
 .self-empty-state > span {
   color: var(--champagne-gold);
   font-family: 'JetBrains Mono', monospace;
-  font-size: 8px;
+  font-size: 11px;
   letter-spacing: 0.14em;
 }
 
@@ -4328,7 +4328,7 @@ button, a, .btn-gold, .btn-ghost, .btn-danger {
 .self-empty-state > p {
   margin: 6px 0 18px;
   color: var(--text-muted);
-  font-size: 11px;
+  font-size: 14px;
 }
 
 .markdown-document {
@@ -4360,7 +4360,7 @@ button, a, .btn-gold, .btn-ghost, .btn-danger {
 
 .markdown-document h3 {
   margin: 22px 0 7px;
-  font-size: 12px;
+  font-size: 15px;
   text-transform: uppercase;
   letter-spacing: 0.08em;
 }
@@ -4368,7 +4368,7 @@ button, a, .btn-gold, .btn-ghost, .btn-danger {
 .markdown-document p {
   margin: 0;
   color: var(--text-secondary);
-  font-size: 12px;
+  font-size: 15px;
   line-height: 1.75;
 }
 
@@ -4393,7 +4393,7 @@ button, a, .btn-gold, .btn-ghost, .btn-danger {
   left: 2px;
   color: var(--champagne-gold);
   content: "◆";
-  font-size: 7px;
+  font-size: 10px;
 }
 
 .markdown-spacer {
