@@ -20,6 +20,27 @@ yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
 
+# runtime-generated application data
+content-artifacts/
+logs/
+
+data/activation-requests.json
+data/adapter-activation-state.json
+data/adapter-health.json
+data/adapter-maintenance.json
+data/agent-control-state.json
+data/clients.json
+data/engineering-tasks.json
+data/leads.json
+data/offers.json
+data/proposals.json
+data/revenue-items.json
+data/revenue.json
+data/video-jobs.json
+
+data/projects/
+data/workflows/
+
 # OS/editor
 .DS_Store
 *.swp
