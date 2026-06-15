@@ -245,13 +245,13 @@
     },
     {
       "taskType": "Image Generation",
-      "primaryAgentId": "hermes",
-      "fallbackAgentId": "visual-designer",
+      "primaryAgentId": "openart",
+      "fallbackAgentId": "hermes",
       "requiresApproval": false,
-      "allowedExecutionModes": ["ssh-http", "api"],
+      "allowedExecutionModes": ["http-api", "ssh-http"],
       "maxRuntimeSeconds": 120,
-      "costTier": "free",
-      "notes": "Hermes generates structured visual briefs and image prompts from a creative description. Visual Designer (staged) handles actual image generation when an image adapter is connected."
+      "costTier": "low",
+      "notes": "OpenArt is the primary image generation engine. Images are downloaded server-side — provider URLs are never stored. Falls back to Hermes for a text visual brief when OpenArt is not configured."
     }
   ]
 }

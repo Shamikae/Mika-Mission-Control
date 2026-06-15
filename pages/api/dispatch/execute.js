@@ -80,6 +80,20 @@ function buildTelegramMessage(task, result) {
     ].join('\n');
   }
 
+  // Image-specific success message
+  if (result.imageFiles?.length) {
+    return [
+      `<b>Images Generated</b>`,
+      ``,
+      `Lane:  ${laneLabel}`,
+      `Type:  ${task.taskType}`,
+      `Agent: ${agentName}`,
+      `Count: ${result.imageFiles.length} image${result.imageFiles.length !== 1 ? 's' : ''}`,
+      ``,
+      `<i>Stored in artifact storage — access via Mission Control.</i>`,
+    ].join('\n');
+  }
+
   const outputPreview = result.outputSummary || '';
   return [
     `<b>Task Dispatched via Engine</b>`,
@@ -168,6 +182,11 @@ export default async function handler(req, res) {
       hermesError:    result.error || undefined,
       hermesStubMode: false,
       dispatchTarget: 'hermes',
+    } : {}),
+    // Image artifacts from OpenArt execution
+    ...(result.imageFiles?.length ? {
+      imageFiles: result.imageFiles,
+      imageCount: result.imageFiles.length,
     } : {}),
   };
 

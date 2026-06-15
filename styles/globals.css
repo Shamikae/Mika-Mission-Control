@@ -5821,6 +5821,215 @@ button, a, .btn-gold, .btn-ghost, .btn-danger {
   color: var(--text-muted);
 }
 
+/* ── ThumbnailStudio — route badge ───────────────────────────────────────── */
+
+.ts-route-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 9px;
+  padding: 2px 8px;
+  border-radius: 10px;
+  letter-spacing: 0.04em;
+  flex-shrink: 0;
+}
+
+.ts-route-badge--image {
+  background: rgba(212,175,55,0.1);
+  border: 1px solid rgba(212,175,55,0.35);
+  color: var(--gold);
+}
+
+.ts-route-badge--text {
+  background: rgba(96,165,250,0.1);
+  border: 1px solid rgba(96,165,250,0.3);
+  color: #60a5fa;
+}
+
+/* ── ThumbnailStudio — result panel extras ──────────────────────────────── */
+
+.ts-result-status {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+
+/* ── ThumbnailStudio — execution state (error / ok) ─────────────────────── */
+
+.ts-exec-state {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 14px 16px;
+  border-radius: 8px;
+}
+
+.ts-exec-state--error {
+  background: rgba(248,113,113,0.06);
+  border: 1px solid rgba(248,113,113,0.2);
+}
+
+.ts-exec-state--ok {
+  background: rgba(74,222,128,0.05);
+  border: 1px solid rgba(74,222,128,0.2);
+  align-items: center;
+}
+
+.ts-exec-state-body {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  min-width: 0;
+}
+
+.ts-exec-state-title {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: var(--text-primary);
+}
+
+.ts-exec-state-msg {
+  font-size: 11px;
+  color: #f87171;
+}
+
+.ts-exec-state-hint {
+  font-size: 10px;
+  color: var(--text-muted);
+  margin-top: 2px;
+  line-height: 1.5;
+}
+
+/* ── ThumbnailStudio — image output ─────────────────────────────────────── */
+
+.ts-image-result {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 16px;
+  background: var(--surface-raised);
+  border: 1px solid var(--border-default);
+  border-radius: 10px;
+}
+
+.ts-image-result-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.ts-image-result-label {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+}
+
+.ts-image-result-count {
+  font-size: 9px;
+  color: var(--text-muted);
+  letter-spacing: 0.04em;
+}
+
+.ts-image-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 10px;
+}
+
+.ts-image-card {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  border-radius: 8px;
+  overflow: hidden;
+  background: var(--surface-base);
+  border: 1px solid var(--border-default);
+}
+
+.ts-image {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+  display: block;
+  background: var(--surface-base);
+}
+
+.ts-image-size {
+  font-size: 9px;
+  color: var(--text-muted);
+  padding: 4px 8px;
+  letter-spacing: 0.03em;
+}
+
+/* ── ThumbnailStudio — text brief output (Hermes fallback) ───────────────── */
+
+.ts-text-result {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 14px 16px;
+  background: var(--surface-raised);
+  border: 1px solid var(--border-default);
+  border-radius: 8px;
+}
+
+.ts-text-result-head {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.ts-text-result-label {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+}
+
+.ts-fallback-note {
+  font-size: 9px;
+  color: #f59e0b;
+  letter-spacing: 0.04em;
+}
+
+.ts-text-output {
+  font-size: 11px;
+  color: var(--text-secondary);
+  white-space: pre-wrap;
+  word-break: break-word;
+  line-height: 1.6;
+  max-height: 320px;
+  overflow-y: auto;
+  margin: 0;
+  padding: 10px 12px;
+  background: var(--surface-base);
+  border: 1px solid var(--border-subtle);
+  border-radius: 6px;
+}
+
+/* ── ThumbnailStudio — history image thumbnail ───────────────────────────── */
+
+.ts-history-thumb {
+  width: 36px;
+  height: 36px;
+  object-fit: cover;
+  border-radius: 4px;
+  flex-shrink: 0;
+  background: var(--surface-base);
+}
+
+.ts-history-img-count {
+  font-size: 9px;
+  color: var(--gold);
+}
+
 /* ═══════════════════════════════════════════════════════════════════════════
    PHASE E — VOICE EVERYWHERE
    Diamond Control · Boardroom · Mission Control

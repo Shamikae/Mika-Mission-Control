@@ -222,6 +222,7 @@ export default function handler(req, res) {
     style:                 style || 'Bold / vibrant',
     prompt:                prompt.trim(),
     variants:              variantCount,
+    numImages:             variantCount,  // maps variants → OpenArt num_images
     workflowId:            taskId,        // single-stage workflow — workflowId = taskId
     stageId:               'thumbnail_generation',
     priority:              'Normal',

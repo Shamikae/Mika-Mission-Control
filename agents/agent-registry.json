@@ -364,5 +364,31 @@
     "liveConnected": false,
     "adapterId": "hermes",
     "meta": { "version": "1.0", "owner": "mika", "tier": "content-division", "workflow": "viral-content-workflow" }
+  },
+  {
+    "id": "openart",
+    "displayName": "OpenArt",
+    "department": "CONTENT",
+    "role": "AI Image Generator",
+    "avatarType": "openart",
+    "executionMode": "http-api",
+    "command": null,
+    "workingDir": null,
+    "allowedTaskTypes": [
+      "Image Generation", "image_generation", "thumbnail_generation", "brand_visual", "product_image"
+    ],
+    "requiresApproval": false,
+    "status": "active",
+    "description": "AI image generation via OpenArt API. Generates thumbnails, brand visuals, and creative assets from text prompts. Images are downloaded server-side — provider URLs are never persisted.",
+    "systemType": "custom",
+    "systemId": "openart",
+    "systemConfig": {
+      "baseUrl": "https://openart.ai/api",
+      "auth": { "type": "bearer", "token": "" }
+    },
+    "capabilities": ["image_generation", "thumbnail_generation", "brand_visual"],
+    "liveConnected": false,
+    "adapterId": "openart",
+    "meta": { "version": "1.0", "owner": "mika", "tier": "media" }
   }
 ]

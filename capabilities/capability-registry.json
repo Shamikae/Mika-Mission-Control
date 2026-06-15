@@ -106,7 +106,7 @@
       "displayName": "OpenArt",
       "entityType": "capability",
       "category": "image",
-      "description": "AI image and creative asset generation capability.",
+      "description": "AI image generation for thumbnails, brand visuals, and creative assets. Governed execution via dispatch engine — images are downloaded server-side and stored persistently. Provider URLs are never stored.",
       "status": "available_when_configured",
       "visibleInSidebar": false,
       "hiddenByDefault": true,

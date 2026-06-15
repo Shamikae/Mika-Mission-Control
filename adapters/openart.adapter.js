@@ -1,7 +1,10 @@
 // adapters/openart.adapter.js
-// STAGED — HTTP adapter for OpenArt AI image generation.
+// HTTP adapter for OpenArt AI image generation.
 // Activation: set OPENART_API_KEY and OPENART_ENABLED=true.
-// Execute: POST to OpenArt API with prompt + model + dimensions.
+// Execute: calls openartClient.callOpenArt() and returns image Buffers.
+// Saving buffers to disk is handled by executeViaOpenArt in executeDispatch.js.
+
+import { callOpenArt } from '../lib/openart/openartClient.js';
 
 const openartAdapter = {
   adapterId:         'openart',
@@ -44,12 +47,35 @@ const openartAdapter = {
   },
 
   async execute(task, decision) {
-    throw new Error(
-      'OpenArt adapter is staged. Activate by setting OPENART_API_KEY and OPENART_ENABLED=true.'
-    );
-    // When active, implementation will:
-    // 1. POST /v1/images/generate with { prompt, model, width, height, num_images }
-    // 2. Return array of image URLs from response
+    const enabled = process.env.OPENART_ENABLED === 'true';
+    const apiKey  = process.env.OPENART_API_KEY || '';
+    if (!enabled || !apiKey) {
+      throw new Error('OpenArt adapter is not configured. Set OPENART_API_KEY and OPENART_ENABLED=true.');
+    }
+
+    // task.prompt is the raw user-provided image prompt (thumbnail-studio path).
+    // task.description is the full structured brief for Hermes (fallback path).
+    // Prefer the raw prompt for OpenArt so we don't send the whole brief structure.
+    const prompt = (task.prompt || task.description || task.instructions || '').trim();
+    if (!prompt) throw new Error('Task description (image prompt) is required for OpenArt');
+
+    const result = await callOpenArt({
+      prompt,
+      negativePrompt: task.negativePrompt || '',
+      model:     task.model  || undefined,
+      width:     task.width  || undefined,
+      height:    task.height || undefined,
+      numImages: task.numImages || 1,
+    });
+
+    if (!result.ok) throw new Error(result.error || 'OpenArt image generation failed');
+
+    return {
+      ok:           true,
+      imageBuffers: result.imageBuffers,
+      model:        result.model,
+      count:        result.count,
+    };
   },
 
   validateInput(task) {
@@ -59,7 +85,9 @@ const openartAdapter = {
     if (!this.supportedTaskTypes.includes(task.taskType)) {
       errors.push(`Task type "${task.taskType}" is not supported by OpenArt adapter`);
     }
-    // Future: validate prompt is present and not empty
+    if (!task.description && !task.instructions) {
+      errors.push('description or instructions (image prompt) is required');
+    }
     return { valid: errors.length === 0, errors };
   },
 
