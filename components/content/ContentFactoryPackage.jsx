@@ -1,7 +1,8 @@
 import { useState } from 'react';
-import { FiAlertTriangle, FiCheckCircle, FiClock, FiExternalLink, FiRefreshCw } from 'react-icons/fi';
+import { FiAlertTriangle, FiCheckCircle, FiClock, FiExternalLink, FiRefreshCw, FiZap } from 'react-icons/fi';
 import { useStore } from '../../lib/store';
 import ArtifactGallery from '../ui/ArtifactGallery';
+import FusionReviewPanel from './FusionReviewPanel';
 
 const LANES = [
   { id: 'digital-diamond', label: 'Digital Diamond AI' },
@@ -61,6 +62,12 @@ function PillGroup({ options, value, onChange, labels = {} }) {
 function ResultView({ result, onReset }) {
   const { setActiveSection } = useStore();
   const { packageId, tasks, dispatchPreviews, approvalSummary } = result;
+  const [showFusion, setShowFusion] = useState(false);
+
+  const fusionContext = `Content Factory Package: ${packageId}\nPlatform: ${tasks[0]?.platform || ''}\nGoal: ${tasks[0]?.contentGoal || ''}\nLane: ${tasks[0]?.lane || ''}`;
+  const fusionContent = tasks.map((t, i) =>
+    `${String(i + 1).padStart(2, '0')}. ${t.stepLabel} (${t.taskType})\n${t.description.split('\n').slice(0, 4).join('\n')}`
+  ).join('\n\n');
 
   return (
     <div className="cfp-wrapper">
@@ -119,7 +126,25 @@ function ResultView({ result, onReset }) {
             <FiExternalLink size={12} />
             View in Pipeline
           </button>
+          <button
+            type="button"
+            className="cfp-fusion-toggle font-ui"
+            onClick={() => setShowFusion(prev => !prev)}
+          >
+            <FiZap size={12} />
+            {showFusion ? 'Hide Fusion Review' : 'Fusion Review'}
+          </button>
         </div>
+
+        {showFusion && (
+          <div className="cfp-fusion-section">
+            <FusionReviewPanel
+              initialReviewType="content-factory"
+              initialContext={fusionContext}
+              initialContent={fusionContent}
+            />
+          </div>
+        )}
       </div>
 
       <div className="cfp-gallery-section">

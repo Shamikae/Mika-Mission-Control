@@ -79,6 +79,18 @@
       "workspaceRoute": null
     },
     {
+      "id": "openrouter-fusion",
+      "displayName": "OpenRouter Fusion",
+      "entityType": "capability",
+      "category": "synthesis",
+      "parentCapability": "openrouter",
+      "description": "Multi-model synthesis for governed strategy review, content critique, and offer evaluation. Routes through openrouter/fusion to aggregate perspectives from multiple LLMs.",
+      "status": "available_when_configured",
+      "visibleInSidebar": false,
+      "hiddenByDefault": true,
+      "workspaceRoute": null
+    },
+    {
       "id": "notebooklm",
       "displayName": "NotebookLM",
       "entityType": "capability",
