@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { StatusBadge } from '../ui';
 import { useStore } from '../../lib/store';
 import { AGENT_AVATARS } from '../../lib/agent-avatars';
+import DispatchStream from './DispatchStream';
 import {
   agentStart, agentStop, agentRestart, agentPause, agentResume,
   agentDispatch, agentGetLogs, agentGetMemory, agentGetConfig,
@@ -43,7 +44,7 @@ const LOG_LEVEL_COLOR = {
   DEBUG: '#4b5563',
 };
 
-const TABS = ['CONTROL', 'CHAT', 'LOGS', 'MEMORY', 'CONFIG'];
+const TABS = ['CONTROL', 'CHAT', 'DISPATCH', 'LOGS', 'MEMORY', 'CONFIG'];
 
 // ── Avatar ─────────────────────────────────────────────────────────
 
@@ -755,6 +756,79 @@ function ConfigTab({ agent, config: cfg, onSave }) {
   );
 }
 
+// ── DISPATCH TAB ───────────────────────────────────────────────────
+// Lets the user watch any pending task execute live by entering its ID.
+// Execution goes through /api/dispatch/stream — the same governance chain
+// as /api/dispatch/execute. No new execution path is introduced here.
+
+function DispatchTab({ agent }) {
+  const [inputId,  setInputId]  = useState('');
+  const [watchId,  setWatchId]  = useState(null);
+  const agentColor = PROJECT_COLORS[agent.project] || '#c9a84c';
+
+  function submit() {
+    const trimmed = inputId.trim();
+    if (trimmed) setWatchId(trimmed);
+  }
+
+  return (
+    <div className="space-y-4">
+      <div className="panel-raised p-4">
+        <div className="font-mono text-[9px] tracking-widest mb-2" style={{ color: 'var(--text-muted)' }}>
+          WATCH DISPATCH EXECUTION
+        </div>
+        <p className="text-xs mb-3" style={{ color: 'var(--text-secondary)' }}>
+          Enter a pending task ID to stream its execution progress live via this agent's dispatch path.
+        </p>
+        <div className="flex gap-2">
+          <input
+            type="text"
+            value={inputId}
+            onChange={e => setInputId(e.target.value)}
+            onKeyDown={e => { if (e.key === 'Enter') submit(); }}
+            placeholder="task-XXXXXXXXXXXX"
+            className="flex-1 px-3 py-2 font-mono text-xs rounded-lg focus:outline-none"
+            style={{
+              background:  'var(--bg-input)',
+              border:      '1px solid var(--border-default)',
+              color:       'var(--text-primary)',
+            }}
+            onFocus={e  => { e.target.style.borderColor = `${agentColor}50`; }}
+            onBlur={e   => { e.target.style.borderColor = 'var(--border-default)'; }}
+          />
+          <button
+            type="button"
+            disabled={!inputId.trim()}
+            onClick={submit}
+            className="font-ui text-[10px] font-semibold tracking-widest px-4 py-2 rounded-lg disabled:opacity-30"
+            style={{
+              background:  agentColor,
+              color:       '#07090f',
+              boxShadow:   `0 2px 8px ${agentColor}40`,
+            }}
+          >
+            WATCH
+          </button>
+        </div>
+      </div>
+
+      {watchId && (
+        <div className="panel-raised overflow-hidden" style={{ borderRadius: 12 }}>
+          <DispatchStream key={watchId} taskId={watchId} />
+        </div>
+      )}
+
+      {!watchId && (
+        <div className="panel-raised p-6 text-center" style={{ borderRadius: 12 }}>
+          <p className="font-mono text-[10px]" style={{ color: 'var(--text-muted)' }}>
+            No task selected. Enter a task ID above to begin streaming.
+          </p>
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ── MAIN WORKSPACE ─────────────────────────────────────────────────
 
 export default function AgentWorkspace({ agentDef }) {
@@ -914,6 +988,9 @@ export default function AgentWorkspace({ agentDef }) {
             <div className="panel-raised overflow-hidden" style={{ borderRadius: 12 }}>
               <ChatTab agent={agentDef} onDispatch={handleDispatch} />
             </div>
+          )}
+          {activeTab === 'DISPATCH' && (
+            <DispatchTab agent={agentDef} />
           )}
           {activeTab === 'LOGS' && (
             <LogsTab

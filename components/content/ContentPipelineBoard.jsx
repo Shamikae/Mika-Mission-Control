@@ -1,9 +1,10 @@
 import { useCallback, useEffect, useState } from 'react';
-import { FiArrowLeft, FiArrowRight, FiRefreshCw, FiX } from 'react-icons/fi';
+import { FiArrowLeft, FiArrowRight, FiRefreshCw, FiX, FiRadio } from 'react-icons/fi';
 import { useStore } from '../../lib/store';
 import ContentWorkspace from '../workspaces/ContentWorkspace';
 import ArtifactGallery from '../ui/ArtifactGallery';
 import MarkdownViewer from '../ui/MarkdownViewer';
+import DispatchStream from '../sections/DispatchStream';
 
 const STAGES = [
   { id: 'inbox',     label: 'Inbox',     accent: 'var(--text-muted)' },
@@ -99,8 +100,10 @@ function TaskCard({ task, stageIndex, onOpen, onMove }) {
 }
 
 function TaskDrawer({ task, stageIndex, onClose, onMove }) {
-  const canPromote = stageIndex < STAGES.length - 1;
-  const canDemote  = stageIndex > 0;
+  const canPromote  = stageIndex < STAGES.length - 1;
+  const canDemote   = stageIndex > 0;
+  const [showStream, setShowStream] = useState(false);
+  const isPending   = task.status === 'pending';
 
   return (
     <div
@@ -173,6 +176,16 @@ function TaskDrawer({ task, stageIndex, onClose, onMove }) {
               <FiArrowLeft size={12} /> {STAGES[stageIndex - 1].label}
             </button>
           )}
+          {isPending && (
+            <button
+              type="button"
+              className={`pipeline-b-drawer-btn pipeline-b-drawer-btn--watch${showStream ? '--active' : ''}`}
+              onClick={() => setShowStream(v => !v)}
+              title="Watch live execution progress"
+            >
+              <FiRadio size={12} /> {showStream ? 'Hide stream' : 'Watch'}
+            </button>
+          )}
           {canPromote && (
             <button
               type="button"
@@ -183,6 +196,12 @@ function TaskDrawer({ task, stageIndex, onClose, onMove }) {
             </button>
           )}
         </div>
+
+        {showStream && (
+          <div className="pipeline-b-drawer-stream">
+            <DispatchStream key={task.id} taskId={task.id} />
+          </div>
+        )}
       </aside>
     </div>
   );
