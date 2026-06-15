@@ -236,7 +236,9 @@ export default async function handler(req, res) {
     } catch { /* best-effort */ }
   }
 
-  if (result.ok && result.output && task.source === 'workflow-child' && task.workflowId && task.stageId) {
+  const canSaveArtifact = task.workflowId && task.stageId &&
+    (task.source === 'workflow-child' || task.source === 'thumbnail-studio' || task.source === 'content-factory');
+  if (result.ok && result.output && canSaveArtifact) {
     try {
       saveContentArtifact({
         laneId:     task.lane,
@@ -250,6 +252,8 @@ export default async function handler(req, res) {
           platform:      task.platform      || null,
           contentGoal:   task.contentGoal   || null,
           contentType:   task.contentType   || null,
+          source:        task.source        || null,
+          packageId:     task.packageId     || null,
         },
       });
     } catch { /* best-effort */ }

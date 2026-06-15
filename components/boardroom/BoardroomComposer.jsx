@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { FiArchive, FiEdit3 } from 'react-icons/fi';
+import VoiceButton from '../ui/VoiceButton';
 
 const VAULT_COPY = {
   idle: 'Save prompt to Diamond Vault',
@@ -42,13 +43,21 @@ export default function BoardroomComposer({
             : 'No agents selected'}
         </span>
       </div>
-      <textarea
-        value={prompt}
-        onChange={event => setPrompt(event.target.value)}
-        placeholder="Frame the decision, constraints, and desired planning outcome…"
-        rows={4}
-        maxLength={8000}
-      />
+      <div className="boardroom-composer-textarea-wrap">
+        <textarea
+          value={prompt}
+          onChange={event => setPrompt(event.target.value)}
+          placeholder="Frame the decision, constraints, and desired planning outcome…"
+          rows={4}
+          maxLength={8000}
+        />
+        <div className="boardroom-voice-corner">
+          <VoiceButton
+            onTranscript={t => setPrompt(prev => prev ? `${prev} ${t}` : t)}
+            disabled={submitting}
+          />
+        </div>
+      </div>
       <div className="boardroom-composer-actions">
         <label className="boardroom-vault-option">
           <input

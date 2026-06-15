@@ -17,6 +17,7 @@ import {
 import { useStore } from '../../lib/store';
 import { AGENT_AVATARS } from '../../lib/agent-avatars';
 import ArtifactGallery from '../ui/ArtifactGallery';
+import MissionVoiceNav from './MissionVoiceNav';
 
 const fadeUp = {
   initial: { opacity: 0, y: 10 },
@@ -142,6 +143,7 @@ export default function MissionControl({ data }) {
 
   return (
     <motion.div initial="initial" animate="animate" className="agent-os-overview">
+      <MissionVoiceNav />
       <section>
         <SectionLead numeral="I." label="Mission Control · status of every agent, every memory, every signal" />
         <div className="mission-status-grid">

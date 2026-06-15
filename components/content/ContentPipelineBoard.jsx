@@ -33,6 +33,7 @@ function isContentTask(task) {
     || task.workflowType === 'viral-content'
     || task.source === 'content-brief'
     || task.source === 'workflow-child'
+    || task.source === 'content-factory'
     || task.pipelineStage != null
   );
 }

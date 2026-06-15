@@ -3,7 +3,7 @@ import { FiPackage, FiRefreshCw, FiAlertCircle } from 'react-icons/fi';
 
 // Stage definitions duplicated here to avoid importing the server-only
 // lib/content-artifacts/saveContentArtifact.js (which uses fs/path).
-const ARTIFACT_STAGES = [
+const VIRAL_STAGES = [
   { stageId: 'trend_research',    icon: '🔥', label: 'Research'     },
   { stageId: 'hook_generation',   icon: '🪝', label: 'Hooks'         },
   { stageId: 'content_strategy',  icon: '🎯', label: 'Strategy'      },
@@ -13,10 +13,21 @@ const ARTIFACT_STAGES = [
   { stageId: 'repurposing',       icon: '♻',  label: 'Repurposing'   },
 ];
 
-const TOTAL_STAGES = ARTIFACT_STAGES.length;
+const THUMBNAIL_STAGES = [
+  { stageId: 'thumbnail_generation', icon: '🖼', label: 'Thumbnail' },
+];
+
+const FACTORY_EXTRA_STAGES = [
+  { stageId: 'cta_creation', icon: '📣', label: 'CTA' },
+];
+
+// TOTAL_STAGES counts viral content stages only so progress bars on existing workflows stay accurate.
+// Thumbnail artifacts show 1/1; factory packages show X/9.
+const TOTAL_STAGES        = VIRAL_STAGES.length;        // 7
+const FACTORY_TOTAL_STAGES = 9;
 
 const STAGE_MAP = Object.fromEntries(
-  ARTIFACT_STAGES.map(s => [s.stageId, s])
+  [...VIRAL_STAGES, ...THUMBNAIL_STAGES, ...FACTORY_EXTRA_STAGES].map(s => [s.stageId, s])
 );
 
 const LANE_LABELS = {
@@ -49,9 +60,12 @@ function StageChip({ stageId }) {
 }
 
 function ArtifactCard({ artifact }) {
-  const laneLabel  = LANE_LABELS[artifact.laneId] || artifact.laneId;
-  const stageCount = artifact.stagesCompleted?.length ?? 0;
-  const pct        = Math.round((stageCount / TOTAL_STAGES) * 100);
+  const laneLabel    = LANE_LABELS[artifact.laneId] || artifact.laneId;
+  const stageCount   = artifact.stagesCompleted?.length ?? 0;
+  const isFactory    = artifact.source === 'content-factory';
+  const isThumbnail  = !isFactory && artifact.stagesCompleted?.includes('thumbnail_generation');
+  const totalForType = isFactory ? FACTORY_TOTAL_STAGES : isThumbnail ? 1 : TOTAL_STAGES;
+  const pct          = Math.round(Math.min(1, stageCount / totalForType) * 100);
 
   return (
     <div className="artifact-card">
@@ -71,7 +85,7 @@ function ArtifactCard({ artifact }) {
           <div className="artifact-progress-fill" style={{ width: `${pct}%` }} />
         </div>
         <span className="artifact-progress-label font-mono">
-          {stageCount}/{TOTAL_STAGES} stages
+          {stageCount}/{totalForType} stage{totalForType !== 1 ? 's' : ''}
         </span>
       </div>
 

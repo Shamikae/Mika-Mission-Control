@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import ContentFactoryPackage from './ContentFactoryPackage';
 import ContentBriefGenerator from '../sections/ContentBriefGenerator';
 import ContentStudio from '../sections/ContentStudio';
 import ContentArtifactsPanel from '../sections/ContentArtifactsPanel';
@@ -16,6 +17,7 @@ const MODES = [
   { id: 'assets', label: 'Detailed Library' },
   { id: 'analytics', label: 'Analytics' },
   { id: 'twin', label: 'Mika Twin' },
+  { id: 'factory', label: 'Content Factory' },
 ];
 
 const PLATFORMS = [
@@ -74,6 +76,7 @@ export default function StudioWorkspace() {
         {mode === 'assets' && <ContentArtifactsPanel />}
         {mode === 'analytics' && <AnalyticsRoom />}
         {mode === 'twin' && <MikaTwinStudio />}
+        {mode === 'factory' && <ContentFactoryPackage />}
       </div>
     </ContentWorkspace>
   );

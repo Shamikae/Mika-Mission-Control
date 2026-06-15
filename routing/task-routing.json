@@ -242,6 +242,16 @@
       "maxRuntimeSeconds": 180,
       "costTier": "variable",
       "notes": "Bug diagnosis — Claude Code investigates bugs and suggests root causes and fixes. Never applies fixes automatically. Falls back to Hermes."
+    },
+    {
+      "taskType": "Image Generation",
+      "primaryAgentId": "hermes",
+      "fallbackAgentId": "visual-designer",
+      "requiresApproval": false,
+      "allowedExecutionModes": ["ssh-http", "api"],
+      "maxRuntimeSeconds": 120,
+      "costTier": "free",
+      "notes": "Hermes generates structured visual briefs and image prompts from a creative description. Visual Designer (staged) handles actual image generation when an image adapter is connected."
     }
   ]
 }

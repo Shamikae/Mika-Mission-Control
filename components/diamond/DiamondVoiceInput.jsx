@@ -1,75 +1,68 @@
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { FiMic, FiMicOff } from 'react-icons/fi';
 
 export default function DiamondVoiceInput({ onTranscript }) {
-  const recognitionRef = useRef(null);
-  const transcriptHandlerRef = useRef(onTranscript);
   const [supported, setSupported] = useState(false);
   const [listening, setListening] = useState(false);
-  const [message, setMessage] = useState('Checking browser support…');
+  const [interim,   setInterim]   = useState('');
+  const recognitionRef  = useRef(null);
+  const onTranscriptRef = useRef(onTranscript);
+
+  useEffect(() => { onTranscriptRef.current = onTranscript; }, [onTranscript]);
 
   useEffect(() => {
-    transcriptHandlerRef.current = onTranscript;
-  }, [onTranscript]);
+    if (typeof window === 'undefined') return;
+    const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SR) return;
 
-  useEffect(() => {
-    const Recognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-    if (!Recognition) {
-      setSupported(false);
-      setMessage('Voice input is not supported in this browser.');
-      return undefined;
-    }
+    const rec = new SR();
+    rec.continuous     = false;
+    rec.interimResults = true;
+    rec.lang           = 'en-US';
 
-    const recognition = new Recognition();
-    recognition.continuous = false;
-    recognition.interimResults = false;
-    recognition.lang = 'en-US';
-    recognition.onstart = () => {
-      setListening(true);
-      setMessage('Listening for one command…');
-    };
-    recognition.onend = () => {
-      setListening(false);
-      setMessage('Voice is available. Nothing is sent until you speak.');
-    };
-    recognition.onerror = event => {
-      setListening(false);
-      setMessage(event.error === 'not-allowed'
-        ? 'Microphone permission was not granted.'
-        : 'Voice input could not capture that command.');
-    };
-    recognition.onresult = event => {
-      const transcript = event.results?.[0]?.[0]?.transcript?.trim();
-      if (transcript) transcriptHandlerRef.current(transcript);
+    rec.onstart  = () => { setListening(true); };
+    rec.onend    = () => { setListening(false); setInterim(''); };
+    rec.onerror  = () => { setListening(false); setInterim(''); };
+    rec.onresult = (e) => {
+      const text = Array.from(e.results).map(r => r[0].transcript).join('');
+      setInterim(text);
+      if (e.results[e.results.length - 1].isFinal) {
+        onTranscriptRef.current?.(text.trim());
+        setInterim('');
+      }
     };
 
-    recognitionRef.current = recognition;
+    recognitionRef.current = rec;
     setSupported(true);
-    setMessage('Voice is available. Nothing is sent until you speak.');
-
-    return () => recognition.abort();
+    return () => rec.abort();
   }, []);
 
-  function toggleListening() {
-    if (!recognitionRef.current || !supported) return;
-    if (listening) recognitionRef.current.stop();
-    else {
-      try {
-        recognitionRef.current.start();
-      } catch {
-        setMessage('Voice input is already active.');
-      }
-    }
-  }
+  const toggle = useCallback(() => {
+    const rec = recognitionRef.current;
+    if (!rec) return;
+    if (listening) rec.stop();
+    else { try { rec.start(); } catch { /* already active */ } }
+  }, [listening]);
+
+  if (!supported) return null;
 
   return (
-    <div className={`diamond-voice-input ${supported ? 'supported' : 'unsupported'}`}>
-      <button type="button" onClick={toggleListening} disabled={!supported}>
-        {supported ? <FiMic size={17} /> : <FiMicOff size={17} />}
-        {listening ? 'Stop listening' : 'Speak command'}
+    <div className="diamond-voice-input">
+      <button
+        type="button"
+        className={`diamond-voice-trigger${listening ? ' diamond-voice-trigger--active' : ''}`}
+        onClick={toggle}
+        aria-label={listening ? 'Stop voice input' : 'Speak a command'}
+      >
+        <span className={`diamond-voice-icon${listening ? ' diamond-voice-icon--pulse' : ''}`}>
+          {listening ? <FiMicOff size={14} /> : <FiMic size={14} />}
+        </span>
+        {listening ? 'Listening…' : 'Speak command'}
       </button>
-      <p>{message}</p>
-      <span>Browser speech recognition · no command execution</span>
+
+      {interim && (
+        <span className="diamond-voice-live">{interim}</span>
+      )}
     </div>
   );
 }
