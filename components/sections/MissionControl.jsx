@@ -9,12 +9,14 @@ import {
   FiCpu,
   FiDatabase,
   FiInbox,
+  FiLayers,
   FiMessageSquare,
   FiRadio,
   FiTarget,
 } from 'react-icons/fi';
 import { useStore } from '../../lib/store';
 import { AGENT_AVATARS } from '../../lib/agent-avatars';
+import ArtifactGallery from '../ui/ArtifactGallery';
 
 const fadeUp = {
   initial: { opacity: 0, y: 10 },
@@ -299,6 +301,13 @@ export default function MissionControl({ data }) {
             onClick={() => setActiveSection('diamond-control')}
           />
         </div>
+      </section>
+
+      <div className="agent-os-divider"><span /><b>✦</b><span /></div>
+
+      <section>
+        <SectionLead numeral="VI." label="Content artifacts · recent workflow outputs" />
+        <ArtifactGallery compact limit={4} />
       </section>
     </motion.div>
   );
