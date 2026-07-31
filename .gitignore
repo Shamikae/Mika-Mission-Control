@@ -39,6 +39,7 @@ data/revenue.json
 data/cost-intelligence.json
 data/telegram-state.json
 data/video-jobs.json
+data/openart-auth/
 
 data/projects/
 data/workflows/

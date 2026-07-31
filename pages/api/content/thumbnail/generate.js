@@ -174,6 +174,10 @@ export default function handler(req, res) {
     prompt,
     variants,
     referenceDataUri,
+    promptMode,
+    maxOpenArtCredits,
+    openartModel,
+    openartProjectId,
   } = req.body || {};
 
   // ── Validate inputs ───────────────────────────────────────────────────────
@@ -195,6 +199,20 @@ export default function handler(req, res) {
   const variantCount = Number(variants);
   if (!Number.isInteger(variantCount) || variantCount < 1 || variantCount > 4) {
     return res.status(400).json({ error: 'variants must be 1–4.' });
+  }
+  // Governed image generation opt-ins — all optional, all defensively validated.
+  // Thumbnail Studio defaults to 'automatic' (deterministic local prompt polish).
+  const VALID_PROMPT_MODES = ['automatic', 'exact', 'approval'];
+  const resolvedPromptMode = promptMode && VALID_PROMPT_MODES.includes(promptMode) ? promptMode : 'automatic';
+  if (promptMode && !VALID_PROMPT_MODES.includes(promptMode)) {
+    return res.status(400).json({ error: `Invalid promptMode. Valid: ${VALID_PROMPT_MODES.join(', ')}.` });
+  }
+  let maxCredits;
+  if (maxOpenArtCredits != null) {
+    maxCredits = Number(maxOpenArtCredits);
+    if (!Number.isFinite(maxCredits) || maxCredits <= 0) {
+      return res.status(400).json({ error: 'maxOpenArtCredits must be a positive number.' });
+    }
   }
 
   // ── Handle reference image ────────────────────────────────────────────────
@@ -222,11 +240,15 @@ export default function handler(req, res) {
     style:                 style || 'Bold / vibrant',
     prompt:                prompt.trim(),
     variants:              variantCount,
-    numImages:             variantCount,  // maps variants → OpenArt num_images
+    numImages:             variantCount,  // maps variants → OpenArt imageCount
     workflowId:            taskId,        // single-stage workflow — workflowId = taskId
     stageId:               'thumbnail_generation',
     priority:              'Normal',
     approvalRequired:      false,
+    promptMode:            resolvedPromptMode,
+    maxOpenArtCredits:     maxCredits,
+    openartModel:          typeof openartModel === 'string' && openartModel.trim() ? openartModel.trim() : undefined,
+    openartProjectId:      typeof openartProjectId === 'string' && openartProjectId.trim() ? openartProjectId.trim() : undefined,
     description:           buildDescription({ lane, platform, style: style || 'Bold / vibrant', prompt, variants: variantCount }),
     referenceImageSaved:   Boolean(referenceImageFilename),
     status:                'pending',
