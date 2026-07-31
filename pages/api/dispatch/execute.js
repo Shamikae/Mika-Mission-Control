@@ -114,7 +114,7 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  const { taskId } = req.body || {};
+  const { taskId, selectedPrompt } = req.body || {};
 
   if (!taskId) {
     return res.status(400).json({ ok: false, error: 'taskId is required' });
@@ -135,6 +135,13 @@ export default async function handler(req, res) {
     });
   }
 
+  // Approval-mode resubmission: caller passes the prompt the user picked
+  // from a prior prompt_selection_required result. Not persisted until the
+  // dispatch result is patched below — this only shapes THIS execution.
+  const taskForExecution = (typeof selectedPrompt === 'string' && selectedPrompt.trim())
+    ? { ...task, selectedPrompt: selectedPrompt.trim() }
+    : task;
+
   // ── 2. Mark running ───────────────────────────────────────────────────────
   const dispatchedAt = new Date().toISOString();
   updateTask(taskId, { status: 'running', dispatchedAt, dispatchMethod: 'engine' });
@@ -147,7 +154,7 @@ export default async function handler(req, res) {
       entry.approved === true &&
       ['approved', 'dispatched', 'completed'].includes(entry.status)
     );
-    result = await executeDispatch(task, { approvalGranted });
+    result = await executeDispatch(taskForExecution, { approvalGranted });
   } catch (err) {
     updateTask(taskId, { status: 'failed', dispatchError: err.message });
     return res.status(500).json({ ok: false, error: err.message });
@@ -156,10 +163,11 @@ export default async function handler(req, res) {
   // ── 4. Determine final status and build task patch ────────────────────────
   let finalStatus;
   switch (result.executionStatus) {
-    case 'success':         finalStatus = 'complete'; break;
-    case 'staged':          finalStatus = 'pending';  break; // revert — not dispatched
-    case 'manual_required': finalStatus = 'pending';  break;
-    default:                finalStatus = 'failed';
+    case 'success':                  finalStatus = 'complete'; break;
+    case 'staged':                   finalStatus = 'pending';  break; // revert — not dispatched
+    case 'manual_required':          finalStatus = 'pending';  break;
+    case 'prompt_selection_required': finalStatus = 'pending'; break; // awaiting resubmission
+    default:                         finalStatus = 'failed';
   }
 
   const taskPatch = {
@@ -182,6 +190,23 @@ export default async function handler(req, res) {
       hermesError:    result.error || undefined,
       hermesStubMode: false,
       dispatchTarget: 'hermes',
+    } : {}),
+    // Governed OpenArt MCP metadata — never provider CDN/resource URLs or tokens.
+    ...(result.executionTarget === 'openart' ? {
+      provider:         'openart-mcp',
+      historyId:        result.rawResponse?.historyId ?? undefined,
+      selectedModel:    result.rawResponse?.model ?? undefined,
+      mode:             result.rawResponse?.mode ?? undefined,
+      estimatedCredits: result.rawResponse?.estimatedCredits ?? undefined,
+      originalPrompt:   result.rawResponse?.originalPrompt ?? undefined,
+      finalPrompt:      result.rawResponse?.finalPrompt ?? undefined,
+      promptChoices:    result.executionStatus === 'prompt_selection_required' ? {
+        originalPrompt:    result.rawResponse?.originalPrompt,
+        polishedPromptA:   result.rawResponse?.polishedPromptA,
+        polishedPromptB:   result.rawResponse?.polishedPromptB,
+        choices:           result.rawResponse?.choices,
+        enhancementMethod: result.rawResponse?.enhancementMethod,
+      } : undefined,
     } : {}),
     // Image artifacts from OpenArt execution
     ...(result.imageFiles?.length ? {
