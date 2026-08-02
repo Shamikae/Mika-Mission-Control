@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import ContentFactoryPackage from './ContentFactoryPackage';
 import ContentPackGenerator from './ContentPackGenerator';
+import ContentPackagePipeline from './ContentPackagePipeline';
 import ContentBriefGenerator from '../sections/ContentBriefGenerator';
 import ContentStudio from '../sections/ContentStudio';
 import ContentArtifactsPanel from '../sections/ContentArtifactsPanel';
@@ -20,6 +21,7 @@ const MODES = [
   { id: 'twin', label: 'Mika Twin' },
   { id: 'factory', label: 'Content Factory' },
   { id: 'content-pack', label: 'Content Pack' },
+  { id: 'pack-pipeline', label: 'Package Pipeline' },
 ];
 
 const PLATFORMS = [
@@ -80,6 +82,7 @@ export default function StudioWorkspace() {
         {mode === 'twin' && <MikaTwinStudio />}
         {mode === 'factory' && <ContentFactoryPackage />}
         {mode === 'content-pack' && <ContentPackGenerator />}
+        {mode === 'pack-pipeline' && <ContentPackagePipeline />}
       </div>
     </ContentWorkspace>
   );
