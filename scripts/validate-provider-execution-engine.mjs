@@ -158,6 +158,47 @@ async function createPlan(packageId, opts = {}) {
   return r;
 }
 
+// ── Isolation / safety helpers ───────────────────────────────────────────────
+//
+// Fixture package IDs are suffixed with a per-run RUN_ID (see main()) so
+// this script never depends on — or collides with — real user packages,
+// leftover debris from a previous crashed run, or a concurrently-running
+// invocation of this same script. Every job/package this script creates is
+// tracked in createdPackageIds/createdJobIds and cleanup() only ever
+// touches those exact IDs — nothing pattern-based, nothing that could ever
+// reach a real user's data.
+
+function logResponse(label, resp) {
+  console.log(`  ⚠ ${label} — full response for diagnosis:`);
+  console.log(JSON.stringify(resp, null, 2).split('\n').map(l => `    ${l}`).join('\n'));
+}
+
+/** Throws immediately (with a precise, catchable message) instead of letting
+ * a missing prerequisite propagate to an unrelated `.id` access deeper in
+ * the script — the throw is caught by runPhase(), which stops just that
+ * test branch safely rather than crashing the whole run. */
+function assertJob(job, label, resp) {
+  if (!job?.id) {
+    if (resp) logResponse(label, resp);
+    throw new Error(`${label}: expected a job in the response but got none.`);
+  }
+  return job;
+}
+
+/** Runs one logically-independent phase in isolation: if it throws, the
+ * error is logged, recorded as a single explicit failed check, and — this
+ * is the important part — every OTHER phase still runs. A prerequisite
+ * failure in one phase must never silently skip or crash unrelated
+ * concurrency/locking/queue/retry/artifact/security coverage. */
+async function runPhase(label, fn) {
+  try {
+    await fn();
+  } catch (err) {
+    console.log(`\n⚠ Phase "${label}" aborted: ${err.message}`);
+    check(`${label}: phase completed without crashing`, false, err.message);
+  }
+}
+
 async function main() {
   console.log(`Using admin token: ${TOKEN ? '(configured)' : '(NONE — mutations will 401/503)'}`);
   const up = await waitForServer();
@@ -182,12 +223,25 @@ async function main() {
   }
 
   // ── Fixtures ──────────────────────────────────────────────────────────────
+  //
+  // Every fixture package ID is suffixed with a RUN_ID unique to this
+  // process invocation (timestamp + random) — this script must never
+  // depend on, collide with, or need to guess the state of a real user
+  // package, a leftover from a previous crashed run, or a concurrently
+  // running invocation of itself. Fresh IDs make every one of those
+  // scenarios structurally impossible rather than merely unlikely.
 
-  const READY_ID = 'pack-pee-ready';
-  const UNAPPROVED_ID = 'pack-pee-unapproved';
-  const BACKLINK_ID = 'pack-pee-backlink';
+  const RUN_ID = `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
 
-  createdPackageIds.push(READY_ID, UNAPPROVED_ID, BACKLINK_ID);
+  const READY_ID = `pack-pee-ready-${RUN_ID}`;
+  const UNAPPROVED_ID = `pack-pee-unapproved-${RUN_ID}`;
+  const BACKLINK_ID = `pack-pee-backlink-${RUN_ID}`;
+  const MOCK_ID = `pack-pee-mock-${RUN_ID}`;
+  const RN_ID = `pack-pee-lockrace-${RUN_ID}`;
+
+  // Registered up front, unconditionally, regardless of which phases
+  // actually run or abort below — guarantees cleanup() never misses one.
+  createdPackageIds.push(READY_ID, UNAPPROVED_ID, BACKLINK_ID, MOCK_ID, RN_ID);
 
   writeFixture(baseFixture(READY_ID, { topic: 'Ready-for-execution test package', ...eligiblePkgOverrides() }));
   writeFixture(baseFixture(UNAPPROVED_ID, {
@@ -197,162 +251,173 @@ async function main() {
   })); // status stays 'draft' — never approved
   writeFixture(baseFixture(BACKLINK_ID, { topic: 'Backlink sync test package', ...eligiblePkgOverrides() }));
 
-  // ── A. Ready job can enqueue (manual-export) ─────────────────────────────
+  // Cross-phase state, declared with safe defaults up front so a later
+  // phase referencing an earlier phase's output never dereferences
+  // `undefined` even if that earlier phase aborted partway through.
+  let readyJob = null, blockedJob = null, jobA = null, jobB = null;
+  let enq = { json: null, status: 0 }, runResp = { json: null, status: 0 }, outputs = [];
+  let pkgAfterRun = { json: null }, planResp = { json: null }, cancelTargetJob = null;
 
-  let planResp = await createPlan(READY_ID, { selectedProvider: 'manual-export' });
-  const readyJob = planResp.json?.job;
-  check('A: plan created, status=ready (manual-export requires no approval)', readyJob?.status === 'ready');
+  // Every phase below runs inside this try — the finally guarantees
+  // cleanup() always runs exactly once, regardless of which (if any)
+  // phase aborted, without needing a duplicate cleanup call in the
+  // top-level .catch() (that one remains only as a last-resort net for
+  // anything thrown before this point, e.g. during fixture setup above).
+  try {
 
-  let enq = await api('POST', '/api/production/execution/enqueue', { productionJobId: readyJob.id });
-  check('A: ready job -> enqueue succeeds', enq.status === 200 && enq.json?.ok === true && enq.json?.job?.execution?.status === 'queued');
+  // ── Phase 1: manual-export ready-job lifecycle (A/D/G/H/U/W/X) ───────────
 
-  // ── D. Duplicate enqueue blocked ─────────────────────────────────────────
+  await runPhase('Phase 1 (A/D/G/H/U/W/X): manual-export ready-job lifecycle', async () => {
+    planResp = await createPlan(READY_ID, { selectedProvider: 'manual-export' });
+    readyJob = assertJob(planResp.json?.job, 'A: plan created, status=ready (manual-export requires no approval)', planResp);
+    check('A: plan created, status=ready (manual-export requires no approval)', readyJob.status === 'ready', `status=${readyJob.status}`);
 
-  const dupEnq = await api('POST', '/api/production/execution/enqueue', { productionJobId: readyJob.id });
-  check('D: duplicate enqueue of an already-queued job is rejected', dupEnq.status === 409 && dupEnq.json?.ok === false);
+    enq = await api('POST', '/api/production/execution/enqueue', { productionJobId: readyJob.id });
+    check('A: ready job -> enqueue succeeds', enq.status === 200 && enq.json?.ok === true && enq.json?.job?.execution?.status === 'queued');
 
-  // ── G/H. manual-export completes via run-next, artifacts saved ──────────
+    // ── D. Duplicate enqueue blocked ─────────────────────────────────────
+    const dupEnq = await api('POST', '/api/production/execution/enqueue', { productionJobId: readyJob.id });
+    check('D: duplicate enqueue of an already-queued job is rejected', dupEnq.status === 409 && dupEnq.json?.ok === false);
 
-  const runResp = await api('POST', '/api/production/execution/run-next', undefined);
-  check('G: run-next processes the queued manual-export job -> completed', runResp.status === 200 && runResp.json?.job?.execution?.status === 'completed');
-  const outputs = runResp.json?.job?.execution?.outputs || [];
-  check('H: manual-export produced JSON and Markdown artifacts', outputs.some(o => o.mimeType === 'application/json') && outputs.some(o => o.mimeType === 'text/markdown'));
-  check('H: outputs reference local secure artifact routes, not provider URLs', outputs.every(o => o.artifactUrl?.startsWith('/api/production/artifacts/')));
+    // ── G/H. manual-export completes via run-next, artifacts saved ──────
+    runResp = await api('POST', '/api/production/execution/run-next', undefined);
+    check('G: run-next processes the queued manual-export job -> completed', runResp.status === 200 && runResp.json?.job?.execution?.status === 'completed');
+    outputs = runResp.json?.job?.execution?.outputs || [];
+    check('H: manual-export produced JSON and Markdown artifacts', outputs.some(o => o.mimeType === 'application/json') && outputs.some(o => o.mimeType === 'text/markdown'));
+    check('H: outputs reference local secure artifact routes, not provider URLs', outputs.every(o => o.artifactUrl?.startsWith('/api/production/artifacts/')));
 
-  // Fetch one artifact through the secure route.
-  if (outputs[0]) {
-    const artifactId = outputs[0].artifactUrl.split('/').pop();
-    const artifactRes = await fetch(`${BASE}${outputs[0].artifactUrl}`);
-    check('H: artifact is servable via GET /api/production/artifacts/[id]', artifactRes.ok);
-    const badArtifact = await fetch(`${BASE}/api/production/artifacts/${encodeURIComponent('../../etc/passwd')}`);
-    check('T: path traversal on artifact id -> 400', badArtifact.status === 400);
-    const notFoundArtifact = await fetch(`${BASE}/api/production/artifacts/${'a'.repeat(32)}.json`);
-    check('T: well-formed but nonexistent artifact id -> 404', notFoundArtifact.status === 404);
-    void artifactId;
-  }
+    if (outputs[0]) {
+      const artifactRes = await fetch(`${BASE}${outputs[0].artifactUrl}`);
+      check('H: artifact is servable via GET /api/production/artifacts/[id]', artifactRes.ok);
+      const badArtifact = await fetch(`${BASE}/api/production/artifacts/${encodeURIComponent('../../etc/passwd')}`);
+      check('T: path traversal on artifact id -> 400', badArtifact.status === 400);
+      const notFoundArtifact = await fetch(`${BASE}/api/production/artifacts/${'a'.repeat(32)}.json`);
+      check('T: well-formed but nonexistent artifact id -> 404', notFoundArtifact.status === 404);
+    }
 
-  // ── U/W. No provider URL / no package content duplicated in job file ────
+    // ── U/W. No provider URL / no package content duplicated in job file ─
+    const readyJobFile = readJobFile(readyJob.id);
+    const rawJobText = JSON.stringify(readyJobFile);
+    check('U: persisted job file contains no http(s):// URLs anywhere', !/https?:\/\//.test(rawJobText));
+    const pkgNow = readFixture(READY_ID);
+    check('W: persisted job file does not contain script.fullText verbatim', !rawJobText.includes(pkgNow.script.fullText));
 
-  const readyJobFile = readJobFile(readyJob.id);
-  const rawJobText = JSON.stringify(readyJobFile);
-  check('U: persisted job file contains no http(s):// URLs anywhere', !/https?:\/\//.test(rawJobText));
-  const pkgNow = readFixture(READY_ID);
-  check('W: persisted job file does not contain script.fullText verbatim', !rawJobText.includes(pkgNow.script.fullText));
-
-  // ── X. Latest package backlink synchronized by execution ────────────────
-
-  const pkgAfterRun = await api('GET', `/api/content/pack/${READY_ID}`);
-  check('X: package.production.status synchronized to completed', pkgAfterRun.json?.package?.production?.status === 'completed');
-  check('X: package.production.latestJobId matches the executed job', pkgAfterRun.json?.package?.production?.latestJobId === readyJob.id);
-
-  // ── B. Unapproved job cannot enqueue ─────────────────────────────────────
-
-  planResp = await createPlan(UNAPPROVED_ID);
-  const blockedJob = planResp.json?.job;
-  check('B: unapproved package -> plan is blocked', blockedJob?.status === 'blocked');
-  const blockedEnq = await api('POST', '/api/production/execution/enqueue', { productionJobId: blockedJob.id });
-  check('B: blocked job cannot enqueue', blockedEnq.status === 409 && blockedEnq.json?.ok === false);
-
-  // ── C. Stale job cannot enqueue ───────────────────────────────────────────
-
-  planResp = await createPlan(BACKLINK_ID, { selectedProvider: 'manual-export' });
-  const staleJob = planResp.json?.job;
-  check('C: fresh plan is ready', staleJob?.status === 'ready');
-
-  const mutatedPkg = readFixture(BACKLINK_ID);
-  mutatedPkg.topic = 'Backlink sync test package — UPDATED';
-  mutatedPkg.metadata.updatedAt = new Date(Date.now() + 5000).toISOString();
-  writeFixture(mutatedPkg);
-
-  const staleEnq = await api('POST', '/api/production/execution/enqueue', { productionJobId: staleJob.id });
-  check('C: stale job (package changed since plan built) cannot enqueue', staleEnq.status === 409 && /changed since this plan/.test(staleEnq.json?.error || ''));
-
-  // Refresh reconciles staleness, then it can enqueue.
-  const refreshResp = await api('POST', `/api/production/jobs/${staleJob.id}/refresh`);
-  const refreshedJob = refreshResp.json?.job;
-  const enqAfterRefresh = await api('POST', '/api/production/execution/enqueue', { productionJobId: refreshedJob.id });
-  check('C: after explicit refresh, job can enqueue', enqAfterRefresh.status === 200 && enqAfterRefresh.json?.ok === true);
-
-  // ── Y. Older job cannot overwrite package backlink ───────────────────────
-
-  const runResp2 = await api('POST', '/api/production/execution/run-next', undefined); // completes refreshedJob's execution (jobA)
-  const jobA = refreshedJob;
-  check('Y setup: jobA executed to completion', runResp2.json?.job?.execution?.status === 'completed' && runResp2.json?.job?.id === jobA.id);
-
-  // A second, distinct plan+job for the SAME package (BACKLINK_ID) — this becomes the new latest.
-  const planB = await createPlan(BACKLINK_ID, { selectedProvider: 'manual-export' });
-  const jobB = planB.json?.job;
-  await api('POST', '/api/production/execution/enqueue', { productionJobId: jobB.id });
-  const runB = await api('POST', '/api/production/execution/run-next', undefined);
-  check('Y setup: jobB (a second, newer job for the same package) executed to completion', runB.json?.job?.execution?.status === 'completed' && runB.json?.job?.id === jobB.id);
-
-  const pkgAfterB = await api('GET', `/api/content/pack/${BACKLINK_ID}`);
-  check('Y setup: package backlink now points to jobB (the newer job)', pkgAfterB.json?.package?.production?.latestJobId === jobB.id);
-
-  // Touching the OLDER job (jobA) must NOT overwrite the backlink back to jobA.
-  const patchOlder = await api('PATCH', `/api/production/jobs/${jobA.id}`, { userNotes: 'touching the older, superseded job' });
-  check('Y: PATCH on the older job (jobA) still succeeds', patchOlder.status === 200 && patchOlder.json?.ok === true);
-
-  const pkgAfterOlderTouch = await api('GET', `/api/content/pack/${BACKLINK_ID}`);
-  check('Y: package.production.latestJobId is STILL jobB (jobA did not clobber it)', pkgAfterOlderTouch.json?.package?.production?.latestJobId === jobB.id);
-
-  // ── AA. Execution metadata cannot be forged ──────────────────────────────
-
-  const forgeExec = await api('PATCH', `/api/production/jobs/${blockedJob.id}`, { execution: { status: 'completed', outputs: [{ artifactUrl: 'https://evil.example/video.mp4' }] } });
-  check('AA: PATCH with only an `execution` field is inert (400, no recognized fields)', forgeExec.status === 400);
-
-  const forgePkgExec = await api('PATCH', `/api/content/pack/${READY_ID}`, {
-    edits: { production: { latestJobId: 'forged', status: 'completed', selectedMode: 'avatar_video', selectedProvider: 'manual-export', updatedAt: '2000-01-01T00:00:00.000Z' } },
+    // ── X. Latest package backlink synchronized by execution ────────────
+    pkgAfterRun = await api('GET', `/api/content/pack/${READY_ID}`);
+    check('X: package.production.status synchronized to completed', pkgAfterRun.json?.package?.production?.status === 'completed');
+    check('X: package.production.latestJobId matches the executed job', pkgAfterRun.json?.package?.production?.latestJobId === readyJob.id);
   });
-  check('AA: package edit cannot forge production/execution metadata', forgePkgExec.status === 200 && forgePkgExec.json?.package?.production?.latestJobId === readyJob.id);
 
-  // ── V. No secrets in any response collected so far ───────────────────────
+  // ── Phase 2: unapproved package rejection (B) ────────────────────────────
 
-  const blob = JSON.stringify([enq.json, runResp.json, pkgAfterRun.json, planResp.json, providersResp.json]);
-  const leaked = [TOKEN, ROOT].filter(v => v && blob.includes(v));
-  check('V: no admin token or filesystem paths in API responses', leaked.length === 0, leaked.join(', '));
+  await runPhase('Phase 2 (B): unapproved package rejection', async () => {
+    const resp = await createPlan(UNAPPROVED_ID);
+    blockedJob = assertJob(resp.json?.job, 'B: unapproved package -> plan is blocked', resp);
+    check('B: unapproved package -> plan is blocked', blockedJob.status === 'blocked', `status=${blockedJob.status}`);
+    const blockedEnq = await api('POST', '/api/production/execution/enqueue', { productionJobId: blockedJob.id });
+    check('B: blocked job cannot enqueue', blockedEnq.status === 409 && blockedEnq.json?.ok === false);
+  });
 
-  // ── Z. Queue data gitignored ──────────────────────────────────────────────
+  // ── Phase 3: stale/backlink/older-job-cannot-overwrite (C/Y) ─────────────
 
-  let ignored = false;
-  try { execSync('git check-ignore -q "data/production-execution-queue.json"', { cwd: ROOT }); ignored = true; }
-  catch { ignored = false; }
-  check('Z: data/production-execution-queue.json is git-ignored', ignored);
-  let artifactsIgnored = false;
-  try { execSync('git check-ignore -q "production-artifacts/"', { cwd: ROOT }); artifactsIgnored = true; }
-  catch { artifactsIgnored = false; }
-  check('Z: production-artifacts/ is git-ignored', artifactsIgnored);
+  await runPhase('Phase 3 (C/Y): stale job + backlink synchronization', async () => {
+    const planC = await createPlan(BACKLINK_ID, { selectedProvider: 'manual-export' });
+    const staleJob = assertJob(planC.json?.job, 'C: fresh plan is ready', planC);
+    check('C: fresh plan is ready', staleJob.status === 'ready', `status=${staleJob.status}`);
 
-  // ── S. https-only remote download (structural — neither v1 adapter uses a remote URL) ─
+    const mutatedPkg = readFixture(BACKLINK_ID);
+    mutatedPkg.topic = 'Backlink sync test package — UPDATED';
+    mutatedPkg.metadata.updatedAt = new Date(Date.now() + 5000).toISOString();
+    writeFixture(mutatedPkg);
 
-  const downloaderSrc = fs.readFileSync(path.join(ROOT, 'lib/production/execution/downloadRemoteArtifact.js'), 'utf-8');
-  check('S: downloadRemoteArtifact rejects non-https URLs before any network call (structural check — no v1 adapter exercises this path; both are local-buffer only)',
-    /startsWith\('https:\/\/'\)/.test(downloaderSrc) && /throw new Error/.test(downloaderSrc));
-  check('R: downloadRemoteArtifact enforces the artifact MIME allowlist and size limit (structural check)',
-    /isAllowedArtifactMime/.test(downloaderSrc) && /maxBytesForMime/.test(downloaderSrc));
+    const staleEnq = await api('POST', '/api/production/execution/enqueue', { productionJobId: staleJob.id });
+    check('C: stale job (package changed since plan built) cannot enqueue', staleEnq.status === 409 && /changed since this plan/.test(staleEnq.json?.error || ''));
 
-  // ── L. Illegal transitions rejected (poll a completed job) ──────────────
+    const refreshResp = await api('POST', `/api/production/jobs/${staleJob.id}/refresh`);
+    const refreshedJob = assertJob(refreshResp.json?.job, 'C: after explicit refresh, job can enqueue', refreshResp);
+    const enqAfterRefresh = await api('POST', '/api/production/execution/enqueue', { productionJobId: refreshedJob.id });
+    check('C: after explicit refresh, job can enqueue', enqAfterRefresh.status === 200 && enqAfterRefresh.json?.ok === true);
 
-  const pollCompleted = await api('POST', `/api/production/execution/${readyJob.id}/poll`, {});
-  check('L: polling a completed execution is rejected (409)', pollCompleted.status === 409);
+    // ── Y. Older job cannot overwrite package backlink ──────────────────
+    const runResp2 = await api('POST', '/api/production/execution/run-next', undefined); // completes refreshedJob's execution (jobA)
+    jobA = refreshedJob;
+    check('Y setup: jobA executed to completion', runResp2.json?.job?.execution?.status === 'completed' && runResp2.json?.job?.id === jobA.id);
 
-  const retryReady = await api('POST', `/api/production/execution/${readyJob.id}/retry`, undefined);
-  check('L: retrying a non-failed execution is rejected (409)', retryReady.status === 409);
+    const planB = await createPlan(BACKLINK_ID, { selectedProvider: 'manual-export' });
+    jobB = assertJob(planB.json?.job, 'Y setup: jobB (a second, newer job for the same package) executed to completion', planB);
+    await api('POST', '/api/production/execution/enqueue', { productionJobId: jobB.id });
+    const runB = await api('POST', '/api/production/execution/run-next', undefined);
+    check('Y setup: jobB (a second, newer job for the same package) executed to completion', runB.json?.job?.execution?.status === 'completed' && runB.json?.job?.id === jobB.id);
 
-  // ── P. Cancel a queued job (never submitted) ─────────────────────────────
+    const pkgAfterB = await api('GET', `/api/content/pack/${BACKLINK_ID}`);
+    check('Y setup: package backlink now points to jobB (the newer job)', pkgAfterB.json?.package?.production?.latestJobId === jobB.id);
 
-  const p3 = await createPlan(READY_ID, { selectedProvider: 'manual-export' }); // re-plan same package for a fresh job
-  const cancelTargetJob = p3.json?.job;
-  const enqForCancel = await api('POST', '/api/production/execution/enqueue', { productionJobId: cancelTargetJob.id });
-  check('P setup: job enqueued for cancel test', enqForCancel.json?.job?.execution?.status === 'queued');
-  const cancelQueued = await api('POST', `/api/production/execution/${cancelTargetJob.id}/cancel`, {});
-  check('P: cancel while queued -> status=cancelled', cancelQueued.status === 200 && cancelQueued.json?.job?.execution?.status === 'cancelled');
+    const patchOlder = await api('PATCH', `/api/production/jobs/${jobA.id}`, { userNotes: 'touching the older, superseded job' });
+    check('Y: PATCH on the older job (jobA) still succeeds', patchOlder.status === 200 && patchOlder.json?.ok === true);
 
-  // ── Mock-dependent branch ─────────────────────────────────────────────────
+    const pkgAfterOlderTouch = await api('GET', `/api/content/pack/${BACKLINK_ID}`);
+    check('Y: package.production.latestJobId is STILL jobB (jobA did not clobber it)', pkgAfterOlderTouch.json?.package?.production?.latestJobId === jobB.id);
+  });
+
+  // ── Phase 3b: execution metadata forgery (AA) — needs blockedJob + readyJob ─
+
+  await runPhase('Phase 3b (AA): execution metadata cannot be forged', async () => {
+    if (!blockedJob?.id) throw new Error('AA: prerequisite blockedJob (from Phase 2) is missing — skipping.');
+    if (!readyJob?.id) throw new Error('AA: prerequisite readyJob (from Phase 1) is missing — skipping.');
+
+    const forgeExec = await api('PATCH', `/api/production/jobs/${blockedJob.id}`, { execution: { status: 'completed', outputs: [{ artifactUrl: 'https://evil.example/video.mp4' }] } });
+    check('AA: PATCH with only an `execution` field is inert (400, no recognized fields)', forgeExec.status === 400);
+
+    const forgePkgExec = await api('PATCH', `/api/content/pack/${READY_ID}`, {
+      edits: { production: { latestJobId: 'forged', status: 'completed', selectedMode: 'avatar_video', selectedProvider: 'manual-export', updatedAt: '2000-01-01T00:00:00.000Z' } },
+    });
+    check('AA: package edit cannot forge production/execution metadata', forgePkgExec.status === 200 && forgePkgExec.json?.package?.production?.latestJobId === readyJob.id);
+  });
+
+  // ── Phase 4: security/structural (V/Z/S/R/L/P) ───────────────────────────
+
+  await runPhase('Phase 4 (V/Z/S/R): security and structural checks', async () => {
+    const blob = JSON.stringify([enq.json, runResp.json, pkgAfterRun.json, planResp.json, providersResp.json]);
+    const leaked = [TOKEN, ROOT].filter(v => v && blob.includes(v));
+    check('V: no admin token or filesystem paths in API responses', leaked.length === 0, leaked.join(', '));
+
+    let ignored = false;
+    try { execSync('git check-ignore -q "data/production-execution-queue.json"', { cwd: ROOT }); ignored = true; }
+    catch { ignored = false; }
+    check('Z: data/production-execution-queue.json is git-ignored', ignored);
+    let artifactsIgnored = false;
+    try { execSync('git check-ignore -q "production-artifacts/"', { cwd: ROOT }); artifactsIgnored = true; }
+    catch { artifactsIgnored = false; }
+    check('Z: production-artifacts/ is git-ignored', artifactsIgnored);
+
+    const downloaderSrc = fs.readFileSync(path.join(ROOT, 'lib/production/execution/downloadRemoteArtifact.js'), 'utf-8');
+    check('S: downloadRemoteArtifact rejects non-https URLs before any network call (structural check — no v1 adapter exercises this path; both are local-buffer only)',
+      /startsWith\('https:\/\/'\)/.test(downloaderSrc) && /throw new Error/.test(downloaderSrc));
+    check('R: downloadRemoteArtifact enforces the artifact MIME allowlist and size limit (structural check)',
+      /isAllowedArtifactMime/.test(downloaderSrc) && /maxBytesForMime/.test(downloaderSrc));
+  });
+
+  await runPhase('Phase 4b (L): illegal transitions rejected', async () => {
+    if (!readyJob?.id) throw new Error('L: prerequisite readyJob (from Phase 1) is missing — skipping.');
+    const pollCompleted = await api('POST', `/api/production/execution/${readyJob.id}/poll`, {});
+    check('L: polling a completed execution is rejected (409)', pollCompleted.status === 409);
+    const retryReady = await api('POST', `/api/production/execution/${readyJob.id}/retry`, undefined);
+    check('L: retrying a non-failed execution is rejected (409)', retryReady.status === 409);
+  });
+
+  await runPhase('Phase 4c (P): cancel a queued job', async () => {
+    const p3 = await createPlan(READY_ID, { selectedProvider: 'manual-export' }); // re-plan same package for a fresh job
+    cancelTargetJob = assertJob(p3.json?.job, 'P setup: job enqueued for cancel test', p3);
+    const enqForCancel = await api('POST', '/api/production/execution/enqueue', { productionJobId: cancelTargetJob.id });
+    check('P setup: job enqueued for cancel test', enqForCancel.json?.job?.execution?.status === 'queued');
+    const cancelQueued = await api('POST', `/api/production/execution/${cancelTargetJob.id}/cancel`, {});
+    check('P: cancel while queued -> status=cancelled', cancelQueued.status === 200 && cancelQueued.json?.job?.execution?.status === 'cancelled');
+  });
+
+  // ── Phase 5: mock-dependent branch ────────────────────────────────────────
 
   if (mockEnabled) {
-    const MOCK_ID = 'pack-pee-mock';
-    createdPackageIds.push(MOCK_ID);
+    await runPhase('Phase 5 (I/J/M/E/Q/F/N/O): mock-video lifecycle', async () => {
     writeFixture(baseFixture(MOCK_ID, { topic: 'Mock video lifecycle test package', ...eligiblePkgOverrides() }));
 
     // mock-video is intentionally NOT part of Production Router's own
@@ -365,14 +430,15 @@ async function main() {
     // job fixture — the same "write the fixture directly" pattern already
     // used for package fixtures — to exercise the execution engine itself.
     async function planWithMockProvider(opts = {}) {
-      const built = (await createPlan(MOCK_ID, { selectedMode: 'faceless_social', ...opts })).json?.job;
+      const resp = await createPlan(MOCK_ID, { selectedMode: 'faceless_social', ...opts });
+      const built = assertJob(resp.json?.job, 'Mock-video plan creation', resp);
       const job = readJobFile(built.id);
       job.selectedProvider = 'mock-video';
       writeJobFile(job);
       return job;
     }
 
-    let mockJob = await planWithMockProvider();
+    const mockJob = await planWithMockProvider();
     check('I setup: mock-video plan readiness passes (script+sceneplan available)', mockJob?.readiness?.ready === true);
     check('I setup: mock-video job ready to enqueue', mockJob?.status === 'ready');
 
@@ -446,9 +512,9 @@ async function main() {
     // ── N/O. Bounded retry + non-retryable failure rejected ────────────────
 
     const mockPlan4 = await createPlan(MOCK_ID, { selectedMode: 'faceless_social', selectedProvider: 'heygen' }); // staged, non-executable -> forced failure path
-    const mockJob4 = mockPlan4.json?.job;
+    const mockJob4 = assertJob(mockPlan4.json?.job, 'O setup: heygen plan creation', mockPlan4);
     // heygen requires approval (non-manual, staged) — approve it first so only "provider not executable" blocks execution, not approval.
-    if (mockJob4?.status === 'needs_approval') await api('POST', `/api/production/jobs/${mockJob4.id}/approve`, undefined);
+    if (mockJob4.status === 'needs_approval') await api('POST', `/api/production/jobs/${mockJob4.id}/approve`, undefined);
 
     const heygenEnq = await api('POST', '/api/production/execution/enqueue', { productionJobId: mockJob4.id });
     check('O setup: enqueue against a non-executable provider is rejected outright (never even queues)', heygenEnq.status === 409 && /heygen/i.test(heygenEnq.json?.error || ''));
@@ -487,6 +553,7 @@ async function main() {
     check('N: retry succeeds while attempts remain and reason is retryable', okRetry.status === 200 && okRetry.json?.job?.execution?.status === 'queued');
     // Clean it back out of the queue so it doesn't linger.
     await api('POST', `/api/production/execution/${mockJob5.id}/cancel`, {});
+    });
   } else {
     for (const label of [
       'E: lock prevents parallel execution', 'F: stale lock recovery', 'I: mock-video submit/poll/completion lifecycle',
@@ -499,15 +566,17 @@ async function main() {
   // CONCURRENCY HARDENING — real atomic-lock tests
   // ══════════════════════════════════════════════════════════════════════════
 
-  const uniqueSuffix = Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
-
+  // Fully independent of every phase above — runs (and is scored) regardless
+  // of whether any earlier phase aborted, since none of these fixtures or
+  // job IDs are shared with them (RUN_ID keeps everything unique here too).
+  await runPhase('Phase 6 (Lock 1-8): concurrency, locking, queue race', async () => {
   // ── 1. Same-process Promise.all: exactly one acquisition succeeds ───────
   // Note: acquireExecutionLock is synchronous, so within ONE process these
   // calls actually execute serially (the event loop can't interleave sync
   // code) — this proves the function's contract (N calls, exactly 1 winner,
   // rest lock_unavailable), but real OS-level atomicity across genuinely
   // concurrent execution is what the CHILD-PROCESS test (#2 below) proves.
-  const sameProcessJobId = `pr-locktest-sp-${uniqueSuffix}`;
+  const sameProcessJobId = `pr-locktest-sp-${RUN_ID}`;
   const sameProcessResults = await Promise.all(
     Array.from({ length: 8 }, () => Promise.resolve(acquireExecutionLock(sameProcessJobId, { owner: 'same-process-test' })))
   );
@@ -518,7 +587,7 @@ async function main() {
   if (spSuccesses[0]) releaseExecutionLock(sameProcessJobId, spSuccesses[0].token);
 
   // ── 2. Real cross-process concurrency: N child processes, one job ───────
-  const crossProcJobId = `pr-locktest-cp-${uniqueSuffix}`;
+  const crossProcJobId = `pr-locktest-cp-${RUN_ID}`;
   const N_WORKERS = 8;
   const workerResults = await Promise.all(Array.from({ length: N_WORKERS }, () => runWorker(crossProcJobId, 'acquire')));
   const cpSuccesses = workerResults.filter(r => r.ok);
@@ -528,18 +597,27 @@ async function main() {
   if (cpSuccesses[0]) releaseExecutionLock(crossProcJobId, cpSuccesses[0].token);
 
   // ── 3. Stale lock reclaimed by exactly one contender ─────────────────────
-  const staleJobId = `pr-locktest-stale-${uniqueSuffix}`;
+  const staleJobId = `pr-locktest-stale-${RUN_ID}`;
   const staleHolder = await runWorker(staleJobId, 'acquire', 50); // 50ms TTL, process exits without releasing (simulates a crash)
   check('Lock 3 setup: initial holder acquired with a short TTL', staleHolder.ok === true);
   await new Promise(r => setTimeout(r, 200)); // let it go stale
   const reclaimers = await Promise.all(Array.from({ length: 6 }, () => runWorker(staleJobId, 'acquire')));
   const reclaimSuccesses = reclaimers.filter(r => r.ok);
   check('Lock 3: exactly one contender reclaims a stale lock', reclaimSuccesses.length === 1, `successes=${reclaimSuccesses.length}, results=${JSON.stringify(reclaimers)}`);
-  check('Lock 3: the winner\'s result is marked reclaimed:true', reclaimSuccesses[0]?.reclaimed === true);
+  // NOTE: the winner is not guaranteed to be the specific contender that
+  // itself detected the staleness and drove the reclaim — under real
+  // concurrent load, a fellow contender's own fresh acquisition attempt can
+  // legitimately land in the narrow window between the reclaimer vacating
+  // the stale lock and recreating it, and win that slot instead (reported
+  // as reclaimed:false). Both outcomes are safe — exactly one winner either
+  // way, already asserted above — so this checks the property that
+  // actually matters: the winner holds a genuinely fresh, valid lock, not
+  // a leftover/stale one.
+  check('Lock 3: the winner holds a freshly-issued, valid (non-stale) lock', !!reclaimSuccesses[0] && new Date(reclaimSuccesses[0].expiresAt).getTime() > Date.now());
   if (reclaimSuccesses[0]) releaseExecutionLock(staleJobId, reclaimSuccesses[0].token);
 
   // ── 4/5. Token-authorized release ─────────────────────────────────────────
-  const relJobId = `pr-locktest-rel-${uniqueSuffix}`;
+  const relJobId = `pr-locktest-rel-${RUN_ID}`;
   const relLock = acquireExecutionLock(relJobId, { owner: 'release-test' });
   check('Lock 4 setup: lock acquired for release tests', relLock.ok === true);
   const wrongTokenRelease = releaseExecutionLock(relJobId, 'not-the-real-token');
@@ -560,12 +638,11 @@ async function main() {
   check('Lock 7: no lock file escaped data/production-execution-locks/', !fs.existsSync('/etc/passwd.lock'));
 
   // ── 2 continued. Real cross-process run-next contention via the HTTP API ─
-  const RN_ID = 'pack-pee-lockrace';
-  createdPackageIds.push(RN_ID);
+  // (RN_ID is already declared + registered for cleanup near the top of main().)
   writeFixture(baseFixture(RN_ID, { topic: 'Run-next lock race test package', ...eligiblePkgOverrides() }));
   const rnPlan = await createPlan(RN_ID, { selectedProvider: 'manual-export' });
-  const rnJob = rnPlan.json?.job;
-  check('Lock 2c setup: ready job created for run-next race test', rnJob?.status === 'ready');
+  const rnJob = assertJob(rnPlan.json?.job, 'Lock 2c setup: ready job created for run-next race test', rnPlan);
+  check('Lock 2c setup: ready job created for run-next race test', rnJob.status === 'ready', `status=${rnJob.status}`);
   await api('POST', '/api/production/execution/enqueue', { productionJobId: rnJob.id });
 
   const runNextResults = await Promise.all(Array.from({ length: 6 }, () => api('POST', '/api/production/execution/run-next', undefined)));
@@ -603,10 +680,16 @@ async function main() {
   try { execSync('git check-ignore -q "data/production-execution-locks/"', { cwd: ROOT }); locksIgnored = true; }
   catch { locksIgnored = false; }
   check('Lock 8: data/production-execution-locks/ is git-ignored', locksIgnored);
+  }); // Phase 6
+
+  } finally {
+    // Guaranteed cleanup regardless of how the phases above concluded —
+    // only ever touches IDs this run itself created/registered (see
+    // createdPackageIds/createdJobIds), never a real user's package or job.
+    cleanup();
+  }
 
   // ── Summary ────────────────────────────────────────────────────────────────
-
-  cleanup();
 
   const failed = results.filter(r => !r.ok);
   console.log('\n──────────────────────────────────────────');
