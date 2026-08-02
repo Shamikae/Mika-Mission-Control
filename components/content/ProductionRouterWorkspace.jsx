@@ -1,11 +1,26 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import {
-  FiAlertCircle, FiCheck, FiCheckCircle, FiDownload, FiFilter,
-  FiRefreshCw, FiSearch, FiThumbsDown, FiX, FiZap,
+  FiAlertCircle, FiCheck, FiCheckCircle, FiClock, FiDownload, FiFilter,
+  FiPlay, FiRefreshCw, FiRotateCw, FiSearch, FiThumbsDown, FiX, FiZap,
 } from 'react-icons/fi';
 import {
   PRODUCTION_MODES, PROVIDER_CATALOG, modeLabel, assetLabel,
 } from '../../lib/production/productionRules';
+
+// ── Execution constants ─────────────────────────────────────────────────────
+
+const EXEC_STATE_META = {
+  ready:                { label: 'Ready to Queue',        color: '#4ade80' },
+  not_eligible:         { label: 'Not Eligible',          color: '#f87171' },
+  queued:                { label: 'Queued',                color: '#60a5fa' },
+  executing:             { label: 'Executing',             color: '#60a5fa' },
+  waiting_provider:      { label: 'Waiting on Provider',   color: '#60a5fa' },
+  downloading:           { label: 'Downloading Outputs',   color: '#60a5fa' },
+  processing_artifacts:  { label: 'Processing Artifacts',  color: '#60a5fa' },
+  completed:             { label: 'Completed',             color: '#4ade80' },
+  failed:                { label: 'Failed',                color: '#f87171' },
+  cancelled:             { label: 'Cancelled',             color: '#5d6c86' },
+};
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 
@@ -182,6 +197,138 @@ function ActivityTimeline({ history }) {
         </li>
       ))}
     </ol>
+  );
+}
+
+// ── Execution panel (right column, below the plan panel) ────────────────────
+
+function ExecutionStateBadge({ state, size = 'sm' }) {
+  const m = EXEC_STATE_META[state] || { label: state, color: '#5d6c86' };
+  return (
+    <span
+      className={`pr-status-badge pr-status-badge--${size} font-mono`}
+      style={{ color: m.color, background: `${m.color}1f`, borderColor: `${m.color}40` }}
+    >
+      {m.label}
+    </span>
+  );
+}
+
+function ExecutionPanel({
+  executionView, onEnqueue, onRunNext, onPoll, onCancelExecution, onRetry,
+  queuing, runningNext, polling, cancellingExecution, retrying, execError,
+}) {
+  if (!executionView) return null;
+  const status = executionView.status;
+  const execution = executionView.execution;
+  const mock = execution?.mock === true;
+  const inFlight = ['executing', 'downloading', 'processing_artifacts'].includes(status);
+
+  return (
+    <div className="pr-section pr-exec-panel">
+      <div className="pr-section-head">
+        <span className="font-ui">Execution</span>
+        <ExecutionStateBadge state={status} />
+      </div>
+
+      {mock && (
+        <div className="pr-mock-banner font-mono">
+          <FiAlertCircle size={11} /> TEST SIMULATION — NOT A REAL VIDEO
+        </div>
+      )}
+
+      {status === 'not_eligible' && executionView.eligibility?.reasons?.length > 0 && (
+        <ul className="pr-reason-list font-mono">
+          {executionView.eligibility.reasons.map((r, i) => <li key={i}>{r}</li>)}
+        </ul>
+      )}
+
+      {execution && (
+        <div className="pr-exec-meta font-mono">
+          <span>Provider: {execution.provider}</span>
+          <span>Attempt: {execution.attemptCount}/{execution.maxAttempts}</span>
+          {execution.progress != null && <span>Progress: {execution.progress}%</span>}
+          {execution.nextPollAt && <span>Next poll: {formatDate(execution.nextPollAt)}</span>}
+          {executionView.queuePosition && <span>Queue position: {executionView.queuePosition}</span>}
+        </div>
+      )}
+
+      {execution?.error && (
+        <div className="pr-warning font-mono"><FiAlertCircle size={11} /> {execution.error}</div>
+      )}
+
+      {execution?.outputs?.length > 0 && (
+        <div className="pr-exec-outputs">
+          <span className="pr-asset-group-label font-ui">Output Artifacts</span>
+          <div className="pr-export-actions">
+            {execution.outputs.map(o => (
+              <a key={o.id} href={o.artifactUrl} download={o.filename} rel="noreferrer" className="pr-btn pr-btn--secondary font-ui">
+                <FiDownload size={11} /> {o.filename}
+              </a>
+            ))}
+          </div>
+        </div>
+      )}
+
+      <div className="pr-exec-actions">
+        {status === 'ready' && (
+          <button type="button" className="pr-btn pr-btn--approve font-ui" onClick={onEnqueue} disabled={queuing}>
+            {queuing ? <><FiRefreshCw size={12} className="spin" /> Queuing…</> : <><FiPlay size={12} /> Queue Production</>}
+          </button>
+        )}
+        {status === 'queued' && (
+          <>
+            <button type="button" className="pr-btn font-ui" onClick={onRunNext} disabled={runningNext}>
+              {runningNext ? <><FiRefreshCw size={12} className="spin" /> Running…</> : <><FiPlay size={12} /> Run Next</>}
+            </button>
+            <button type="button" className="pr-btn pr-btn--reject font-ui" onClick={onCancelExecution} disabled={cancellingExecution}>
+              Cancel
+            </button>
+          </>
+        )}
+        {status === 'waiting_provider' && (
+          <>
+            <button type="button" className="pr-btn font-ui" onClick={onPoll} disabled={polling}>
+              {polling ? <><FiRefreshCw size={12} className="spin" /> Polling…</> : <><FiClock size={12} /> Poll Status</>}
+            </button>
+            <button type="button" className="pr-btn pr-btn--reject font-ui" onClick={onCancelExecution} disabled={cancellingExecution}>
+              Cancel
+            </button>
+          </>
+        )}
+        {inFlight && (
+          <span className="pr-exec-inflight font-mono"><FiRefreshCw size={11} className="spin" /> In progress…</span>
+        )}
+        {status === 'failed' && (
+          <button type="button" className="pr-btn font-ui" onClick={onRetry} disabled={retrying}>
+            {retrying ? <><FiRefreshCw size={12} className="spin" /> Retrying…</> : <><FiRotateCw size={12} /> Retry</>}
+          </button>
+        )}
+      </div>
+
+      {execError && <div className="pr-warning font-mono"><FiAlertCircle size={11} /> {execError}</div>}
+    </div>
+  );
+}
+
+// ── Provider status panel (left column) ──────────────────────────────────────
+
+function ProviderStatusPanel({ providers }) {
+  if (!providers?.length) return null;
+  return (
+    <div className="pr-section">
+      <div className="pr-section-head"><span className="font-ui">Provider Status</span></div>
+      <div className="pr-provider-status-list">
+        {providers.map(p => (
+          <div key={p.id} className="pr-provider-status-row font-mono">
+            <span>{p.displayName}{p.mock ? ' (test)' : ''}</span>
+            <span className={`pr-provider-status-pill${p.executable ? ' pr-provider-status-pill--active' : ''}`}>
+              {p.executable ? 'Active' : p.status === 'staged' ? 'Staged' : p.status === 'unavailable' ? 'Unavailable' : p.status}
+            </span>
+          </div>
+        ))}
+      </div>
+    </div>
   );
 }
 
@@ -373,6 +520,16 @@ export default function ProductionRouterWorkspace({ focusRequest, onFocusConsume
   const [exportingFormat, setExportingFormat] = useState(null);
   const [actionError, setActionError] = useState(null);
 
+  // Execution panel state
+  const [executionView, setExecutionView] = useState(null);
+  const [providers, setProviders] = useState([]);
+  const [queuing, setQueuing] = useState(false);
+  const [runningNext, setRunningNext] = useState(false);
+  const [polling, setPolling] = useState(false);
+  const [cancellingExecution, setCancellingExecution] = useState(false);
+  const [retrying, setRetrying] = useState(false);
+  const [execError, setExecError] = useState(null);
+
   // Library filters
   const [search, setSearch] = useState('');
   const [filterStatus, setFilterStatus] = useState('all');
@@ -550,6 +707,134 @@ export default function ProductionRouterWorkspace({ focusRequest, onFocusConsume
 
   const openJob = (job) => setCurrentJob(job);
 
+  // ── Execution ─────────────────────────────────────────────────────────────
+
+  const loadExecutionView = useCallback(async (jobId) => {
+    if (!jobId) { setExecutionView(null); return; }
+    try {
+      const res = await fetch(`/api/production/execution/${encodeURIComponent(jobId)}`, { cache: 'no-store' });
+      if (!res.ok) { setExecutionView(null); return; }
+      setExecutionView(await res.json());
+    } catch { setExecutionView(null); }
+  }, []);
+
+  const loadProviders = useCallback(async () => {
+    try {
+      const res = await fetch('/api/production/providers', { cache: 'no-store' });
+      if (!res.ok) return;
+      const data = await res.json();
+      setProviders(Array.isArray(data.providers) ? data.providers : []);
+    } catch { /* leave prior state on transient failure */ }
+  }, []);
+
+  useEffect(() => { loadProviders(); }, [loadProviders]);
+  useEffect(() => {
+    setExecError(null);
+    if (currentJob?.id) loadExecutionView(currentJob.id);
+    else setExecutionView(null);
+  }, [currentJob?.id, loadExecutionView]);
+
+  const enqueueExecution = async () => {
+    if (!currentJob) return;
+    setQueuing(true);
+    setExecError(null);
+    try {
+      const res = await fetch('/api/production/execution/enqueue', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ productionJobId: currentJob.id }),
+      });
+      const data = await res.json();
+      if (res.ok && data.ok) {
+        setCurrentJob(data.job);
+        await loadExecutionView(currentJob.id);
+        await loadJobs();
+      } else {
+        setExecError(data.error || 'Failed to queue.');
+      }
+    } finally {
+      setQueuing(false);
+    }
+  };
+
+  const runNextExecution = async () => {
+    setRunningNext(true);
+    setExecError(null);
+    try {
+      const res = await fetch('/api/production/execution/run-next', { method: 'POST' });
+      const data = await res.json();
+      if (res.ok && data.ok) {
+        if (data.job && currentJob && data.job.id === currentJob.id) setCurrentJob(data.job);
+        if (currentJob) await loadExecutionView(currentJob.id);
+        await loadJobs();
+      } else {
+        setExecError(data.error || 'Run Next failed.');
+      }
+    } finally {
+      setRunningNext(false);
+    }
+  };
+
+  const pollExecution = async () => {
+    if (!currentJob) return;
+    setPolling(true);
+    setExecError(null);
+    try {
+      const res = await fetch(`/api/production/execution/${encodeURIComponent(currentJob.id)}/poll`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({}),
+      });
+      const data = await res.json();
+      if (res.ok && data.ok) {
+        setCurrentJob(data.job);
+        await loadExecutionView(currentJob.id);
+        await loadJobs();
+      } else {
+        setExecError(data.error || 'Poll failed.');
+      }
+    } finally {
+      setPolling(false);
+    }
+  };
+
+  const cancelExecution = async () => {
+    if (!currentJob) return;
+    setCancellingExecution(true);
+    setExecError(null);
+    try {
+      const res = await fetch(`/api/production/execution/${encodeURIComponent(currentJob.id)}/cancel`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({}),
+      });
+      const data = await res.json();
+      if (res.ok && data.ok) {
+        setCurrentJob(data.job);
+        await loadExecutionView(currentJob.id);
+        await loadJobs();
+      } else {
+        setExecError(data.error || 'Cancel failed.');
+      }
+    } finally {
+      setCancellingExecution(false);
+    }
+  };
+
+  const retryExecution = async () => {
+    if (!currentJob) return;
+    setRetrying(true);
+    setExecError(null);
+    try {
+      const res = await fetch(`/api/production/execution/${encodeURIComponent(currentJob.id)}/retry`, { method: 'POST' });
+      const data = await res.json();
+      if (res.ok && data.ok) {
+        setCurrentJob(data.job);
+        await loadExecutionView(currentJob.id);
+        await loadJobs();
+      } else {
+        setExecError(data.error || 'Retry failed.');
+      }
+    } finally {
+      setRetrying(false);
+    }
+  };
+
   // ── Library filtering ────────────────────────────────────────────────────
 
   const enrichedJobs = useMemo(() => jobs.map(j => ({ job: j, pkg: packageMap[j.packageId] || null })), [jobs, packageMap]);
@@ -646,6 +931,8 @@ export default function ProductionRouterWorkspace({ focusRequest, onFocusConsume
               {creating ? <><FiRefreshCw size={12} className="spin" /> Building plan…</> : <><FiZap size={12} /> Create Plan</>}
             </button>
           </div>
+
+          <ProviderStatusPanel providers={providers} />
         </div>
 
         {/* ══════════════════ RIGHT — job panel ══════════════════ */}
@@ -655,21 +942,39 @@ export default function ProductionRouterWorkspace({ focusRequest, onFocusConsume
               Select an approved package on the left and create a plan, or open one from Recent Production Jobs below.
             </div>
           ) : (
-            <JobPanel
-              job={currentJob}
-              pkg={currentJobPackage}
-              onApprove={approveJob}
-              onCancel={() => patchJob({ cancel: true })}
-              onRefresh={refreshJob}
-              onPatchMode={mode => patchJob({ selectedMode: mode })}
-              onPatchProvider={provider => patchJob({ selectedProvider: provider })}
-              onExport={exportBrief}
-              approving={approving}
-              refreshing={refreshing}
-              patching={patching}
-              exportingFormat={exportingFormat}
-              actionError={actionError}
-            />
+            <>
+              <JobPanel
+                job={currentJob}
+                pkg={currentJobPackage}
+                onApprove={approveJob}
+                onCancel={() => patchJob({ cancel: true })}
+                onRefresh={refreshJob}
+                onPatchMode={mode => patchJob({ selectedMode: mode })}
+                onPatchProvider={provider => patchJob({ selectedProvider: provider })}
+                onExport={exportBrief}
+                approving={approving}
+                refreshing={refreshing}
+                patching={patching}
+                exportingFormat={exportingFormat}
+                actionError={actionError}
+              />
+              {currentJob.status !== 'blocked' && (
+                <ExecutionPanel
+                  executionView={executionView}
+                  onEnqueue={enqueueExecution}
+                  onRunNext={runNextExecution}
+                  onPoll={pollExecution}
+                  onCancelExecution={cancelExecution}
+                  onRetry={retryExecution}
+                  queuing={queuing}
+                  runningNext={runningNext}
+                  polling={polling}
+                  cancellingExecution={cancellingExecution}
+                  retrying={retrying}
+                  execError={execError}
+                />
+              )}
+            </>
           )}
         </div>
       </div>

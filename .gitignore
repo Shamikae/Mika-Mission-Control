@@ -45,6 +45,9 @@ data/projects/
 data/workflows/
 data/content-packages/
 data/production-jobs/
+data/production-execution-queue.json
+data/production-execution-locks/
+production-artifacts/
 
 # OS/editor
 .DS_Store

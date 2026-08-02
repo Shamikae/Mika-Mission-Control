@@ -2,6 +2,7 @@
 // Lists production jobs, newest first. Optional filters: packageId, status, provider, mode.
 
 import { listProductionJobs } from '../../../../lib/production/productionJobStore';
+import { sanitizeExecutionForResponse } from '../../../../lib/production/execution/executionRules';
 
 export default function handler(req, res) {
   if (req.method !== 'GET') {
@@ -16,5 +17,9 @@ export default function handler(req, res) {
   if (provider)  jobs = jobs.filter(j => j.selectedProvider === provider);
   if (mode)      jobs = jobs.filter(j => j.selectedMode === mode);
 
-  return res.status(200).json({ ok: true, jobs, total: jobs.length });
+  // Never return a raw lock token (job.execution.lock.token) — sanitize
+  // every job's execution field the same way the execution-specific routes do.
+  const sanitized = jobs.map(j => ({ ...j, execution: sanitizeExecutionForResponse(j.execution) }));
+
+  return res.status(200).json({ ok: true, jobs: sanitized, total: sanitized.length });
 }

@@ -6,6 +6,7 @@
 import { getProductionJob, updateProductionJob } from '../../../../../lib/production/productionJobStore';
 import { refreshProductionJob, applyProductionRefToPackage } from '../../../../../lib/production/buildProductionPlan';
 import { isValidId } from '../../../../../lib/production/productionRules';
+import { sanitizeExecutionForResponse } from '../../../../../lib/production/execution/executionRules';
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
@@ -26,5 +27,5 @@ export default async function handler(req, res) {
   const updated = updateProductionJob(id, result.job);
   applyProductionRefToPackage(updated);
 
-  return res.status(200).json({ ok: true, job: updated });
+  return res.status(200).json({ ok: true, job: { ...updated, execution: sanitizeExecutionForResponse(updated.execution) } });
 }

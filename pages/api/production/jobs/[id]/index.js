@@ -13,12 +13,18 @@
 import { getProductionJob, updateProductionJob, cancelProductionJob } from '../../../../../lib/production/productionJobStore';
 import { buildProductionJob, applyProductionRefToPackage } from '../../../../../lib/production/buildProductionPlan';
 import { isValidId, isValidMode, PROVIDER_CATALOG, PRODUCTION_MODE_IDS } from '../../../../../lib/production/productionRules';
+import { ACTIVE_EXECUTION_STATES, sanitizeExecutionForResponse } from '../../../../../lib/production/execution/executionRules';
 
 const PROVIDER_IDS = PROVIDER_CATALOG.map(p => p.id);
 
 export const config = {
   api: { bodyParser: { sizeLimit: '64kb' } },
 };
+
+// Never returns a raw lock token (job.execution.lock.token).
+function sanitizeJob(job) {
+  return job ? { ...job, execution: sanitizeExecutionForResponse(job.execution) } : job;
+}
 
 export default async function handler(req, res) {
   const { id } = req.query;
@@ -29,7 +35,7 @@ export default async function handler(req, res) {
   if (req.method === 'GET') {
     const job = getProductionJob(id);
     if (!job) return res.status(404).json({ ok: false, error: `Job "${id}" not found.` });
-    return res.status(200).json({ ok: true, job });
+    return res.status(200).json({ ok: true, job: sanitizeJob(job) });
   }
 
   if (req.method === 'PATCH') {
@@ -38,10 +44,19 @@ export default async function handler(req, res) {
 
     const { selectedMode, selectedProvider, budget, cancel, note, userNotes } = req.body || {};
 
+    // `execution` is never destructured/read from the request body above —
+    // it is exclusively server-managed by lib/production/execution/*, so it
+    // can never be forged through this route regardless of what a client sends.
+
+    const executionActive = job.execution && ACTIVE_EXECUTION_STATES.includes(job.execution.status);
+    if (executionActive && userNotes === undefined) {
+      return res.status(409).json({ ok: false, error: 'An execution is active for this job — cancel it first via POST /api/production/execution/[id]/cancel before modifying or cancelling the plan.' });
+    }
+
     if (cancel === true) {
       const cancelled = cancelProductionJob(id, { actor: 'user', note: typeof note === 'string' ? note.slice(0, 300) : null });
       if (cancelled) applyProductionRefToPackage(cancelled); // guarded — only syncs if still the package's latest job
-      return res.status(200).json({ ok: true, job: cancelled });
+      return res.status(200).json({ ok: true, job: sanitizeJob(cancelled) });
     }
 
     if (userNotes !== undefined) {
@@ -49,7 +64,7 @@ export default async function handler(req, res) {
         return res.status(400).json({ ok: false, error: 'userNotes must be a string of 2000 characters or fewer.' });
       }
       const updated = updateProductionJob(id, { metadata: { userNotes } });
-      return res.status(200).json({ ok: true, job: updated });
+      return res.status(200).json({ ok: true, job: sanitizeJob(updated) });
     }
 
     const needsRebuild = selectedMode !== undefined || selectedProvider !== undefined || budget !== undefined;
@@ -95,7 +110,7 @@ export default async function handler(req, res) {
 
     const updated = updateProductionJob(id, result.job);
     applyProductionRefToPackage(updated);
-    return res.status(200).json({ ok: true, job: updated });
+    return res.status(200).json({ ok: true, job: sanitizeJob(updated) });
   }
 
   return res.status(405).json({ ok: false, error: 'Method not allowed' });
