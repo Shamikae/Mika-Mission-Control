@@ -7766,6 +7766,326 @@ button, a, .btn-gold, .btn-ghost, .btn-danger {
   .cpp-drawer { width: 100%; max-width: 100%; }
 }
 
+.cpp-card-production-btn {
+  width: 100%;
+  justify-content: center;
+  margin-top: 2px;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   PRODUCTION ROUTER
+   Governed production planning for approved Content Packages — orchestration
+   only, no provider execution. Reuses ts-workspace / ts-library-* layout
+   scaffolding (Thumbnail Studio) and thumb-* empty/button primitives.
+   ══════════════════════════════════════════════════════════════════════════ */
+
+.pr-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.pr-wrapper-head h3 { margin: 0 0 4px; }
+.pr-wrapper-head p { color: var(--text-secondary); font-size: 12px; margin: 0; }
+
+/* ── Form (left column) ───────────────────────────────────────────────────── */
+
+.pr-form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.pr-field { display: flex; flex-direction: column; gap: 6px; }
+
+.pr-field-label {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+}
+
+.pr-field-hint {
+  font-size: 10px;
+  color: var(--text-muted);
+}
+
+.pr-row-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.pr-input, .pr-select {
+  width: 100%;
+  background: var(--surface-base);
+  border: 1px solid var(--border-default);
+  border-radius: 6px;
+  color: var(--text-primary);
+  font-size: 11px;
+  padding: 7px 10px;
+  transition: border-color 0.12s;
+}
+
+.pr-input:focus, .pr-select:focus {
+  outline: none;
+  border-color: var(--gold);
+}
+
+/* ── Buttons ───────────────────────────────────────────────────────────────── */
+
+.pr-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 12px;
+  background: var(--surface-base);
+  border: 1px solid var(--border-default);
+  border-radius: 6px;
+  color: var(--text-primary);
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
+}
+.pr-btn:disabled { opacity: 0.45; cursor: not-allowed; }
+.pr-btn--secondary { background: var(--surface-raised); }
+.pr-btn--muted { color: var(--text-secondary); }
+.pr-btn--approve:not(:disabled) { border-color: rgba(74,222,128,0.4); color: #4ade80; }
+.pr-btn--reject:not(:disabled) { border-color: rgba(248,113,113,0.4); color: #f87171; }
+
+/* ── Status / badges ──────────────────────────────────────────────────────── */
+
+.pr-status-badge {
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid;
+  border-radius: var(--radius-full, 9999px);
+  padding: 3px 9px;
+  font-size: 9.5px;
+  letter-spacing: 0.03em;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.pr-status-badge--lg { font-size: 10px; padding: 5px 11px; }
+
+.pr-event-badge {
+  display: inline-flex;
+  padding: 2px 7px;
+  border-radius: 4px;
+  background: var(--surface-raised);
+  border: 1px solid var(--border-default);
+  color: var(--text-secondary);
+  font-size: 9px;
+  text-transform: capitalize;
+}
+
+/* ── Panel (right column) ─────────────────────────────────────────────────── */
+
+.pr-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.pr-panel-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+.pr-panel-head-main h3 { margin: 0 0 4px; }
+.pr-panel-chips {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--text-secondary);
+  font-size: 10.5px;
+}
+
+.pr-section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 14px;
+  background: var(--surface-raised);
+  border: 1px solid var(--border-default);
+  border-radius: 8px;
+}
+.pr-section-head { display: flex; align-items: center; justify-content: space-between; }
+
+.pr-reason-list {
+  margin: 0;
+  padding-left: 18px;
+  color: #f87171;
+  font-size: 11px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.pr-reason-text {
+  font-size: 10.5px;
+  color: var(--text-muted);
+  margin: 0;
+}
+
+.pr-mode-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+  font-size: 11px;
+  color: var(--text-secondary);
+}
+
+.pr-warning {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 10px;
+  border-radius: 6px;
+  background: rgba(245,158,11,0.1);
+  border: 1px solid rgba(245,158,11,0.3);
+  color: #f59e0b;
+  font-size: 10.5px;
+}
+.pr-warning--stale { background: rgba(96,165,250,0.1); border-color: rgba(96,165,250,0.3); color: #60a5fa; }
+
+/* ── Readiness meter ───────────────────────────────────────────────────────── */
+
+.pr-readiness {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 14px;
+  background: var(--surface-raised);
+  border: 1px solid var(--border-default);
+  border-radius: 8px;
+}
+.pr-readiness-head { display: flex; align-items: center; justify-content: space-between; font-size: 11px; }
+.pr-readiness-bar {
+  height: 6px;
+  border-radius: 3px;
+  background: var(--surface-base);
+  overflow: hidden;
+}
+.pr-readiness-bar-fill { height: 100%; border-radius: 3px; transition: width 0.3s ease; }
+
+.pr-asset-group { display: flex; flex-direction: column; gap: 4px; }
+.pr-asset-group-label { font-size: 9.5px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-muted); }
+.pr-asset-list { display: flex; flex-wrap: wrap; gap: 6px; }
+.pr-asset-chip {
+  padding: 3px 8px;
+  border-radius: var(--radius-full, 9999px);
+  background: var(--surface-base);
+  border: 1px solid var(--border-default);
+  color: var(--text-secondary);
+  font-size: 9.5px;
+}
+.pr-asset-chip--missing { border-color: rgba(248,113,113,0.4); color: #f87171; }
+.pr-asset-chip--ok { border-color: rgba(74,222,128,0.4); color: #4ade80; }
+
+/* ── Provider candidates ──────────────────────────────────────────────────── */
+
+.pr-provider-list { display: flex; flex-direction: column; gap: 8px; }
+.pr-provider-item {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding: 8px 10px;
+  border-radius: 6px;
+  background: var(--surface-base);
+  border: 1px solid var(--border-default);
+}
+.pr-provider-item--selected { border-color: var(--gold); }
+.pr-provider-item-top { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; font-size: 11px; }
+.pr-provider-recommended-tag {
+  padding: 2px 7px;
+  border-radius: 4px;
+  background: rgba(255,215,120,0.12);
+  color: var(--gold);
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.pr-provider-badge {
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid;
+  border-radius: var(--radius-full, 9999px);
+  padding: 2px 8px;
+  font-size: 9px;
+}
+.pr-provider-reason { font-size: 9.5px; color: var(--text-muted); }
+
+/* ── Output spec ───────────────────────────────────────────────────────────── */
+
+.pr-output-spec-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px 16px;
+}
+.pr-output-spec-item { display: flex; flex-direction: column; gap: 2px; }
+.pr-output-spec-item--full { grid-column: 1 / -1; }
+.pr-output-spec-label { font-size: 9px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-muted); }
+.pr-output-spec-value { font-size: 11px; color: var(--text-primary); }
+
+/* ── Budget / approval / export ───────────────────────────────────────────── */
+
+.pr-budget-row { display: flex; flex-wrap: wrap; gap: 12px; font-size: 11px; color: var(--text-secondary); }
+
+.pr-approval-panel { gap: 10px; }
+.pr-approval-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+.pr-approved-flash {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  color: #4ade80;
+}
+
+.pr-export-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+
+/* ── Job library cards ─────────────────────────────────────────────────────── */
+
+.pr-lib-card {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  background: var(--surface-raised);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-lg, 12px);
+  padding: 12px;
+  text-align: left;
+  cursor: pointer;
+  font-family: inherit;
+  box-shadow: var(--shadow-card);
+  transition: border-color 0.2s ease, transform 0.2s ease;
+}
+.pr-lib-card:hover { border-color: var(--gold); transform: translateY(-1px); }
+.pr-lib-card-top { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.pr-lib-card-title { font-size: 12px; color: var(--text-primary); }
+.pr-lib-card-meta { font-size: 10px; color: var(--text-secondary); }
+.pr-lib-card-date { font-size: 9.5px; color: var(--text-muted); }
+.pr-lib-card-stale {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 9px;
+  color: #f59e0b;
+}
+
+@media (max-width: 680px) {
+  .pr-row-2 { grid-template-columns: 1fr; }
+  .pr-output-spec-grid { grid-template-columns: 1fr; }
+  .pr-panel-head { flex-direction: column; }
+}
+
 /* ═══════════════════════════════════════════════════════════════════════════
    PHASE E — VOICE EVERYWHERE
    Diamond Control · Boardroom · Mission Control

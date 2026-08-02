@@ -126,7 +126,7 @@ function ApprovalQueue({ items, onApprove, onSendBack, onOpen, busyId }) {
 
 // ── Kanban card ───────────────────────────────────────────────────────────────
 
-function PipelineCard({ pkg, onOpen, onMove, dragging, selectMode, selected, onToggleSelect, onDragStart, onDragEnd }) {
+function PipelineCard({ pkg, onOpen, onMove, dragging, selectMode, selected, onToggleSelect, onDragStart, onDragEnd, onCreateProductionPlan, onOpenProduction }) {
   return (
     <article
       className={`cpp-card${dragging ? ' cpp-card--dragging' : ''}${selected ? ' cpp-card--selected' : ''}`}
@@ -158,6 +158,25 @@ function PipelineCard({ pkg, onOpen, onMove, dragging, selectMode, selected, onT
         </div>
         <div className="cpp-card-date font-mono">{formatDate(pkg.pipeline?.enteredStageAt)}</div>
       </div>
+
+      {!selectMode && pkg.pipeline?.stage === 'approved' && onCreateProductionPlan && (
+        <button
+          type="button"
+          className="cpp-mini-btn cpp-card-production-btn font-ui"
+          onClick={e => { e.stopPropagation(); onCreateProductionPlan(pkg); }}
+        >
+          Create Production Plan
+        </button>
+      )}
+      {!selectMode && pkg.pipeline?.stage === 'production' && onOpenProduction && (
+        <button
+          type="button"
+          className="cpp-mini-btn cpp-card-production-btn font-ui"
+          onClick={e => { e.stopPropagation(); onOpenProduction(pkg); }}
+        >
+          Open Production
+        </button>
+      )}
 
       {!selectMode && (
         <select
@@ -277,7 +296,7 @@ function BulkActionBar({ count, onMove, onClear, moving }) {
 
 // ── Main component ────────────────────────────────────────────────────────────
 
-export default function ContentPackagePipeline() {
+export default function ContentPackagePipeline({ onCreateProductionPlan, onOpenProduction } = {}) {
   const [packages, setPackages] = useState([]);
   const [loading, setLoading]   = useState(false);
   const [loaded, setLoaded]     = useState(false);
@@ -584,6 +603,8 @@ export default function ContentPackagePipeline() {
                       onMove={moveCard}
                       onDragStart={handleDragStart}
                       onDragEnd={handleDragEnd}
+                      onCreateProductionPlan={onCreateProductionPlan}
+                      onOpenProduction={onOpenProduction}
                     />
                   ))}
                   {stagePackages.length === 0 && <div className="cpp-col-empty font-mono">Empty</div>}

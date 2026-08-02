@@ -1,7 +1,8 @@
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import ContentFactoryPackage from './ContentFactoryPackage';
 import ContentPackGenerator from './ContentPackGenerator';
 import ContentPackagePipeline from './ContentPackagePipeline';
+import ProductionRouterWorkspace from './ProductionRouterWorkspace';
 import ContentBriefGenerator from '../sections/ContentBriefGenerator';
 import ContentStudio from '../sections/ContentStudio';
 import ContentArtifactsPanel from '../sections/ContentArtifactsPanel';
@@ -22,6 +23,7 @@ const MODES = [
   { id: 'factory', label: 'Content Factory' },
   { id: 'content-pack', label: 'Content Pack' },
   { id: 'pack-pipeline', label: 'Package Pipeline' },
+  { id: 'production-router', label: 'Production Router' },
 ];
 
 const PLATFORMS = [
@@ -38,6 +40,13 @@ const PLATFORMS = [
 export default function StudioWorkspace() {
   const [mode, setMode] = useState('create');
   const [platform, setPlatform] = useState('tiktok');
+  const [productionFocusRequest, setProductionFocusRequest] = useState(null);
+
+  const focusProductionRouter = useCallback((packageId, action) => {
+    setProductionFocusRequest({ packageId, action, at: Date.now() });
+    setMode('production-router');
+  }, []);
+  const clearProductionFocusRequest = useCallback(() => setProductionFocusRequest(null), []);
 
   return (
     <ContentWorkspace
@@ -82,7 +91,15 @@ export default function StudioWorkspace() {
         {mode === 'twin' && <MikaTwinStudio />}
         {mode === 'factory' && <ContentFactoryPackage />}
         {mode === 'content-pack' && <ContentPackGenerator />}
-        {mode === 'pack-pipeline' && <ContentPackagePipeline />}
+        {mode === 'pack-pipeline' && (
+          <ContentPackagePipeline
+            onCreateProductionPlan={pkg => focusProductionRouter(pkg.id, 'create')}
+            onOpenProduction={pkg => focusProductionRouter(pkg.id, 'open')}
+          />
+        )}
+        {mode === 'production-router' && (
+          <ProductionRouterWorkspace focusRequest={productionFocusRequest} onFocusConsumed={clearProductionFocusRequest} />
+        )}
       </div>
     </ContentWorkspace>
   );
