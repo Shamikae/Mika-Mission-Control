@@ -43,6 +43,22 @@ function stageLabel(stageId) {
   return PIPELINE_STAGES.find(s => s.id === stageId)?.label || stageId;
 }
 
+// Derived directly from the package's own production backlink
+// (pkg.production.status, kept in sync by the Provider Execution Engine) —
+// no separate job/execution fetch needed here.
+const EXECUTION_LABEL_META = {
+  queued:    { label: 'Queued',    color: '#60a5fa' },
+  executing: { label: 'Executing', color: '#60a5fa' },
+  completed: { label: 'Completed', color: '#4ade80' },
+  failed:    { label: 'Failed',    color: '#f87171' },
+  cancelled: { label: 'Cancelled', color: '#5d6c86' },
+};
+
+function executionLabelMeta(pkg) {
+  const status = pkg.production?.status;
+  return EXECUTION_LABEL_META[status] || { label: 'Not queued', color: '#5d6c86' };
+}
+
 // ── Small shared pieces ──────────────────────────────────────────────────────
 
 function StageBadge({ stage, size = 'sm' }) {
@@ -157,6 +173,14 @@ function PipelineCard({ pkg, onOpen, onMove, dragging, selectMode, selected, onT
           {pkg.brand} · {pkg.platform}
         </div>
         <div className="cpp-card-date font-mono">{formatDate(pkg.pipeline?.enteredStageAt)}</div>
+        {pkg.pipeline?.stage === 'production' && (() => {
+          const m = executionLabelMeta(pkg);
+          return (
+            <span className="cpp-exec-label font-mono" style={{ color: m.color, background: `${m.color}1f`, borderColor: `${m.color}40` }}>
+              {m.label}
+            </span>
+          );
+        })()}
       </div>
 
       {!selectMode && pkg.pipeline?.stage === 'approved' && onCreateProductionPlan && (

@@ -12,6 +12,7 @@ import { getProductionJob, updateProductionJob } from '../../../../../lib/produc
 import { loadPackage } from '../../../../../lib/content/contentPackageStore';
 import { buildManualExportJson, buildManualExportMarkdown } from '../../../../../lib/production/productionExport';
 import { isValidId, makeActivityEvent } from '../../../../../lib/production/productionRules';
+import { sanitizeExecutionForResponse } from '../../../../../lib/production/execution/executionRules';
 
 export const config = {
   api: { bodyParser: { sizeLimit: '16kb' } },
@@ -47,5 +48,5 @@ export default function handler(req, res) {
     activityHistory: [...job.activityHistory, makeActivityEvent('manual_exported', { actor: 'user', note: `Exported ${fmt} production brief.` })],
   });
 
-  return res.status(200).json({ ok: true, format: fmt, content, job: updated });
+  return res.status(200).json({ ok: true, format: fmt, content, job: { ...updated, execution: sanitizeExecutionForResponse(updated.execution) } });
 }

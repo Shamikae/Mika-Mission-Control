@@ -10,6 +10,7 @@
 import { buildProductionJob, applyProductionRefToPackage } from '../../../../lib/production/buildProductionPlan';
 import { createProductionJob } from '../../../../lib/production/productionJobStore';
 import { isValidId, isValidMode, PROVIDER_CATALOG, PRODUCTION_MODE_IDS, makeActivityEvent } from '../../../../lib/production/productionRules';
+import { sanitizeExecutionForResponse } from '../../../../lib/production/execution/executionRules';
 
 const PROVIDER_IDS = PROVIDER_CATALOG.map(p => p.id);
 
@@ -76,5 +77,5 @@ export default async function handler(req, res) {
   // guard used everywhere else.
   applyProductionRefToPackage(persistedJob, { force: true });
 
-  return res.status(201).json({ ok: true, job: persistedJob });
+  return res.status(201).json({ ok: true, job: { ...persistedJob, execution: sanitizeExecutionForResponse(persistedJob.execution) } });
 }

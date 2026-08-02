@@ -224,6 +224,17 @@
       "workspaceRoute": null
     },
     {
+      "id": "provider-execution-engine",
+      "displayName": "Provider Execution Engine",
+      "entityType": "capability",
+      "category": "orchestration",
+      "description": "Governed runtime that executes ready, approved Production Jobs: execution eligibility, a file-backed FIFO queue, execution locking, bounded retries, provider polling, cancellation, and artifact ingestion. Supported today: the Manual Export adapter (production-safe, no credentials) and an optional Mock Video test adapter (disabled unless PROVIDER_MOCK_VIDEO_ENABLED=true, never a real video). Not supported: real third-party video execution (HeyGen/Higgsfield/HyperFrames/OpenArt Video have no execution adapter yet), background workers, or auto-publishing.",
+      "status": "available_when_configured",
+      "visibleInSidebar": false,
+      "hiddenByDefault": true,
+      "workspaceRoute": null
+    },
+    {
       "id": "paperclip",
       "displayName": "Paperclip",
       "entityType": "external_workspace",

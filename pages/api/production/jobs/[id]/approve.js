@@ -6,6 +6,7 @@
 import { getProductionJob, updateProductionJob } from '../../../../../lib/production/productionJobStore';
 import { applyProductionRefToPackage } from '../../../../../lib/production/buildProductionPlan';
 import { isValidId, makeActivityEvent } from '../../../../../lib/production/productionRules';
+import { sanitizeExecutionForResponse } from '../../../../../lib/production/execution/executionRules';
 
 export default function handler(req, res) {
   if (req.method !== 'POST') {
@@ -35,5 +36,5 @@ export default function handler(req, res) {
   });
   applyProductionRefToPackage(updated);
 
-  return res.status(200).json({ ok: true, job: updated });
+  return res.status(200).json({ ok: true, job: { ...updated, execution: sanitizeExecutionForResponse(updated.execution) } });
 }
