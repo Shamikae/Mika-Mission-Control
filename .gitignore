@@ -44,6 +44,7 @@ data/openart-auth/
 data/projects/
 data/workflows/
 data/content-packages/
+data/production-jobs/
 
 # OS/editor
 .DS_Store

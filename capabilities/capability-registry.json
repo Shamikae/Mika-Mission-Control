@@ -213,6 +213,17 @@
       "workspaceRoute": null
     },
     {
+      "id": "production-router",
+      "displayName": "Production Router",
+      "entityType": "capability",
+      "category": "orchestration",
+      "description": "Governed production planning for approved Content Packages — eligibility checks, deterministic mode/provider recommendation, asset readiness scoring, budget governance, human approval, and Manual Export briefs. Never executes a provider or generates a video; that is future-milestone scope.",
+      "status": "available_when_configured",
+      "visibleInSidebar": false,
+      "hiddenByDefault": true,
+      "workspaceRoute": null
+    },
+    {
       "id": "paperclip",
       "displayName": "Paperclip",
       "entityType": "external_workspace",

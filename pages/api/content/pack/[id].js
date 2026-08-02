@@ -46,6 +46,12 @@ export default function handler(req, res) {
         return res.status(400).json({ ok: false, error: 'edits must be an object.' });
       }
       const sanitized = sanitizeEditPatch(edits);
+      // `production` is server-managed metadata written only by
+      // lib/production/buildProductionPlan.js's applyProductionRefToPackage —
+      // never editable through this route, regardless of what a client sends.
+      // sanitizeEditPatch already never copies unknown fields, so this is
+      // belt-and-suspenders, made explicit and testable.
+      delete sanitized.production;
       if (sanitized.thumbnail) {
         pkg.thumbnail = { ...pkg.thumbnail, ...sanitized.thumbnail };
         delete sanitized.thumbnail;
