@@ -91,6 +91,18 @@
       "workspaceRoute": null
     },
     {
+      "id": "openrouter-content-pack",
+      "displayName": "OpenRouter Content Pack Generator",
+      "entityType": "capability",
+      "category": "synthesis",
+      "parentCapability": "openrouter",
+      "description": "Single-model structured synthesis for Content Pack Generator — hooks, script, scene plan, caption, CTA, hashtags, keywords, and thumbnail brief from one content idea. Validated against a fixed schema; malformed output is rejected rather than persisted.",
+      "status": "available_when_configured",
+      "visibleInSidebar": false,
+      "hiddenByDefault": true,
+      "workspaceRoute": null
+    },
+    {
       "id": "notebooklm",
       "displayName": "NotebookLM",
       "entityType": "capability",
