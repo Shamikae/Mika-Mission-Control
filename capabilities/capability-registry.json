@@ -235,6 +235,17 @@
       "workspaceRoute": null
     },
     {
+      "id": "heygen-mcp-adapter",
+      "displayName": "HeyGen MCP Adapter",
+      "entityType": "capability",
+      "category": "video",
+      "description": "Real HeyGen video generation through the Provider Execution Engine via HeyGen's official Remote MCP server (OAuth 2.1 + PKCE, billed against the user's HeyGen web-plan premium credits — no API key). Supported when validated: OAuth connection, account discovery, avatar discovery, voice discovery, avatar_video and talking_head modes, async submit, polling, local artifact ingestion. Conditionally supported: captions, voice speed, test-submission bookkeeping (cancellation is NOT conditionally supported — see below). Not supported: cancellation of an in-flight render (no such HeyGen MCP tool exists), the Direct API, template-based generation, interactive/streaming avatars, auto-publishing, batch generation, and an exact pre-generation cost (no credit/estimate tool exists on this account). Not yet marked fully production-active — that requires one explicitly approved live generation to succeed first.",
+      "status": "available_when_configured",
+      "visibleInSidebar": false,
+      "hiddenByDefault": true,
+      "workspaceRoute": null
+    },
+    {
       "id": "paperclip",
       "displayName": "Paperclip",
       "entityType": "external_workspace",
