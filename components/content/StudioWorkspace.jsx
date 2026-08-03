@@ -5,6 +5,7 @@ import ContentPackagePipeline from './ContentPackagePipeline';
 import ProductionRouterWorkspace from './ProductionRouterWorkspace';
 import HyperFramesStudioWorkspace from './HyperFramesStudioWorkspace';
 import PublishingRouterWorkspace from './PublishingRouterWorkspace';
+import ContentOrchestratorWorkspace from './ContentOrchestratorWorkspace';
 import ContentBriefGenerator from '../sections/ContentBriefGenerator';
 import ContentStudio from '../sections/ContentStudio';
 import ContentArtifactsPanel from '../sections/ContentArtifactsPanel';
@@ -28,6 +29,7 @@ const MODES = [
   { id: 'production-router', label: 'Production Router' },
   { id: 'hf-studio', label: 'HyperFrames Studio' },
   { id: 'publishing-router', label: 'Publishing Router' },
+  { id: 'content-orchestrator', label: 'Content Orchestrator' },
 ];
 
 const PLATFORMS = [
@@ -47,9 +49,14 @@ export default function StudioWorkspace() {
   const [productionFocusRequest, setProductionFocusRequest] = useState(null);
   const [hfFocusRequest, setHfFocusRequest] = useState(null);
   const [publishingFocusRequest, setPublishingFocusRequest] = useState(null);
+  const [orchestratorFocusRequest, setOrchestratorFocusRequest] = useState(null);
 
   const focusProductionRouter = useCallback((packageId, action) => {
     setProductionFocusRequest({ packageId, action, at: Date.now() });
+    setMode('production-router');
+  }, []);
+  const focusProductionRouterJob = useCallback((productionJobId) => {
+    setProductionFocusRequest({ action: 'open-job', productionJobId, at: Date.now() });
     setMode('production-router');
   }, []);
   const clearProductionFocusRequest = useCallback(() => setProductionFocusRequest(null), []);
@@ -60,7 +67,19 @@ export default function StudioWorkspace() {
   }, []);
   const clearHfFocusRequest = useCallback(() => setHfFocusRequest(null), []);
 
+  const focusPublishingRouter = useCallback((publishJobId) => {
+    setPublishingFocusRequest({ publishJobId, at: Date.now() });
+    setMode('publishing-router');
+  }, []);
   const clearPublishingFocusRequest = useCallback(() => setPublishingFocusRequest(null), []);
+
+  // No setter wired to a caller yet (Production/Publishing Router are out of
+  // scope for reverse deep-links this milestone — see report) — the
+  // Content Orchestrator tab itself is always one click away in the tab
+  // bar above, so this stays valid, empty (null) state until a future
+  // caller sets it, exactly like hfFocusRequest before HyperFrames Studio
+  // had multiple entry points.
+  const clearOrchestratorFocusRequest = useCallback(() => setOrchestratorFocusRequest(null), []);
 
   return (
     <ContentWorkspace
@@ -130,6 +149,15 @@ export default function StudioWorkspace() {
           <PublishingRouterWorkspace
             focusRequest={publishingFocusRequest}
             onFocusConsumed={clearPublishingFocusRequest}
+          />
+        )}
+        {mode === 'content-orchestrator' && (
+          <ContentOrchestratorWorkspace
+            focusRequest={orchestratorFocusRequest}
+            onFocusConsumed={clearOrchestratorFocusRequest}
+            onOpenProductionRouter={(productionJobId) => focusProductionRouterJob(productionJobId)}
+            onOpenPublishingRouter={(publishJobId) => focusPublishingRouter(publishJobId)}
+            onOpenPackagePipeline={() => setMode('pack-pipeline')}
           />
         )}
       </div>
