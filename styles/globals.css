@@ -9017,3 +9017,443 @@ button, a, .btn-gold, .btn-ghost, .btn-danger {
   border-top: 1px solid rgba(212,175,55,0.1);
   padding-top: 1rem;
 }
+
+/* ══════════════════════════════════════════════════════════════════════════
+   Universal Output Viewer (components/artifacts/*)
+   Reuses .ts-modal-* for the large preview modal shell and .pr-* for
+   buttons/inputs/warnings/badges — this block only adds what's new: the
+   MIME-routed viewer internals, artifact cards, metadata grid, and review
+   controls.
+   ══════════════════════════════════════════════════════════════════════════ */
+
+.ov-preview-modal { /* inherits .ts-modal grid layout as-is */ }
+.ov-modal-viewer-pane {
+  padding: 0;
+}
+
+/* ── Metadata grid ─────────────────────────────────────────────────────── */
+
+.ov-meta-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+  gap: 8px 14px;
+  padding: 10px 0;
+  border-top: 1px solid var(--border-subtle);
+  border-bottom: 1px solid var(--border-subtle);
+}
+.ov-meta-grid > div {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.ov-meta-label {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+.ov-meta-value {
+  font-size: 11px;
+  color: var(--text-primary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ── Actions row ───────────────────────────────────────────────────────── */
+
+.ov-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.ov-actions--compact .ts-modal-btn {
+  padding: 6px 10px;
+  font-size: 10px;
+  min-width: 0;
+  flex: none;
+}
+
+/* ── Loading / error state blocks ─────────────────────────────────────── */
+
+.ov-state-block {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 32px 16px;
+  color: var(--text-muted);
+  font-size: 11px;
+  text-align: center;
+}
+.ov-state-block--error { color: #f87171; }
+.ov-retry-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 6px 12px;
+  background: var(--surface-base);
+  border: 1px solid var(--border-default);
+  border-radius: 6px;
+  color: var(--text-primary);
+  font-size: 10.5px;
+  cursor: pointer;
+}
+.ov-retry-btn:hover { border-color: var(--gold); }
+
+/* ── Media wrapper (video/audio/image/pdf) ────────────────────────────── */
+
+.ov-media-wrap {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 220px;
+}
+
+.ov-media-wrap--video { padding: 0; }
+.ov-video {
+  width: 100%;
+  max-height: 78vh;
+  display: block;
+  background: #000;
+}
+/* Vertical (9:16-style) videos: bound height rather than letting them grow
+   to fill an unbounded-width container edge to edge. */
+.ov-media-wrap--vertical .ov-video {
+  width: auto;
+  max-width: 100%;
+  height: 100%;
+  max-height: 70vh;
+  margin: 0 auto;
+}
+
+.ov-media-wrap--audio {
+  gap: 12px;
+  padding: 24px;
+}
+.ov-audio-meta {
+  color: var(--text-secondary);
+  font-size: 11px;
+  word-break: break-word;
+  text-align: center;
+}
+.ov-audio { width: 100%; max-width: 420px; }
+
+.ov-media-wrap--image {
+  padding: 0;
+  background: var(--obsidian, #0c0c0f);
+  overflow: hidden;
+}
+.ov-image-frame {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: auto;
+}
+.ov-image-frame--clickable { cursor: zoom-in; }
+.ov-image {
+  max-width: 100%;
+  max-height: 78vh;
+  object-fit: contain;
+  transition: transform 0.12s ease;
+}
+.ov-image-frame--zoomable .ov-image { max-height: none; }
+.ov-zoom-controls {
+  position: absolute;
+  bottom: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  background: rgba(9,19,41,0.85);
+  border: 1px solid rgba(255,255,255,0.14);
+  border-radius: 999px;
+  color: var(--text-primary);
+  font-size: 10px;
+}
+.ov-zoom-controls button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  background: transparent;
+  border: none;
+  color: inherit;
+  cursor: pointer;
+}
+.ov-zoom-controls button:hover { color: var(--gold); }
+
+.ov-media-wrap--pdf {
+  padding: 0;
+  gap: 8px;
+}
+.ov-pdf-frame {
+  width: 100%;
+  height: 70vh;
+  border: none;
+  background: #fff;
+}
+
+/* ── Text / JSON / Markdown ────────────────────────────────────────────── */
+
+.ov-text-view {
+  position: relative;
+  width: 100%;
+  padding: 18px;
+  overflow-y: auto;
+}
+.ov-copy-btn {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 9px;
+  background: var(--surface-base);
+  border: 1px solid var(--border-default);
+  border-radius: 6px;
+  color: var(--text-secondary);
+  font-size: 10px;
+  cursor: pointer;
+  z-index: 1;
+}
+.ov-text-block {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 11.5px;
+  line-height: 1.6;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+.ov-json-view {
+  width: 100%;
+  padding: 18px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.ov-json-entry {
+  border: 1px solid var(--border-subtle);
+  border-radius: 6px;
+  padding: 6px 10px;
+  background: var(--surface-base);
+}
+.ov-json-entry summary {
+  cursor: pointer;
+  color: var(--champagne-gold, var(--gold));
+  font-size: 10.5px;
+  user-select: none;
+}
+.ov-json-entry .ov-text-block { margin-top: 8px; }
+.ov-markdown-frame {
+  width: 100%;
+  height: 100%;
+  padding: 18px 22px;
+  overflow-y: auto;
+}
+.ov-warning {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 10px;
+  margin-bottom: 10px;
+  background: rgba(245,158,11,0.1);
+  border: 1px solid rgba(245,158,11,0.3);
+  border-radius: 6px;
+  color: #f59e0b;
+  font-size: 10.5px;
+}
+
+/* ── Unsupported fallback ──────────────────────────────────────────────── */
+
+.ov-unsupported {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 40px 20px;
+  color: var(--text-muted);
+  text-align: center;
+}
+.ov-unsupported-filename {
+  color: var(--text-primary);
+  font-size: 12px;
+  word-break: break-word;
+}
+
+/* ── Artifact card (output selector + job-library thumbnail) ─────────────── */
+
+.ov-artifact-card-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.ov-artifact-card {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px;
+  width: 148px;
+  background: var(--surface-base);
+  border: 1px solid var(--border-default);
+  border-radius: 8px;
+  cursor: pointer;
+  text-align: left;
+  transition: border-color 0.12s;
+}
+.ov-artifact-card:hover { border-color: var(--gold); }
+.ov-artifact-card--selected { border-color: var(--gold); background: rgba(201,168,76,0.08); }
+.ov-artifact-card--compact { width: 120px; padding: 4px; }
+
+.ov-artifact-card-thumb {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 5px;
+  background: var(--obsidian, #0c0c0f);
+  color: var(--text-muted);
+  overflow: hidden;
+}
+.ov-artifact-card--compact .ov-artifact-card-thumb { width: 30px; height: 30px; }
+.ov-artifact-card-thumb img,
+.ov-artifact-card-thumb video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.ov-artifact-card-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.ov-artifact-card-filename {
+  font-size: 10px;
+  color: var(--text-primary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.ov-artifact-card-meta {
+  font-size: 9px;
+  color: var(--text-muted);
+}
+
+.ov-modal-other-outputs {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+/* ── Review controls ───────────────────────────────────────────────────── */
+
+.ov-review-block {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-top: 4px;
+  border-top: 1px solid var(--border-subtle);
+}
+.ov-review-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.ov-review-note-row {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+/* ── Output Preview section (Production Router job detail) ───────────────── */
+
+.pr-output-preview {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.pr-output-preview-main {
+  border-radius: 8px;
+  overflow: hidden;
+  background: var(--obsidian, #0c0c0f);
+  border: 1px solid var(--border-default);
+  min-height: 200px;
+}
+.pr-output-preview-empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 140px;
+  color: var(--text-muted);
+  font-size: 11px;
+}
+
+/* ── Job library card — thumbnail + quick actions ─────────────────────── */
+
+.pr-lib-card-thumb {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 84px;
+  border-radius: 6px;
+  background: var(--obsidian, #0c0c0f);
+  color: var(--text-muted);
+  overflow: hidden;
+  margin-bottom: 6px;
+}
+.pr-lib-card-thumb img,
+.pr-lib-card-thumb video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.pr-lib-card-quick-actions {
+  display: flex;
+  gap: 6px;
+  margin-top: 6px;
+}
+.pr-lib-card-quick-actions button,
+.pr-lib-card-quick-actions a {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 8px;
+  background: var(--surface-base);
+  border: 1px solid var(--border-default);
+  border-radius: 5px;
+  color: var(--text-secondary);
+  font-size: 9px;
+  cursor: pointer;
+  text-decoration: none;
+}
+.pr-lib-card-quick-actions button:hover,
+.pr-lib-card-quick-actions a:hover { border-color: var(--gold); color: var(--gold); }
+
+@media (max-width: 680px) {
+  .ov-video { max-height: 60vh; }
+  .ov-media-wrap--vertical .ov-video { max-height: 58vh; }
+  .ov-pdf-frame { height: 50vh; }
+  .ov-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .ov-actions .ts-modal-btn { min-width: 0; }
+  .ov-artifact-card { width: 128px; }
+}

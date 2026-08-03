@@ -1,6 +1,9 @@
-// GET /api/production/artifacts/[id]
-// Serves a stored production execution artifact (document/image/video) by
-// hex filename. Same security shape as pages/api/image/artifacts/[id].js:
+// GET  /api/production/artifacts/[id] — serve a stored production execution
+// artifact (document/image/video) by hex filename.
+// HEAD /api/production/artifacts/[id] — same headers, no body (used by the
+// Universal Output Viewer to probe an artifact before rendering it).
+//
+// Same security shape as pages/api/image/artifacts/[id].js:
 //
 //   - id must match /^[a-zA-Z0-9_-]+\.(png|jpg|jpeg|webp|mp4|webm|json|md)$/
 //   - file is located by scanning production-artifacts two levels deep
@@ -16,7 +19,19 @@
 // fs.createReadStream() and a 206 Partial Content response; a full GET is
 // also served via createReadStream() (never a full readFileSync buffer) so
 // a large video is never fully loaded into memory. Path-traversal and MIME
-// validation are unchanged.
+// validation are unchanged. Only a single range is ever honored — a
+// malformed or multi-range request is honestly rejected with 416 rather
+// than silently downgraded to a full response or partially supported.
+//
+// Universal Output Viewer additions: X-Content-Type-Options: nosniff and
+// X-Frame-Options: SAMEORIGIN (same-origin iframe embedding, e.g. the PDF
+// preview, remains possible; arbitrary third-party framing does not).
+// Content-Disposition is `inline` for every MIME type this route can ever
+// actually serve (all of them are viewer-previewable), or `attachment`
+// when the Download action explicitly requests it via ?download=1, or for
+// the generic application/octet-stream fallback (an extension outside the
+// known map — never currently reachable given SAFE_ID_RE, but handled
+// honestly either way).
 
 import { findProductionArtifactPath } from '../../../../lib/production/execution/productionArtifactStore';
 import path from 'path';
@@ -30,13 +45,15 @@ const MIME = {
   mp4: 'video/mp4', webm: 'video/webm',
   json: 'application/json', md: 'text/markdown',
 };
+const PREVIEW_SAFE_MIME_TYPES = new Set(Object.values(MIME));
 
 export const config = {
   api: { responseLimit: '80mb' },
 };
 
 export default function handler(req, res) {
-  if (req.method !== 'GET') {
+  if (req.method !== 'GET' && req.method !== 'HEAD') {
+    res.setHeader('Allow', 'GET, HEAD');
     return res.status(405).end();
   }
 
@@ -63,9 +80,21 @@ export default function handler(req, res) {
     return res.status(500).json({ error: 'Could not read artifact' });
   }
 
+  const forceDownload = req.query.download === '1';
+  const disposition = (forceDownload || !PREVIEW_SAFE_MIME_TYPES.has(mimeType)) ? 'attachment' : 'inline';
+
   res.setHeader('Content-Type', mimeType);
   res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
   res.setHeader('Accept-Ranges', 'bytes');
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+  res.setHeader('X-Frame-Options', 'SAMEORIGIN');
+  res.setHeader('Content-Disposition', `${disposition}; filename="${id}"`);
+
+  if (req.method === 'HEAD') {
+    res.status(200);
+    res.setHeader('Content-Length', size);
+    return res.end();
+  }
 
   const range = req.headers.range;
   if (range) {

@@ -98,7 +98,11 @@ export default function StudioWorkspace() {
           />
         )}
         {mode === 'production-router' && (
-          <ProductionRouterWorkspace focusRequest={productionFocusRequest} onFocusConsumed={clearProductionFocusRequest} />
+          <ProductionRouterWorkspace
+            focusRequest={productionFocusRequest}
+            onFocusConsumed={clearProductionFocusRequest}
+            onOpenPackage={() => setMode('pack-pipeline')}
+          />
         )}
       </div>
     </ContentWorkspace>

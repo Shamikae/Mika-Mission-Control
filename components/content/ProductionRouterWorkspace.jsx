@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import {
-  FiAlertCircle, FiCheck, FiCheckCircle, FiClock, FiDownload, FiFilter,
+  FiAlertCircle, FiCheck, FiCheckCircle, FiClock, FiDownload, FiEye, FiFilter,
   FiPlay, FiRefreshCw, FiRotateCw, FiSearch, FiThumbsDown, FiX, FiZap,
 } from 'react-icons/fi';
 import {
@@ -8,6 +8,13 @@ import {
 } from '../../lib/production/productionRules';
 import HeyGenConnectionPanel from './HeyGenConnectionPanel';
 import HeyGenSetupPanel from './HeyGenSetupPanel';
+import { normalizeArtifactList } from '../../lib/artifacts/normalizeArtifact';
+import ArtifactViewer from '../artifacts/ArtifactViewer';
+import ArtifactCard from '../artifacts/ArtifactCard';
+import ArtifactActions from '../artifacts/ArtifactActions';
+import ArtifactReviewControls from '../artifacts/ArtifactReviewControls';
+import ArtifactPreviewModal from '../artifacts/ArtifactPreviewModal';
+import ArtifactMetadata from '../artifacts/ArtifactMetadata';
 
 // ── Execution constants ─────────────────────────────────────────────────────
 
@@ -342,6 +349,61 @@ function ProviderStatusPanel({ providers }) {
   );
 }
 
+// ── Output Preview (right column, shown above the job panel for completed jobs) ─
+
+function OutputPreviewSection({
+  job, artifacts, selectedArtifact, onSelectArtifact, onOpenModal,
+  onOpenPackage, onRegenerate, review, onApproveReview, onRejectReview, reviewSubmitting,
+  containerRef, inlineViewerRef,
+}) {
+  return (
+    <div className="pr-section pr-output-preview" ref={containerRef}>
+      <div className="pr-section-head">
+        <span className="font-ui">Output Preview</span>
+        {job.execution?.mock && (
+          <span className="pr-status-badge font-mono" style={{ color: '#f59e0b', background: 'rgba(245,158,11,0.12)', borderColor: 'rgba(245,158,11,0.4)' }}>
+            TEST SIMULATION
+          </span>
+        )}
+      </div>
+
+      {!selectedArtifact ? (
+        <div className="pr-output-preview-empty font-mono">
+          This job completed but produced no previewable local artifact.
+        </div>
+      ) : (
+        <>
+          <div className="pr-output-preview-main" ref={inlineViewerRef}>
+            <ArtifactViewer artifact={selectedArtifact} variant="inline" onRequestFullscreen={() => onOpenModal(selectedArtifact)} />
+          </div>
+
+          {artifacts.length > 1 && (
+            <div className="ov-artifact-card-row">
+              {artifacts.map(a => (
+                <ArtifactCard
+                  key={a.artifactId} artifact={a}
+                  selected={a.artifactId === selectedArtifact.artifactId}
+                  onSelect={onSelectArtifact}
+                />
+              ))}
+            </div>
+          )}
+
+          <ArtifactMetadata artifact={selectedArtifact} job={job} />
+
+          <div className="ov-actions">
+            <button type="button" className="ts-modal-btn font-ui" onClick={() => onOpenModal(selectedArtifact)}>
+              <FiEye size={12} /> Fullscreen Preview
+            </button>
+          </div>
+          <ArtifactActions artifact={selectedArtifact} onOpenPackage={onOpenPackage} onRegenerate={onRegenerate} />
+          <ArtifactReviewControls review={review} onApprove={onApproveReview} onReject={onRejectReview} submitting={reviewSubmitting} />
+        </>
+      )}
+    </div>
+  );
+}
+
 // ── Job detail panel (right column) ──────────────────────────────────────────
 
 function JobPanel({
@@ -487,30 +549,60 @@ function JobPanel({
 
 // ── Job library card ──────────────────────────────────────────────────────────
 
-function JobCard({ job, pkg, onOpen }) {
+function JobCard({ job, pkg, onOpen, onPreview }) {
   const isStale = pkg && job.packageUpdatedAt !== pkg.metadata?.updatedAt;
+  const completed = job.status === 'completed';
+  const outputs = completed ? normalizeArtifactList(job.execution?.outputs, { job }) : [];
+  const firstOutput = outputs[0] || null;
+
+  // Deliberately NOT one giant <button> when there are quick actions to show
+  // — "Open details" is its own button around the non-interactive content,
+  // and Preview/Download are SIBLING buttons, never nested inside it.
   return (
-    <button type="button" className="pr-lib-card" onClick={() => onOpen(job)}>
-      <div className="pr-lib-card-top">
-        <span className="pr-lib-card-title font-ui">{shorten(pkg?.topic || job.packageId, 60)}</span>
-        <StateBadge state={job.status} />
-      </div>
-      <span className="pr-lib-card-meta font-mono">{pkg?.brand || '—'} · {pkg?.platform || '—'}</span>
-      <span className="pr-lib-card-meta font-mono">
-        {job.selectedMode ? modeLabel(job.selectedMode) : 'No mode'} · {job.selectedProvider || 'No provider'}
-      </span>
-      <span className="pr-lib-card-meta font-mono">
-        Readiness: {job.readiness?.score ?? '—'}/100
-      </span>
-      {isStale && <span className="pr-lib-card-stale font-mono"><FiAlertCircle size={10} /> Package changed</span>}
-      <span className="pr-lib-card-date font-mono">{formatDate(job.metadata?.createdAt)}</span>
-    </button>
+    <div className="pr-lib-card">
+      <button type="button" className="pr-lib-card-open" onClick={() => onOpen(job)}>
+        {completed && (
+          <span className="pr-lib-card-thumb">
+            {firstOutput?.type === 'image' ? (
+              <img src={firstOutput.localUrl} alt="" loading="lazy" />
+            ) : firstOutput?.type === 'video' ? (
+              <video src={firstOutput.localUrl} preload="metadata" muted playsInline aria-hidden="true" />
+            ) : (
+              <FiCheckCircle size={18} />
+            )}
+          </span>
+        )}
+        <div className="pr-lib-card-top">
+          <span className="pr-lib-card-title font-ui">{shorten(pkg?.topic || job.packageId, 60)}</span>
+          <StateBadge state={job.status} />
+        </div>
+        <span className="pr-lib-card-meta font-mono">{pkg?.brand || '—'} · {pkg?.platform || '—'}</span>
+        <span className="pr-lib-card-meta font-mono">
+          {job.selectedMode ? modeLabel(job.selectedMode) : 'No mode'} · {job.selectedProvider || 'No provider'}
+        </span>
+        <span className="pr-lib-card-meta font-mono">
+          {completed ? `${outputs.length} output${outputs.length === 1 ? '' : 's'}` : `Readiness: ${job.readiness?.score ?? '—'}/100`}
+        </span>
+        {isStale && <span className="pr-lib-card-stale font-mono"><FiAlertCircle size={10} /> Package changed</span>}
+        <span className="pr-lib-card-date font-mono">{formatDate(job.metadata?.createdAt)}</span>
+      </button>
+      {completed && firstOutput && (
+        <div className="pr-lib-card-quick-actions">
+          <button type="button" onClick={() => onPreview(job, firstOutput)} className="font-mono">
+            <FiEye size={10} /> Preview
+          </button>
+          <a href={`${firstOutput.localUrl}?download=1`} download={firstOutput.filename} className="font-mono" onClick={e => e.stopPropagation()}>
+            <FiDownload size={10} /> Download
+          </a>
+        </div>
+      )}
+    </div>
   );
 }
 
 // ── Main component ────────────────────────────────────────────────────────────
 
-export default function ProductionRouterWorkspace({ focusRequest, onFocusConsumed } = {}) {
+export default function ProductionRouterWorkspace({ focusRequest, onFocusConsumed, onOpenPackage } = {}) {
   const [packages, setPackages] = useState([]);
   const [jobs, setJobs] = useState([]);
   const [libLoading, setLibLoading] = useState(false);
@@ -543,6 +635,13 @@ export default function ProductionRouterWorkspace({ focusRequest, onFocusConsume
   const [cancellingExecution, setCancellingExecution] = useState(false);
   const [retrying, setRetrying] = useState(false);
   const [execError, setExecError] = useState(null);
+
+  // Output preview / review state
+  const [selectedArtifactId, setSelectedArtifactId] = useState(null);
+  const [modalArtifactId, setModalArtifactId] = useState(null);
+  const [reviewSubmitting, setReviewSubmitting] = useState(false);
+  const outputPreviewRef = useRef(null);
+  const inlineViewerRef = useRef(null);
 
   // Library filters
   const [search, setSearch] = useState('');
@@ -721,6 +820,12 @@ export default function ProductionRouterWorkspace({ focusRequest, onFocusConsume
 
   const openJob = (job) => setCurrentJob(job);
 
+  const pendingPreviewArtifactIdRef = useRef(null);
+  const previewJobFromLibrary = useCallback((job, artifact) => {
+    pendingPreviewArtifactIdRef.current = artifact?.artifactId || null;
+    setCurrentJob(job);
+  }, []);
+
   const onProviderInputSaved = useCallback(async (updatedJob) => {
     setCurrentJob(updatedJob);
     await loadJobs();
@@ -752,6 +857,76 @@ export default function ProductionRouterWorkspace({ focusRequest, onFocusConsume
     if (currentJob?.id) loadExecutionView(currentJob.id);
     else setExecutionView(null);
   }, [currentJob?.id, loadExecutionView]);
+
+  // ── Output preview / review ───────────────────────────────────────────────
+
+  const currentJobOutputs = useMemo(
+    () => normalizeArtifactList(currentJob?.execution?.outputs, { job: currentJob }),
+    [currentJob],
+  );
+  const selectedArtifact = useMemo(
+    () => currentJobOutputs.find(a => a.artifactId === selectedArtifactId) || currentJobOutputs[0] || null,
+    [currentJobOutputs, selectedArtifactId],
+  );
+  const modalArtifact = modalArtifactId ? currentJobOutputs.find(a => a.artifactId === modalArtifactId) || null : null;
+
+  // Reset the selected output whenever the open job changes, and scroll the
+  // freshly-opened completed job's preview into view (point 6 of the
+  // Production Router integration requirements).
+  useEffect(() => {
+    setSelectedArtifactId(null);
+    // A "Preview" click from the job library sets a pending artifact id
+    // just before switching currentJob — honor it once here, then clear it,
+    // rather than letting this same effect immediately reset it to null.
+    if (pendingPreviewArtifactIdRef.current) {
+      setModalArtifactId(pendingPreviewArtifactIdRef.current);
+      pendingPreviewArtifactIdRef.current = null;
+    } else {
+      setModalArtifactId(null);
+    }
+    if (currentJob?.status === 'completed' && outputPreviewRef.current) {
+      outputPreviewRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  }, [currentJob?.id, currentJob?.status]);
+
+  const openArtifactModal = useCallback((artifact) => {
+    // Never allow two copies of the same video/audio to play at once — pause
+    // whatever is playing inline before the modal's own copy opens.
+    inlineViewerRef.current?.querySelectorAll('video, audio').forEach(el => el.pause());
+    setModalArtifactId(artifact?.artifactId || null);
+  }, []);
+  const closeArtifactModal = useCallback(() => setModalArtifactId(null), []);
+
+  const submitReview = async (status, note) => {
+    if (!currentJob) return;
+    setReviewSubmitting(true);
+    try {
+      const res = await fetch(`/api/production/jobs/${encodeURIComponent(currentJob.id)}/review`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status, note }),
+      });
+      const data = await res.json();
+      if (res.ok && data.ok) {
+        setCurrentJob(data.job);
+        await loadJobs();
+      } else {
+        setActionError(data.error || 'Review update failed.');
+      }
+    } catch (err) {
+      setActionError(err.message || 'Review update failed.');
+    } finally {
+      setReviewSubmitting(false);
+    }
+  };
+
+  // "Regenerate" starts the EXISTING Create Plan flow for the same package —
+  // never an automatic retry of the failed/completed execution.
+  const regenerateFromPackage = useCallback((packageId) => {
+    setSelPackageId(packageId);
+    setSelMode('');
+    setSelProvider('');
+    if (typeof window !== 'undefined') window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, []);
 
   const enqueueExecution = async () => {
     if (!currentJob) return;
@@ -963,6 +1138,23 @@ export default function ProductionRouterWorkspace({ focusRequest, onFocusConsume
             </div>
           ) : (
             <>
+              {currentJob.status === 'completed' && (
+                <OutputPreviewSection
+                  job={currentJob}
+                  artifacts={currentJobOutputs}
+                  selectedArtifact={selectedArtifact}
+                  onSelectArtifact={a => setSelectedArtifactId(a.artifactId)}
+                  onOpenModal={openArtifactModal}
+                  onOpenPackage={onOpenPackage}
+                  onRegenerate={() => regenerateFromPackage(currentJob.packageId)}
+                  review={currentJob.review}
+                  onApproveReview={() => submitReview('approved')}
+                  onRejectReview={note => submitReview('rejected', note)}
+                  reviewSubmitting={reviewSubmitting}
+                  containerRef={outputPreviewRef}
+                  inlineViewerRef={inlineViewerRef}
+                />
+              )}
               <JobPanel
                 job={currentJob}
                 pkg={currentJobPackage}
@@ -1050,10 +1242,28 @@ export default function ProductionRouterWorkspace({ focusRequest, onFocusConsume
           </div>
         ) : (
           <div className="ts-library-grid">
-            {filteredJobs.map(({ job, pkg }) => <JobCard key={job.id} job={job} pkg={pkg} onOpen={openJob} />)}
+            {filteredJobs.map(({ job, pkg }) => (
+              <JobCard key={job.id} job={job} pkg={pkg} onOpen={openJob} onPreview={previewJobFromLibrary} />
+            ))}
           </div>
         )}
       </div>
+
+      {modalArtifact && (
+        <ArtifactPreviewModal
+          artifact={modalArtifact}
+          artifacts={currentJobOutputs}
+          job={currentJob}
+          onClose={closeArtifactModal}
+          onSelect={a => setModalArtifactId(a.artifactId)}
+          onOpenPackage={onOpenPackage}
+          onRegenerate={() => { closeArtifactModal(); regenerateFromPackage(currentJob.packageId); }}
+          review={currentJob?.review}
+          onApproveReview={() => submitReview('approved')}
+          onRejectReview={note => submitReview('rejected', note)}
+          reviewSubmitting={reviewSubmitting}
+        />
+      )}
     </div>
   );
 }
