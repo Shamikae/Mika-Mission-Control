@@ -16,7 +16,7 @@ const FOCUSABLE_SELECTOR = 'button, a[href], [tabindex]:not([tabindex="-1"]), in
 // on close, and body scroll is locked while open.
 
 export default function ArtifactPreviewModal({
-  artifact, artifacts, job, onClose, onSelect, onOpenPackage, onRegenerate,
+  artifact, artifacts, job, onClose, onSelect, onOpenPackage, onOpenComposition, onRegenerate,
   review, onApproveReview, onRejectReview, reviewSubmitting,
 }) {
   const modalRef = useRef(null);
@@ -100,7 +100,7 @@ export default function ArtifactPreviewModal({
             </div>
           )}
 
-          <ArtifactActions artifact={artifact} onOpenPackage={onOpenPackage} onRegenerate={onRegenerate} />
+          <ArtifactActions artifact={artifact} onOpenPackage={onOpenPackage} onOpenComposition={onOpenComposition} onRegenerate={onRegenerate} />
 
           <ArtifactReviewControls
             review={review}

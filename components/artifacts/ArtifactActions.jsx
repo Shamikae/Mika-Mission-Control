@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { FiCheck, FiCopy, FiDownload, FiExternalLink, FiFolder, FiPackage, FiRefreshCw } from 'react-icons/fi';
+import { FiCheck, FiCopy, FiDownload, FiExternalLink, FiFilm, FiFolder, FiPackage, FiRefreshCw } from 'react-icons/fi';
 
 // ── Shared action row — reused by the inline preview and the modal ─────────
 // Every action operates ONLY on the local Mika artifact URL. Download uses a
@@ -7,7 +7,7 @@ import { FiCheck, FiCopy, FiDownload, FiExternalLink, FiFolder, FiPackage, FiRef
 // into JS memory first) — see the ?download=1 query param handled by the
 // artifact route itself for a forced attachment Content-Disposition.
 
-export default function ArtifactActions({ artifact, onOpenPackage, onRegenerate, compact = false }) {
+export default function ArtifactActions({ artifact, onOpenPackage, onOpenComposition, onRegenerate, compact = false }) {
   const [copied, setCopied] = useState(false);
   if (!artifact) return null;
 
@@ -42,6 +42,11 @@ export default function ArtifactActions({ artifact, onOpenPackage, onRegenerate,
       {onOpenPackage && (
         <button type="button" className="ts-modal-btn font-ui" onClick={onOpenPackage}>
           <FiPackage size={12} /> Open Package
+        </button>
+      )}
+      {onOpenComposition && (
+        <button type="button" className="ts-modal-btn font-ui" onClick={onOpenComposition}>
+          <FiFilm size={12} /> Open Composition
         </button>
       )}
       {onRegenerate && (

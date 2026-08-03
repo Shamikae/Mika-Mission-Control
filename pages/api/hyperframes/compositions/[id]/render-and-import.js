@@ -1,0 +1,47 @@
+// POST /api/hyperframes/compositions/[id]/render-and-import
+// The one-click flow: lint (stop on failure) -> check (stop on failure) ->
+// render -> validate MP4 -> import idempotently. Returns IMMEDIATELY with a
+// single run record (status 'queued') the client polls via
+// GET /api/hyperframes/runs/[id] — the whole chain runs in the background.
+// A single request held open for the full lint+check+render+import
+// duration is fragile for a real browser fetch; polling matches the same
+// proven-reliable pattern the standalone Render button already uses.
+//
+// Input: { quality?: 'standard'|'high', lowMemoryMode?: 'auto'|'enabled'|'disabled' }
+
+import { isValidCompositionId } from '../../../../../lib/hyperframes/hyperframesSecurity';
+import { startRenderAndImportFlow } from '../../../../../lib/hyperframes/hyperframesRunner';
+import { statusForError } from '../../../../../lib/hyperframes/hyperframesErrors';
+import { sanitizeRunForResponse } from '../../../../../lib/hyperframes/hyperframesRunStore';
+
+export const config = {
+  api: { bodyParser: { sizeLimit: '4kb' } },
+};
+
+const VALID_QUALITY = new Set(['standard', 'high']);
+const VALID_LOW_MEM = new Set(['auto', 'enabled', 'disabled']);
+
+export default async function handler(req, res) {
+  if (req.method !== 'POST') {
+    return res.status(405).json({ ok: false, error: 'Method not allowed' });
+  }
+  const { id } = req.query;
+  if (!isValidCompositionId(id)) {
+    return res.status(400).json({ ok: false, error: 'Invalid composition id.' });
+  }
+
+  const { quality, lowMemoryMode } = req.body || {};
+  if (quality !== undefined && !VALID_QUALITY.has(quality)) {
+    return res.status(400).json({ ok: false, error: 'quality must be "standard" or "high".' });
+  }
+  if (lowMemoryMode !== undefined && !VALID_LOW_MEM.has(lowMemoryMode)) {
+    return res.status(400).json({ ok: false, error: 'lowMemoryMode must be "auto", "enabled", or "disabled".' });
+  }
+
+  try {
+    const run = startRenderAndImportFlow(id, { quality, lowMemoryMode });
+    return res.status(200).json({ ok: true, run: sanitizeRunForResponse(run) });
+  } catch (e) {
+    return res.status(statusForError(e)).json({ ok: false, error: e.message });
+  }
+}
