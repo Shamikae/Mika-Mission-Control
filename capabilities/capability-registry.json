@@ -246,6 +246,28 @@
       "workspaceRoute": null
     },
     {
+      "id": "hyperframes-local-studio",
+      "displayName": "HyperFrames Local Studio",
+      "entityType": "capability",
+      "category": "video",
+      "description": "Local-machine HyperFrames production workflow — composition discovery, lint, check, render, preview, and secure artifact import, driven entirely from inside Mika OS via a fixed local command runner (no arbitrary shell commands). Supported: discovering compositions under tools/hyperframes/, lint --json, check --json, render (quality standard|high, low-memory-first worker defaults), a preview server started/stopped by direct process ownership (not the CLI's own path-based --status/--stop tracking), a one-click Render-and-Import flow that stops on lint or check failure and never auto-approves the result, idempotent import into a local Production Job (provider hyperframes-local, metadata.isLocalRender: true) reusing the same artifact-store/job-store/Universal-Output-Viewer pipeline as every other production output. Not supported: a remote HyperFrames API or MCP adapter, execution through the Provider Execution Engine, background workers, concurrent renders per composition, or CLI-driven dimension/orientation rewriting (HyperFrames output dimensions are fixed by the composition itself).",
+      "status": "available_when_configured",
+      "visibleInSidebar": false,
+      "hiddenByDefault": true,
+      "workspaceRoute": null
+    },
+    {
+      "id": "publishing-router",
+      "displayName": "Publishing Router",
+      "entityType": "capability",
+      "category": "orchestration",
+      "description": "Governed preparation and manual publishing of approved production outputs across TikTok, Instagram Reels, YouTube Shorts, LinkedIn, Pinterest, X, and Facebook Reels. Publish Jobs only ever reference an existing production artifact — never duplicate media, never generate content, never edit media, never rerun a provider. The review gate (review.status === 'approved') is never bypassed. Supported: manual publishing (explicit user attestation), publish scheduling (metadata only), platform validation (honest warnings, never silent media edits), and complete manual export bundles (ZIP, JSON, Markdown). Does not support: automatic/API publishing, a background scheduler or automatic execution, OAuth, or any platform API uploads — every platform adapter in v1 is manual-export only.",
+      "status": "available",
+      "visibleInSidebar": false,
+      "hiddenByDefault": true,
+      "workspaceRoute": null
+    },
+    {
       "id": "paperclip",
       "displayName": "Paperclip",
       "entityType": "external_workspace",

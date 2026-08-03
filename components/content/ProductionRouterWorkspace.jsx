@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import {
-  FiAlertCircle, FiCheck, FiCheckCircle, FiClock, FiDownload, FiEye, FiFilter,
-  FiPlay, FiRefreshCw, FiRotateCw, FiSearch, FiThumbsDown, FiX, FiZap,
+  FiAlertCircle, FiCheck, FiCheckCircle, FiClock, FiDownload, FiEye, FiFilm, FiFilter,
+  FiHardDrive, FiPlay, FiRefreshCw, FiRotateCw, FiSearch, FiThumbsDown, FiX, FiZap,
 } from 'react-icons/fi';
 import {
   PRODUCTION_MODES, PROVIDER_CATALOG, modeLabel, assetLabel,
@@ -353,7 +353,7 @@ function ProviderStatusPanel({ providers }) {
 
 function OutputPreviewSection({
   job, artifacts, selectedArtifact, onSelectArtifact, onOpenModal,
-  onOpenPackage, onRegenerate, review, onApproveReview, onRejectReview, reviewSubmitting,
+  onOpenPackage, onOpenComposition, onRegenerate, review, onApproveReview, onRejectReview, reviewSubmitting,
   containerRef, inlineViewerRef,
 }) {
   return (
@@ -396,7 +396,7 @@ function OutputPreviewSection({
               <FiEye size={12} /> Fullscreen Preview
             </button>
           </div>
-          <ArtifactActions artifact={selectedArtifact} onOpenPackage={onOpenPackage} onRegenerate={onRegenerate} />
+          <ArtifactActions artifact={selectedArtifact} onOpenPackage={onOpenPackage} onOpenComposition={onOpenComposition} onRegenerate={onRegenerate} />
           <ArtifactReviewControls review={review} onApprove={onApproveReview} onReject={onRejectReview} submitting={reviewSubmitting} />
         </>
       )}
@@ -413,6 +413,7 @@ function JobPanel({
   const [editMode, setEditMode] = useState(false);
   const [editProvider, setEditProvider] = useState(false);
   const isStale = pkg && job.packageUpdatedAt !== pkg.metadata?.updatedAt;
+  const isLocalRender = job.metadata?.isLocalRender === true;
 
   return (
     <div className="pr-panel">
@@ -425,6 +426,12 @@ function JobPanel({
         </div>
         <StateBadge state={job.status} size="lg" />
       </div>
+
+      {isLocalRender && (
+        <div className="pr-local-render-note font-mono">
+          <FiHardDrive size={11} /> Imported Local Render — rendered locally and imported into Mika OS. It was not executed through the Provider Execution Engine.
+        </div>
+      )}
 
       {isStale && (
         <div className="pr-warning pr-warning--stale font-mono">
@@ -444,41 +451,45 @@ function JobPanel({
         </div>
       ) : (
         <>
-          <div className="pr-section">
-            <div className="pr-section-head"><span className="font-ui">Mode</span></div>
-            <div className="pr-mode-row font-mono">
-              <span>Recommended: <strong>{modeLabel(job.recommendedMode)}</strong></span>
-              {editMode ? (
-                <select className="pr-select font-mono" defaultValue={job.selectedMode} onChange={e => { onPatchMode(e.target.value); setEditMode(false); }}>
-                  {PRODUCTION_MODES.map(m => <option key={m.id} value={m.id}>{m.label}</option>)}
-                </select>
-              ) : (
-                <button type="button" className="pr-btn pr-btn--muted font-ui" onClick={() => setEditMode(true)} disabled={patching}>
-                  Selected: {modeLabel(job.selectedMode)} · Edit
-                </button>
-              )}
-            </div>
-            <p className="pr-reason-text font-mono">{job.modeReason}</p>
-          </div>
+          {!isLocalRender && (
+            <>
+              <div className="pr-section">
+                <div className="pr-section-head"><span className="font-ui">Mode</span></div>
+                <div className="pr-mode-row font-mono">
+                  <span>Recommended: <strong>{modeLabel(job.recommendedMode)}</strong></span>
+                  {editMode ? (
+                    <select className="pr-select font-mono" defaultValue={job.selectedMode} onChange={e => { onPatchMode(e.target.value); setEditMode(false); }}>
+                      {PRODUCTION_MODES.map(m => <option key={m.id} value={m.id}>{m.label}</option>)}
+                    </select>
+                  ) : (
+                    <button type="button" className="pr-btn pr-btn--muted font-ui" onClick={() => setEditMode(true)} disabled={patching}>
+                      Selected: {modeLabel(job.selectedMode)} · Edit
+                    </button>
+                  )}
+                </div>
+                <p className="pr-reason-text font-mono">{job.modeReason}</p>
+              </div>
 
-          <div className="pr-section">
-            <div className="pr-section-head"><span className="font-ui">Provider</span></div>
-            <div className="pr-mode-row font-mono">
-              {editProvider ? (
-                <select className="pr-select font-mono" defaultValue={job.selectedProvider} onChange={e => { onPatchProvider(e.target.value); setEditProvider(false); }}>
-                  {PROVIDER_CATALOG.map(p => <option key={p.id} value={p.id}>{p.displayName}</option>)}
-                </select>
-              ) : (
-                <button type="button" className="pr-btn pr-btn--muted font-ui" onClick={() => setEditProvider(true)} disabled={patching}>
-                  Selected: {job.providerCandidates?.find(c => c.id === job.selectedProvider)?.displayName || job.selectedProvider} · Edit
-                </button>
-              )}
-            </div>
-            <ProviderCandidates job={job} />
-          </div>
+              <div className="pr-section">
+                <div className="pr-section-head"><span className="font-ui">Provider</span></div>
+                <div className="pr-mode-row font-mono">
+                  {editProvider ? (
+                    <select className="pr-select font-mono" defaultValue={job.selectedProvider} onChange={e => { onPatchProvider(e.target.value); setEditProvider(false); }}>
+                      {PROVIDER_CATALOG.map(p => <option key={p.id} value={p.id}>{p.displayName}</option>)}
+                    </select>
+                  ) : (
+                    <button type="button" className="pr-btn pr-btn--muted font-ui" onClick={() => setEditProvider(true)} disabled={patching}>
+                      Selected: {job.providerCandidates?.find(c => c.id === job.selectedProvider)?.displayName || job.selectedProvider} · Edit
+                    </button>
+                  )}
+                </div>
+                <ProviderCandidates job={job} />
+              </div>
 
-          {job.selectedProvider === 'heygen-mcp' && (
-            <HeyGenSetupPanel job={job} pkg={pkg} onSaved={onProviderInputSaved} />
+              {job.selectedProvider === 'heygen-mcp' && (
+                <HeyGenSetupPanel job={job} pkg={pkg} onSaved={onProviderInputSaved} />
+              )}
+            </>
           )}
 
           <ReadinessMeter readiness={job.readiness} />
@@ -502,40 +513,44 @@ function JobPanel({
             </div>
           )}
 
-          <div className="pr-section pr-approval-panel">
-            <div className="pr-section-head"><span className="font-ui">Approval</span></div>
-            {job.approval?.approvedAt ? (
-              <div className="pr-approved-flash font-mono"><FiCheckCircle size={12} /> Approved {formatDate(job.approval.approvedAt)}</div>
-            ) : (
-              <div className="pr-approval-actions">
-                <button
-                  type="button" className="pr-btn pr-btn--approve font-ui"
-                  onClick={onApprove} disabled={job.status !== 'needs_approval' || approving}
-                >
-                  {approving ? <><FiRefreshCw size={12} className="spin" /> Approving…</> : <><FiCheck size={12} /> Approve Plan</>}
-                </button>
-                <button type="button" className="pr-btn pr-btn--reject font-ui" onClick={onCancel} disabled={job.status === 'cancelled'}>
-                  <FiThumbsDown size={12} /> Reject / Cancel
+          {!isLocalRender && (
+            <>
+              <div className="pr-section pr-approval-panel">
+                <div className="pr-section-head"><span className="font-ui">Approval</span></div>
+                {job.approval?.approvedAt ? (
+                  <div className="pr-approved-flash font-mono"><FiCheckCircle size={12} /> Approved {formatDate(job.approval.approvedAt)}</div>
+                ) : (
+                  <div className="pr-approval-actions">
+                    <button
+                      type="button" className="pr-btn pr-btn--approve font-ui"
+                      onClick={onApprove} disabled={job.status !== 'needs_approval' || approving}
+                    >
+                      {approving ? <><FiRefreshCw size={12} className="spin" /> Approving…</> : <><FiCheck size={12} /> Approve Plan</>}
+                    </button>
+                    <button type="button" className="pr-btn pr-btn--reject font-ui" onClick={onCancel} disabled={job.status === 'cancelled'}>
+                      <FiThumbsDown size={12} /> Reject / Cancel
+                    </button>
+                  </div>
+                )}
+                <button type="button" className="pr-btn pr-btn--muted font-ui" onClick={onRefresh} disabled={refreshing}>
+                  {refreshing ? <><FiRefreshCw size={12} className="spin" /> Refreshing…</> : <><FiRefreshCw size={12} /> Refresh Plan</>}
                 </button>
               </div>
-            )}
-            <button type="button" className="pr-btn pr-btn--muted font-ui" onClick={onRefresh} disabled={refreshing}>
-              {refreshing ? <><FiRefreshCw size={12} className="spin" /> Refreshing…</> : <><FiRefreshCw size={12} /> Refresh Plan</>}
-            </button>
-          </div>
 
-          <div className="pr-section">
-            <div className="pr-section-head"><span className="font-ui">Manual Export</span></div>
-            <p className="pr-reason-text font-mono">Providers are not yet connected — download a production brief for a human to execute manually.</p>
-            <div className="pr-export-actions">
-              <button type="button" className="pr-btn pr-btn--secondary font-ui" onClick={() => onExport('json')} disabled={exportingFormat === 'json'}>
-                {exportingFormat === 'json' ? <FiRefreshCw size={12} className="spin" /> : <FiDownload size={12} />} Download JSON
-              </button>
-              <button type="button" className="pr-btn pr-btn--secondary font-ui" onClick={() => onExport('markdown')} disabled={exportingFormat === 'markdown'}>
-                {exportingFormat === 'markdown' ? <FiRefreshCw size={12} className="spin" /> : <FiDownload size={12} />} Download Markdown
-              </button>
-            </div>
-          </div>
+              <div className="pr-section">
+                <div className="pr-section-head"><span className="font-ui">Manual Export</span></div>
+                <p className="pr-reason-text font-mono">Providers are not yet connected — download a production brief for a human to execute manually.</p>
+                <div className="pr-export-actions">
+                  <button type="button" className="pr-btn pr-btn--secondary font-ui" onClick={() => onExport('json')} disabled={exportingFormat === 'json'}>
+                    {exportingFormat === 'json' ? <FiRefreshCw size={12} className="spin" /> : <FiDownload size={12} />} Download JSON
+                  </button>
+                  <button type="button" className="pr-btn pr-btn--secondary font-ui" onClick={() => onExport('markdown')} disabled={exportingFormat === 'markdown'}>
+                    {exportingFormat === 'markdown' ? <FiRefreshCw size={12} className="spin" /> : <FiDownload size={12} />} Download Markdown
+                  </button>
+                </div>
+              </div>
+            </>
+          )}
         </>
       )}
 
@@ -551,6 +566,7 @@ function JobPanel({
 
 function JobCard({ job, pkg, onOpen, onPreview }) {
   const isStale = pkg && job.packageUpdatedAt !== pkg.metadata?.updatedAt;
+  const isLocalRender = job.metadata?.isLocalRender === true;
   const completed = job.status === 'completed';
   const outputs = completed ? normalizeArtifactList(job.execution?.outputs, { job }) : [];
   const firstOutput = outputs[0] || null;
@@ -576,6 +592,9 @@ function JobCard({ job, pkg, onOpen, onPreview }) {
           <span className="pr-lib-card-title font-ui">{shorten(pkg?.topic || job.packageId, 60)}</span>
           <StateBadge state={job.status} />
         </div>
+        {isLocalRender && (
+          <span className="pr-lib-card-local-badge font-mono"><FiHardDrive size={9} /> Imported Local Render</span>
+        )}
         <span className="pr-lib-card-meta font-mono">{pkg?.brand || '—'} · {pkg?.platform || '—'}</span>
         <span className="pr-lib-card-meta font-mono">
           {job.selectedMode ? modeLabel(job.selectedMode) : 'No mode'} · {job.selectedProvider || 'No provider'}
@@ -602,7 +621,7 @@ function JobCard({ job, pkg, onOpen, onPreview }) {
 
 // ── Main component ────────────────────────────────────────────────────────────
 
-export default function ProductionRouterWorkspace({ focusRequest, onFocusConsumed, onOpenPackage } = {}) {
+export default function ProductionRouterWorkspace({ focusRequest, onFocusConsumed, onOpenPackage, onOpenHyperFramesComposition } = {}) {
   const [packages, setPackages] = useState([]);
   const [jobs, setJobs] = useState([]);
   const [libLoading, setLibLoading] = useState(false);
@@ -700,6 +719,15 @@ export default function ProductionRouterWorkspace({ focusRequest, onFocusConsume
           const found = data?.jobs?.[0];
           if (found) setCurrentJob(found);
           setSelPackageId(focusRequest.packageId);
+        })
+        .catch(() => {});
+    } else if (focusRequest.action === 'open-job' && focusRequest.productionJobId) {
+      // Precise deep-link (e.g. from Content Orchestrator) to ONE specific
+      // job, rather than "open" 's "first job for this package" fallback.
+      fetch(`/api/production/jobs/${encodeURIComponent(focusRequest.productionJobId)}`, { cache: 'no-store' })
+        .then(res => res.ok ? res.json() : null)
+        .then(data => {
+          if (data?.ok && data.job) { setCurrentJob(data.job); setSelPackageId(data.job.packageId); }
         })
         .catch(() => {});
     }
@@ -1146,7 +1174,8 @@ export default function ProductionRouterWorkspace({ focusRequest, onFocusConsume
                   onSelectArtifact={a => setSelectedArtifactId(a.artifactId)}
                   onOpenModal={openArtifactModal}
                   onOpenPackage={onOpenPackage}
-                  onRegenerate={() => regenerateFromPackage(currentJob.packageId)}
+                  onOpenComposition={currentJob.metadata?.hyperframesCompositionId ? () => onOpenHyperFramesComposition?.(currentJob.metadata.hyperframesCompositionId) : undefined}
+                  onRegenerate={currentJob.metadata?.isLocalRender ? undefined : () => regenerateFromPackage(currentJob.packageId)}
                   review={currentJob.review}
                   onApproveReview={() => submitReview('approved')}
                   onRejectReview={note => submitReview('rejected', note)}
@@ -1257,7 +1286,8 @@ export default function ProductionRouterWorkspace({ focusRequest, onFocusConsume
           onClose={closeArtifactModal}
           onSelect={a => setModalArtifactId(a.artifactId)}
           onOpenPackage={onOpenPackage}
-          onRegenerate={() => { closeArtifactModal(); regenerateFromPackage(currentJob.packageId); }}
+          onOpenComposition={currentJob.metadata?.hyperframesCompositionId ? () => onOpenHyperFramesComposition?.(currentJob.metadata.hyperframesCompositionId) : undefined}
+          onRegenerate={currentJob.metadata?.isLocalRender ? undefined : () => { closeArtifactModal(); regenerateFromPackage(currentJob.packageId); }}
           review={currentJob?.review}
           onApproveReview={() => submitReview('approved')}
           onRejectReview={note => submitReview('rejected', note)}

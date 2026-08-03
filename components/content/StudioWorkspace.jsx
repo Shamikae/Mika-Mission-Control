@@ -3,6 +3,8 @@ import ContentFactoryPackage from './ContentFactoryPackage';
 import ContentPackGenerator from './ContentPackGenerator';
 import ContentPackagePipeline from './ContentPackagePipeline';
 import ProductionRouterWorkspace from './ProductionRouterWorkspace';
+import HyperFramesStudioWorkspace from './HyperFramesStudioWorkspace';
+import PublishingRouterWorkspace from './PublishingRouterWorkspace';
 import ContentBriefGenerator from '../sections/ContentBriefGenerator';
 import ContentStudio from '../sections/ContentStudio';
 import ContentArtifactsPanel from '../sections/ContentArtifactsPanel';
@@ -24,6 +26,8 @@ const MODES = [
   { id: 'content-pack', label: 'Content Pack' },
   { id: 'pack-pipeline', label: 'Package Pipeline' },
   { id: 'production-router', label: 'Production Router' },
+  { id: 'hf-studio', label: 'HyperFrames Studio' },
+  { id: 'publishing-router', label: 'Publishing Router' },
 ];
 
 const PLATFORMS = [
@@ -41,12 +45,22 @@ export default function StudioWorkspace() {
   const [mode, setMode] = useState('create');
   const [platform, setPlatform] = useState('tiktok');
   const [productionFocusRequest, setProductionFocusRequest] = useState(null);
+  const [hfFocusRequest, setHfFocusRequest] = useState(null);
+  const [publishingFocusRequest, setPublishingFocusRequest] = useState(null);
 
   const focusProductionRouter = useCallback((packageId, action) => {
     setProductionFocusRequest({ packageId, action, at: Date.now() });
     setMode('production-router');
   }, []);
   const clearProductionFocusRequest = useCallback(() => setProductionFocusRequest(null), []);
+
+  const focusHyperFramesStudio = useCallback((compositionId) => {
+    setHfFocusRequest({ compositionId, at: Date.now() });
+    setMode('hf-studio');
+  }, []);
+  const clearHfFocusRequest = useCallback(() => setHfFocusRequest(null), []);
+
+  const clearPublishingFocusRequest = useCallback(() => setPublishingFocusRequest(null), []);
 
   return (
     <ContentWorkspace
@@ -102,6 +116,20 @@ export default function StudioWorkspace() {
             focusRequest={productionFocusRequest}
             onFocusConsumed={clearProductionFocusRequest}
             onOpenPackage={() => setMode('pack-pipeline')}
+            onOpenHyperFramesComposition={focusHyperFramesStudio}
+          />
+        )}
+        {mode === 'hf-studio' && (
+          <HyperFramesStudioWorkspace
+            focusRequest={hfFocusRequest}
+            onFocusConsumed={clearHfFocusRequest}
+            onOpenInProductionRouter={packageId => focusProductionRouter(packageId, 'open')}
+          />
+        )}
+        {mode === 'publishing-router' && (
+          <PublishingRouterWorkspace
+            focusRequest={publishingFocusRequest}
+            onFocusConsumed={clearPublishingFocusRequest}
           />
         )}
       </div>
