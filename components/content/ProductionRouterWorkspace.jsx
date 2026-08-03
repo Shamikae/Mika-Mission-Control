@@ -6,6 +6,8 @@ import {
 import {
   PRODUCTION_MODES, PROVIDER_CATALOG, modeLabel, assetLabel,
 } from '../../lib/production/productionRules';
+import HeyGenConnectionPanel from './HeyGenConnectionPanel';
+import HeyGenSetupPanel from './HeyGenSetupPanel';
 
 // ── Execution constants ─────────────────────────────────────────────────────
 
@@ -254,7 +256,10 @@ function ExecutionPanel({
       )}
 
       {execution?.error && (
-        <div className="pr-warning font-mono"><FiAlertCircle size={11} /> {execution.error}</div>
+        <div className="pr-warning font-mono">
+          <FiAlertCircle size={11} /> {execution.error}
+          {execution.errorReason && <span> ({execution.errorReason})</span>}
+        </div>
       )}
 
       {execution?.outputs?.length > 0 && (
@@ -296,6 +301,11 @@ function ExecutionPanel({
             </button>
           </>
         )}
+        {status === 'waiting_provider' && execution?.provider === 'heygen-mcp' && (
+          <div className="pr-warning font-mono">
+            <FiAlertCircle size={11} /> HeyGen has no cancellation support — the render may continue and consume premium credits even after this job is marked cancelled locally.
+          </div>
+        )}
         {inFlight && (
           <span className="pr-exec-inflight font-mono"><FiRefreshCw size={11} className="spin" /> In progress…</span>
         )}
@@ -336,7 +346,7 @@ function ProviderStatusPanel({ providers }) {
 
 function JobPanel({
   job, pkg, onApprove, onCancel, onRefresh, onPatchMode, onPatchProvider,
-  onExport, approving, refreshing, patching, exportingFormat, actionError,
+  onExport, onProviderInputSaved, approving, refreshing, patching, exportingFormat, actionError,
 }) {
   const [editMode, setEditMode] = useState(false);
   const [editProvider, setEditProvider] = useState(false);
@@ -404,6 +414,10 @@ function JobPanel({
             </div>
             <ProviderCandidates job={job} />
           </div>
+
+          {job.selectedProvider === 'heygen-mcp' && (
+            <HeyGenSetupPanel job={job} pkg={pkg} onSaved={onProviderInputSaved} />
+          )}
 
           <ReadinessMeter readiness={job.readiness} />
 
@@ -707,6 +721,11 @@ export default function ProductionRouterWorkspace({ focusRequest, onFocusConsume
 
   const openJob = (job) => setCurrentJob(job);
 
+  const onProviderInputSaved = useCallback(async (updatedJob) => {
+    setCurrentJob(updatedJob);
+    await loadJobs();
+  }, [loadJobs]);
+
   // ── Execution ─────────────────────────────────────────────────────────────
 
   const loadExecutionView = useCallback(async (jobId) => {
@@ -933,6 +952,7 @@ export default function ProductionRouterWorkspace({ focusRequest, onFocusConsume
           </div>
 
           <ProviderStatusPanel providers={providers} />
+          <HeyGenConnectionPanel />
         </div>
 
         {/* ══════════════════ RIGHT — job panel ══════════════════ */}
@@ -952,6 +972,7 @@ export default function ProductionRouterWorkspace({ focusRequest, onFocusConsume
                 onPatchMode={mode => patchJob({ selectedMode: mode })}
                 onPatchProvider={provider => patchJob({ selectedProvider: provider })}
                 onExport={exportBrief}
+                onProviderInputSaved={onProviderInputSaved}
                 approving={approving}
                 refreshing={refreshing}
                 patching={patching}
