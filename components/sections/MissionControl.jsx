@@ -1,6 +1,8 @@
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import {
   FiActivity,
+  FiAlertCircle,
   FiArrowUpRight,
   FiBookOpen,
   FiCheckSquare,
@@ -8,10 +10,14 @@ import {
   FiCode,
   FiCpu,
   FiDatabase,
+  FiDownload,
+  FiFilm,
   FiInbox,
   FiLayers,
   FiMessageSquare,
+  FiPackage,
   FiRadio,
+  FiSend,
   FiTarget,
 } from 'react-icons/fi';
 import { useStore } from '../../lib/store';
@@ -83,6 +89,17 @@ function formatTime(value) {
 
 export default function MissionControl({ data }) {
   const { setActiveSection } = useStore();
+  const [contentMetrics, setContentMetrics] = useState(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    fetch('/api/orchestration/overview', { cache: 'no-store' })
+      .then(res => res.ok ? res.json() : null)
+      .then(json => { if (!cancelled && json?.ok) setContentMetrics(json.metrics); })
+      .catch(() => { /* Content Division metrics are best-effort — never block Mission Control on this */ });
+    return () => { cancelled = true; };
+  }, []);
+
   const {
     gateway,
     openclaw,
@@ -310,6 +327,86 @@ export default function MissionControl({ data }) {
       <section>
         <SectionLead numeral="VI." label="Content artifacts · recent workflow outputs" />
         <ArtifactGallery compact limit={4} />
+      </section>
+
+      <div className="agent-os-divider"><span /><b>✦</b><span /></div>
+
+      <section>
+        <SectionLead numeral="VII." label="Content Division · Content Pack through Production, Review, Publishing, and Export" />
+        {contentMetrics ? (
+          <div className="mission-status-grid">
+            <StatusCard
+              icon={FiPackage}
+              label="Production Volume"
+              value={contentMetrics.production.total}
+              detail={`${contentMetrics.production.byExecutionStatus.completed || 0} completed`}
+              state={contentMetrics.production.total > 0 ? 'verified' : 'unknown'}
+            />
+            <StatusCard
+              icon={FiCheckSquare}
+              label="Render Success"
+              value={contentMetrics.production.renderSuccessRate != null ? `${contentMetrics.production.renderSuccessRate}%` : '—'}
+              detail={`${contentMetrics.production.byExecutionStatus.failed || 0} failed`}
+              state={contentMetrics.production.renderSuccessRate >= 80 ? 'verified' : contentMetrics.production.renderSuccessRate != null ? 'staged' : 'unknown'}
+            />
+            <StatusCard
+              icon={FiFilm}
+              label="Review Backlog"
+              value={contentMetrics.review.unreviewed}
+              detail={`${contentMetrics.review.approved} approved`}
+              state={contentMetrics.review.unreviewed > 0 ? 'staged' : 'verified'}
+            />
+            <StatusCard
+              icon={FiSend}
+              label="Publish Readiness"
+              value={contentMetrics.publishing.readyToPublish}
+              detail={`${contentMetrics.publishing.byStatus.published || 0} published`}
+              state={contentMetrics.publishing.readyToPublish > 0 ? 'verified' : 'unknown'}
+            />
+            <StatusCard
+              icon={FiDownload}
+              label="Export Activity"
+              value={contentMetrics.export.generatedCount}
+              detail={`${contentMetrics.export.pendingCount} pending`}
+              state="verified"
+            />
+            <StatusCard
+              icon={FiAlertCircle}
+              label="Package Health"
+              value={contentMetrics.packages.total}
+              detail={`${contentMetrics.packages.byHealth.blocked + contentMetrics.packages.byHealth.failed} need attention`}
+              state={(contentMetrics.packages.byHealth.blocked + contentMetrics.packages.byHealth.failed) > 0 ? 'staged' : 'verified'}
+            />
+          </div>
+        ) : (
+          <div className="mika-empty-state">
+            <FiActivity size={18} />
+            <span>Loading Content Division metrics…</span>
+          </div>
+        )}
+        <div className="mission-three-grid" style={{ marginTop: 16 }}>
+          <PortalCard
+            icon={<FiLayers size={19} />}
+            title="Content Orchestrator"
+            description="Unified timeline, relationship graph, and one-click navigation across every content workflow."
+            meta="Studio → Content Orchestrator"
+            onClick={() => setActiveSection('studio')}
+          />
+          <PortalCard
+            icon={<FiInbox size={19} />}
+            title="Rendering & Review Queues"
+            description="Jobs waiting to render, and completed outputs waiting for approval."
+            meta={contentMetrics ? `${contentMetrics.queues.rendering} rendering · ${contentMetrics.queues.review} to review` : 'Loading…'}
+            onClick={() => setActiveSection('studio')}
+          />
+          <PortalCard
+            icon={<FiSend size={19} />}
+            title="Publishing & Export Queues"
+            description="Publish jobs ready to go out, and published outputs still missing a manual export bundle."
+            meta={contentMetrics ? `${contentMetrics.queues.publishing} to publish · ${contentMetrics.queues.export} to export` : 'Loading…'}
+            onClick={() => setActiveSection('studio')}
+          />
+        </div>
       </section>
     </motion.div>
   );
