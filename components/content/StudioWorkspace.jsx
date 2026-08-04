@@ -6,6 +6,7 @@ import ProductionRouterWorkspace from './ProductionRouterWorkspace';
 import HyperFramesStudioWorkspace from './HyperFramesStudioWorkspace';
 import PublishingRouterWorkspace from './PublishingRouterWorkspace';
 import ContentOrchestratorWorkspace from './ContentOrchestratorWorkspace';
+import CreativeDirectorWorkspace from './CreativeDirectorWorkspace';
 import ContentBriefGenerator from '../sections/ContentBriefGenerator';
 import ContentStudio from '../sections/ContentStudio';
 import ContentArtifactsPanel from '../sections/ContentArtifactsPanel';
@@ -30,6 +31,7 @@ const MODES = [
   { id: 'hf-studio', label: 'HyperFrames Studio' },
   { id: 'publishing-router', label: 'Publishing Router' },
   { id: 'content-orchestrator', label: 'Content Orchestrator' },
+  { id: 'creative-director', label: 'Creative Director' },
 ];
 
 const PLATFORMS = [
@@ -158,6 +160,12 @@ export default function StudioWorkspace() {
             onOpenProductionRouter={(productionJobId) => focusProductionRouterJob(productionJobId)}
             onOpenPublishingRouter={(publishJobId) => focusPublishingRouter(publishJobId)}
             onOpenPackagePipeline={() => setMode('pack-pipeline')}
+          />
+        )}
+        {mode === 'creative-director' && (
+          <CreativeDirectorWorkspace
+            onOpenPackagePipeline={() => setMode('pack-pipeline')}
+            onOpenContentOrchestrator={() => setMode('content-orchestrator')}
           />
         )}
       </div>

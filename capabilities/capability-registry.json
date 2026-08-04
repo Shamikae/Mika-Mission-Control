@@ -268,6 +268,17 @@
       "workspaceRoute": null
     },
     {
+      "id": "content-workforce",
+      "displayName": "Content Workforce",
+      "entityType": "capability",
+      "category": "orchestration",
+      "description": "Governed AI workforce that turns an approved Creative Director Content Request into a complete, reviewed Content Package through seven sequential stages: Research, Script, Storyboard, Provider Prompts, Thumbnail Plan, Caption Package, and Creative Review. Every stage is schema-validated JSON-mode model output with at most one schema-repair retry; nothing enters Package Pipeline before Creative Review approves it AND a human explicitly approves the run. Supported: governed research synthesis (model-assisted, honestly labeled researchMode: \"model-synthesis\", never claims live web search), script generation, storyboard generation, provider prompt planning (planning only, never executes), thumbnail planning (plan only, no image generated here), caption generation, structured creative review, human approval, and package creation through the existing Package Pipeline interfaces. Does not support: live web research (no search adapter is integrated), autonomous provider execution, automatic publishing, autonomous package approval (a human is always required), or hidden chain-of-thought storage.",
+      "status": "available_when_configured",
+      "visibleInSidebar": false,
+      "hiddenByDefault": true,
+      "workspaceRoute": null
+    },
+    {
       "id": "paperclip",
       "displayName": "Paperclip",
       "entityType": "external_workspace",

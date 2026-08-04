@@ -47,9 +47,11 @@ data/workflows/
 data/content-packages/
 data/production-jobs/
 data/publish-jobs/
+data/content-requests/
 data/production-execution-queue.json
 data/production-execution-locks/
 data/hyperframes-runs/
+data/content-workforce-runs/
 production-artifacts/
 
 # OS/editor
