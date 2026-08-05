@@ -337,6 +337,23 @@ function ExecutionPanel({
 
 // ── Provider status panel (left column) ──────────────────────────────────────
 
+// Honest status label for every combination the registry can actually
+// produce (see listProviderExecutionStatus()) — never falls through to a
+// raw, unstyled status string. "Detected" specifically covers a provider
+// whose underlying capability is genuinely live (status: 'active') but
+// that Mika has no execution adapter for yet (executable: false) — e.g.
+// openart-video, where a real video-capable MCP tool now exists but isn't
+// wired into the Provider Execution Engine. Distinct from "Staged"
+// (disabled/not configured) and "Unavailable" (checked, confirmed absent).
+function providerStatusLabel(p) {
+  if (p.executable) return 'Active';
+  if (p.status === 'active') return 'Detected';
+  if (p.status === 'staged') return 'Staged';
+  if (p.status === 'unavailable') return 'Unavailable';
+  if (!p.status) return 'Unknown';
+  return p.status.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+}
+
 function ProviderStatusPanel({ providers }) {
   if (!providers?.length) return null;
   return (
@@ -345,9 +362,9 @@ function ProviderStatusPanel({ providers }) {
       <div className="pr-provider-status-list">
         {providers.map(p => (
           <div key={p.id} className="pr-provider-status-row font-mono">
-            <span>{p.displayName}{p.mock ? ' (test)' : ''}</span>
+            <span>{p.displayName}{p.mock && !p.displayName.includes('(Test)') ? ' (test)' : ''}</span>
             <span className={`pr-provider-status-pill${p.executable ? ' pr-provider-status-pill--active' : ''}`}>
-              {p.executable ? 'Active' : p.status === 'staged' ? 'Staged' : p.status === 'unavailable' ? 'Unavailable' : p.status}
+              {providerStatusLabel(p)}
             </span>
           </div>
         ))}
