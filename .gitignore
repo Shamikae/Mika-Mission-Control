@@ -41,6 +41,7 @@ data/telegram-state.json
 data/video-jobs.json
 data/openart-auth/
 data/heygen-auth/
+data/higgsfield-auth/
 
 data/projects/
 data/workflows/

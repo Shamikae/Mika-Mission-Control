@@ -246,6 +246,17 @@
       "workspaceRoute": null
     },
     {
+      "id": "higgsfield-mcp-adapter",
+      "displayName": "Higgsfield MCP Adapter",
+      "entityType": "capability",
+      "category": "video",
+      "description": "Real Higgsfield image/video generation through the Provider Execution Engine via Higgsfield's official Remote MCP server (OAuth 2.1 + PKCE, billed against the user's Higgsfield account credits or free-trial \"unlim\" allowance — no API key). Higgsfield's live MCP exposes 90 tools (a full agentic platform: website building, game deployment, TikTok publishing, a shell sandbox, character training, marketplace apps); this adapter allowlists exactly six — generate_image, generate_video, job_status, models_explore, balance, and (reconciliation-only) show_generations — and never calls any other. Supported when validated: OAuth connection, account/credit discovery (a real balance tool — plan name + exact remaining credits), live model catalog discovery (aspect ratios, durations, per-model parameters), text-to-image and text-to-video generation (one output, one clip, no batch), async submit, polling, a REAL non-generating cost preflight (get_cost — confirmed via live discovery to never submit a job), local artifact ingestion. Two real approved generations (image and video, 2026-08-05) confirmed job_status's response shape and surfaced a genuine gap: the submit-time response could not be parsed for a job id in either case, even though both genuinely succeeded and spent real credits. That failure is now classified errorReason \"provider_submission_unresolved\" (non-retryable, sanitized structural diagnostics preserved — never a raw provider response, URL, prompt, or token) and is recoverable ONLY via POST /api/production/execution/[id]/reconcile-provider-submission — a narrow, no-spend, read-only reconciliation using show_generations, requiring multi-signal matching (media type + exact prompt hash + narrow creation window, never model name alone since Higgsfield may alias the requested model id in its own history) and explicit human confirmation before ever attaching a provider generation id; it never resubmits. Direct job-file editing, used to recover both real incidents before this route existed, is diagnostic-only and unsupported for routine use going forward. Not supported: cancellation of an in-flight generation (no such tool exists in the live 90-tool discovery), reference-image input (schema supports it; not implemented this checkpoint), bulk/batch generation, character training, game or website generation, TikTok/social publishing, the Direct API, and arbitrary marketplace-app or sandbox execution — all deliberately excluded regardless of the live account's access to them.",
+      "status": "available_when_configured",
+      "visibleInSidebar": false,
+      "hiddenByDefault": true,
+      "workspaceRoute": null
+    },
+    {
       "id": "hyperframes-local-studio",
       "displayName": "HyperFrames Local Studio",
       "entityType": "capability",
