@@ -14,6 +14,10 @@
 //   Phase C — CONTENT_RESEARCH_ENABLED=true + CONTENT_RESEARCH_MOCK_MODE=
 //     true + CONTENT_WORKFORCE_MOCK_MODE=true: the full source-backed flow,
 //     end to end, through package creation.
+//   Phase D — Phase 5B: CONTENT_RESEARCH_PROVIDER=tavily with a REAL network
+//     attempt against the real Tavily API using a deliberately invalid key
+//     (a 401 costs nothing) — proves real provider selection + real HTTPS
+//     call + honest error surfacing without mocking the adapter itself.
 //
 // Every mocked response still flows through the REAL
 // normalizeResults()/buildNormalizedSource()/sanitizeEvidence() validation
@@ -185,6 +189,44 @@ async function runUnitTests() {
   const gateOverridden = rules.checkResearchBudgetGate(0.001, 0.01, { overrideBudget: true });
   check('U9: checkResearchBudgetGate allows explicit overrideBudget', gateOverridden.blocked === false);
   check('U9: checkResearchBudgetGate never blocks with no cap configured', rules.checkResearchBudgetGate(null, 999).blocked === false);
+
+  // U10 — Tavily adapter (direct import, pure calls only — no network)
+  const tavily = await import(pathToFileURL(path.join(ROOT, 'lib/research/adapters/tavilyAdapter.js')).href);
+
+  const savedEnabled = process.env.TAVILY_ENABLED;
+  const savedKey = process.env.TAVILY_API_KEY;
+  process.env.TAVILY_ENABLED = 'false';
+  delete process.env.TAVILY_API_KEY;
+  check('U10: getTavilyConfig reports unconfigured when TAVILY_ENABLED is not true', tavily.getTavilyConfig().configured === false);
+  process.env.TAVILY_ENABLED = 'true';
+  process.env.TAVILY_API_KEY = '';
+  check('U10: getTavilyConfig reports unconfigured when the key is empty', tavily.getTavilyConfig().configured === false);
+  process.env.TAVILY_API_KEY = 'tvly-dummy-unit-test-key';
+  check('U10: getTavilyConfig reports configured when enabled + key present', tavily.getTavilyConfig().configured === true);
+  if (savedEnabled === undefined) delete process.env.TAVILY_ENABLED; else process.env.TAVILY_ENABLED = savedEnabled;
+  if (savedKey === undefined) delete process.env.TAVILY_API_KEY; else process.env.TAVILY_API_KEY = savedKey;
+
+  const adapter = tavily.createTavilyAdapter();
+  check('U11: adapter identity matches spec exactly (id/displayName/executionType)', adapter.id === 'tavily' && adapter.displayName === 'Tavily' && adapter.executionType === 'direct-api');
+  check('U11: adapter implements the full shared contract', contract.implementsResearchAdapterContract(adapter));
+  const adapterMethodNames = Object.keys(adapter).filter(k => typeof adapter[k] === 'function');
+  check('U12: the adapter object exposes NO crawl/map/research/deepResearch method — those tools are structurally unreachable, not just unused', !adapterMethodNames.some(m => /crawl|sitemap|^map$|deepResearch|research(?!Adapter)/i.test(m)));
+
+  const tavilyRaw = [
+    { title: 'A Real Tavily Result', url: 'https://example.com/a?utm_source=x', content: 'x'.repeat(1000), published_date: '2026-01-01', score: 0.87 },
+    { title: 'No score field', url: 'https://example.org/b', content: 'some content', published_date: null, score: undefined },
+    { title: 'Unsafe result', url: 'http://127.0.0.1/internal', content: 'should be rejected', score: 0.9 },
+  ];
+  const normalized = adapter.normalizeResults(tavilyRaw, { query: 'test query' });
+  check('U13: normalizeResults maps Tavily raw fields (title/url/content/score) into the shared NormalizedSource shape', normalized.length === 2 && normalized[0].title === 'A Real Tavily Result' && normalized[0].provider === 'tavily');
+  check('U13: normalizeResults strips tracking params via the shared buildNormalizedSource path', !normalized[0].url.includes('utm_source'));
+  check('U13: normalizeResults clamps score into [0,1]', normalized[0].score === 0.87);
+  check('U13: normalizeResults handles an absent/undefined score as null (never fabricates a number)', normalized[1].score === null);
+  check('U13: normalizeResults rejects the unsafe (private-IP) result via the shared URL-safety path — same guard as Exa, not reimplemented', normalized.every(s => !s.url.includes('127.0.0.1')));
+
+  const tavilySrc = fs.readFileSync(path.join(ROOT, 'lib/research/adapters/tavilyAdapter.js'), 'utf8');
+  const fetchPaths = [...tavilySrc.matchAll(/tavilyFetch\('([^']+)'/g)].map(m => m[1]);
+  check('U14: the adapter only ever calls Tavily\'s /search and /extract endpoints — never /crawl, /map, or /research', new Set(fetchPaths).size > 0 && fetchPaths.every(p => p === '/search' || p === '/extract'));
 }
 
 // ═══════════════════════════════════════════════════════════════════════
@@ -237,6 +279,11 @@ function runSourceGuards() {
 
   const engineSrc = fs.readFileSync(path.join(ROOT, 'lib/research/researchEngine.js'), 'utf8');
   check('G8: the research engine bounds a transient search failure to exactly one retry (no loop)', (engineSrc.match(/adapter\.search\(/g) || []).length === 2);
+  check('G9: the research engine wires Tavily into the SAME selectAdapter() branch as Exa — no parallel/competing engine', engineSrc.includes("createTavilyAdapter") && engineSrc.includes("cfg.provider === 'tavily'"));
+
+  const registrySrc = fs.readFileSync(path.join(ROOT, 'lib/research/providerRegistry.js'), 'utf8');
+  const tavilyEntryMatch = registrySrc.match(/id:\s*'tavily'[\s\S]{0,150}?capabilities:\s*\[([^\]]*)\]/);
+  check('G10: provider registry capabilities ARRAY VALUE for tavily never lists crawl/map/research (code, not comments)', !!tavilyEntryMatch && !/crawl|site.?map|deep.?research/i.test(tavilyEntryMatch[1]));
 }
 
 // ═══════════════════════════════════════════════════════════════════════
@@ -477,6 +524,64 @@ async function runPhaseCMechanics(createdRequestIds, createdRunIds) {
 }
 
 // ═══════════════════════════════════════════════════════════════════════
+// SECTION 6 — Phase D: Tavily provider selection, REAL network attempt
+// against the real Tavily API with a deliberately invalid key. Free (a 401
+// costs nothing) and proves the full real wiring — provider selection,
+// actual HTTPS call, honest error surfacing — without ever needing a mock
+// for the adapter itself or spending real money.
+// ═══════════════════════════════════════════════════════════════════════
+
+async function runPhaseD(createdRequestIds, createdRunIds) {
+  console.log('\n── Phase D: CONTENT_RESEARCH_PROVIDER=tavily, real network attempt with an invalid key (zero cost) ──');
+  const handle = spawnServer({
+    CONTENT_RESEARCH_ENABLED: 'true',
+    CONTENT_RESEARCH_PROVIDER: 'tavily',
+    CONTENT_RESEARCH_ALLOW_MODEL_FALLBACK: 'false', // no fallback masking — proves the real tavily path directly
+    CONTENT_WORKFORCE_ENABLED: 'true',
+    CONTENT_WORKFORCE_MOCK_MODE: 'true',
+    OPENROUTER_ENABLED: 'true',
+    OPENROUTER_API_KEY: 'sk-mock-validator-key-not-used-in-mock-mode',
+    TAVILY_ENABLED: 'true',
+    TAVILY_API_KEY: 'tvly-invalid-validator-key-0000000000000000',
+  });
+  try {
+    const up = await waitForServer();
+    check('D0: ephemeral tavily-selected server starts and is reachable', up, handle.getLogs().slice(-500));
+    if (!up) return;
+
+    const providersResp = await api('GET', '/api/research/providers');
+    const tavilyEntry = providersResp.json?.providers?.find(p => p.id === 'tavily');
+    check('D1: tavily reports configured:true when TAVILY_ENABLED=true and a key is present', tavilyEntry?.configured === true);
+    check('D1: tavily reports executable:true when selected + enabled + configured', tavilyEntry?.executable === true);
+    check('D1: tavily reports executionType "direct-api" exactly as specified', tavilyEntry?.executionType === 'direct-api');
+    check('D1: tavily capabilities are exactly search/selective_extraction/normalized_sources/evidence_backed_research', JSON.stringify([...(tavilyEntry?.capabilities || [])].sort()) === JSON.stringify(['evidence_backed_research', 'normalized_sources', 'search', 'selective_extraction'].sort()));
+    check('D1: exa is reported "staged" (not the selected provider) while CONTENT_RESEARCH_PROVIDER=tavily', providersResp.json.providers.find(p => p.id === 'exa')?.status === 'staged');
+    check('D1: no credential value appears anywhere in the provider registry response', !JSON.stringify(providersResp.json).includes('tvly-invalid-validator-key'));
+
+    const reqResp = await createFixtureRequest({ topic: 'Tavily provider selection fixture' });
+    createdRequestIds.push(reqResp.json.request.id);
+    const runResp = await api('POST', '/api/creative-director/workforce/run', { requestId: reqResp.json.request.id, researchMode: 'live-search' });
+    const run = runResp.json?.run;
+    if (run) createdRunIds.push(run.id);
+    check('D2: the run fails honestly (invalid key -> real Tavily rejection, no fallback to mask it)', run?.status === 'failed');
+    check('D2: the failure is an honest auth_error from the REAL Tavily API — proves the real endpoint was actually reached, not a fake/mocked success', run?.stages?.research?.result?.errorReason === 'auth_error');
+    check('D2: the error message never leaks the API key value', !JSON.stringify(run?.stages?.research?.result || {}).includes('tvly-invalid-validator-key'));
+
+    const detailResp = await api('GET', `/api/creative-director/workforce/${run.id}`);
+    const researchRunId = detailResp.json?.researchRunId;
+    check('D3: a research-run record was created and references provider "tavily"', !!researchRunId);
+    if (researchRunId) {
+      const rsrResp = await api('GET', `/api/research/runs/${researchRunId}`);
+      check('D3: the research-run record itself is marked "failed" with provider "tavily"', rsrResp.json?.run?.status === 'failed' && rsrResp.json?.run?.provider === 'tavily');
+      const forbidden = forbiddenContent(rsrResp.json);
+      check('D4: the research-run detail response contains no secrets, paths, or raw provider response markers', forbidden.length === 0, forbidden.map(String).join(', '));
+    }
+  } finally {
+    await stopServer(handle);
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════════
 // Main
 // ═══════════════════════════════════════════════════════════════════════
 
@@ -494,6 +599,7 @@ async function main() {
     await runPhaseA(createdRequestIds, createdRunIds);
     await runPhaseB(createdRequestIds, createdRunIds);
     await runPhaseC(createdRequestIds, createdRunIds, createdPackageIds);
+    await runPhaseD(createdRequestIds, createdRunIds);
   } finally {
     console.log('\n── Cleanup ──');
     for (const id of createdPackageIds) deleteJsonFile(PKG_DIR, id);

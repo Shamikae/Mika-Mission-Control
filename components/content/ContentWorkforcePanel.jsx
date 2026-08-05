@@ -228,10 +228,25 @@ function SourceCard({ source }) {
   );
 }
 
-function ResearchPanel({ researchRun, output }) {
+function ProviderStatusStrip({ providers }) {
+  if (!providers?.length) return null;
+  const relevant = providers.filter(p => p.id !== 'model-synthesis');
+  return (
+    <p className="pr-exec-meta font-mono" style={{ flexWrap: 'wrap' }}>
+      {relevant.map(p => (
+        <span key={p.id} title={p.health}>{p.displayName}: {p.status}{p.id === (relevant.find(x => x.executable)?.id) ? ' (selected)' : ''}</span>
+      ))}
+    </p>
+  );
+}
+
+function ResearchPanel({ researchRun, output, providers, stageWarnings }) {
   if (!researchRun && !output?.evidence?.length) return null;
+  const elapsed = researchRun ? fmtDuration({ startedAt: researchRun.createdAt, completedAt: researchRun.completedAt }) : null;
+  const fallbackWarnings = (stageWarnings || []).filter(w => /fell back|fallback/i.test(w));
   return (
     <div style={{ marginTop: 8 }}>
+      <ProviderStatusStrip providers={providers} />
       {researchRun && (
         <p className="pr-exec-meta font-mono">
           <ResearchRunStatusBadge status={researchRun.status} />
@@ -239,9 +254,13 @@ function ResearchPanel({ researchRun, output }) {
           <span>{researchRun.usage?.queries || 0} queries</span>
           <span>{researchRun.sources?.length || 0} sources</span>
           <span>{researchRun.usage?.fetches || 0} fetched</span>
+          {elapsed && <span><FiClock size={11} /> {elapsed}</span>}
           {fmtMoney(researchRun.estimatedCost) && <span>{fmtMoney(researchRun.estimatedCost)}</span>}
         </p>
       )}
+      {fallbackWarnings.map((w, i) => (
+        <div key={`fallback-${i}`} className="pr-warning font-mono"><FiAlertCircle size={11} /> {w}</div>
+      ))}
       {researchRun?.warnings?.length > 0 && researchRun.warnings.map((w, i) => (
         <div key={i} className="pr-warning font-mono"><FiAlertCircle size={11} /> {w}</div>
       ))}
@@ -307,6 +326,16 @@ export default function ContentWorkforcePanel({ requestId, requestStatus, onOpen
   const [rejectReason, setRejectReason] = useState('');
   const [researchRunId, setResearchRunId] = useState(null);
   const [researchRun, setResearchRun] = useState(null);
+  const [providers, setProviders] = useState(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    fetch('/api/research/providers', { cache: 'no-store' })
+      .then(res => res.ok ? res.json() : null)
+      .then(data => { if (!cancelled && data?.ok) setProviders(data.providers); })
+      .catch(() => {});
+    return () => { cancelled = true; };
+  }, []);
 
   const loadRun = useCallback(async () => {
     if (!requestId) return;
@@ -494,7 +523,7 @@ export default function ContentWorkforcePanel({ requestId, requestStatus, onOpen
                     </div>
                   )}
                   {stageId === 'research' && (result?.ok || researchRun) && (
-                    <ResearchPanel researchRun={researchRun} output={result?.output} />
+                    <ResearchPanel researchRun={researchRun} output={result?.output} providers={providers} stageWarnings={result?.warnings} />
                   )}
 
                   {stageId !== 'research' && (slot?.status === 'failed' || slot?.status === 'invalidated') && run.status !== 'package_created' && (
