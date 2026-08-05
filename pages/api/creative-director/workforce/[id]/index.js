@@ -4,6 +4,7 @@
 import { isValidId } from '../../../../../lib/creative-director/workforce/workforceRules';
 import { getWorkforceRun } from '../../../../../lib/creative-director/workforce/workforceRunStore';
 import { getContentRequest } from '../../../../../lib/creative-director/contentRequestStore';
+import { findLatestResearchRunForWorkforceRun } from '../../../../../lib/research/researchRunStore.js';
 
 export default function handler(req, res) {
   if (req.method !== 'GET') {
@@ -17,9 +18,11 @@ export default function handler(req, res) {
   if (!run) return res.status(404).json({ ok: false, error: `Workforce run "${id}" not found.` });
 
   const request = getContentRequest(run.requestId);
+  const latestResearchRun = findLatestResearchRunForWorkforceRun(id);
   return res.status(200).json({
     ok: true,
     run,
     request: request ? { id: request.id, brand: request.brand, platform: request.platform, topic: request.topic, status: request.status } : null,
+    researchRunId: latestResearchRun?.id || null,
   });
 }

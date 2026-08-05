@@ -18,14 +18,17 @@ export default async function handler(req, res) {
     return res.status(405).json({ ok: false, error: 'Method not allowed' });
   }
 
-  const extraKeys = unknownKeys(req.body, ['requestId', 'overrideBudget']);
+  const extraKeys = unknownKeys(req.body, ['requestId', 'overrideBudget', 'researchMode']);
   if (extraKeys.length) {
     return res.status(400).json({ ok: false, error: `Unknown field(s): ${extraKeys.join(', ')}` });
   }
 
-  const { requestId, overrideBudget } = req.body || {};
+  const { requestId, overrideBudget, researchMode } = req.body || {};
   if (!requestId || !isValidId(requestId)) {
     return res.status(400).json({ ok: false, error: 'A valid requestId is required.' });
+  }
+  if (researchMode !== undefined && !['model-synthesis', 'live-search'].includes(researchMode)) {
+    return res.status(400).json({ ok: false, error: 'researchMode must be "model-synthesis" or "live-search".' });
   }
 
   const request = getContentRequest(requestId);
@@ -36,7 +39,7 @@ export default async function handler(req, res) {
 
   try {
     const { run } = getOrCreateRunForRequest(request);
-    const finalRun = await runAllRemaining(run.id, { overrideBudget: overrideBudget === true });
+    const finalRun = await runAllRemaining(run.id, { overrideBudget: overrideBudget === true, researchMode });
     return res.status(200).json({ ok: true, run: finalRun });
   } catch (err) {
     if (err instanceof WorkforceError) return res.status(err.status).json({ ok: false, code: err.code, error: err.message });

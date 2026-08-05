@@ -1,11 +1,12 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import {
   FiZap, FiRefreshCw, FiCheck, FiX, FiThumbsDown, FiPackage, FiAlertCircle,
-  FiChevronRight, FiEdit2, FiClock, FiDollarSign, FiPlay,
+  FiChevronRight, FiEdit2, FiClock, FiDollarSign, FiPlay, FiSearch, FiExternalLink,
 } from 'react-icons/fi';
 import {
   WORKFORCE_STAGE_IDS, WORKFORCE_STAGE_META, RUN_STATUS_META, STAGE_STATUS_META,
 } from '../../lib/creative-director/workforce/workforceRules';
+import { RESEARCH_RUN_STATUS_META } from '../../lib/research/researchRules.js';
 
 function fmtMoney(cost) {
   if (!cost || !Number.isFinite(cost.amountUsd)) return null;
@@ -108,12 +109,21 @@ function StageDetail({ stageId, output }) {
     return (
       <div className="cd-brief-text font-mono">
         <p><b>Research mode:</b> {output.researchMode}</p>
+        {output.researchMode === 'live-search' && output.sourceSummary && (
+          <p><b>Provider:</b> {output.sourceSummary.provider} · <b>Queries:</b> {output.sourceSummary.queryCount} · <b>Sources:</b> {output.sourceSummary.sourceCount}</p>
+        )}
         <p><b>Summary:</b> {output.summary}</p>
         <p><b>Recommended angle:</b> {output.recommendedAngle}</p>
         <p><b>Content angles:</b></p>
         <ul>{output.contentAngles.map((a, i) => <li key={i}>{a.title} — {a.angle} (hook: {a.hookPotential}, risk: {a.riskLevel}, score: {a.relevanceScore})</li>)}</ul>
         <p><b>Claims needing sources:</b></p>
         <ul>{output.claims.filter(c => c.sourceNeeded).map((c, i) => <li key={i}>{c.text}</li>)}</ul>
+        {output.unresolvedClaims?.length > 0 && (
+          <>
+            <p><b>Unresolved claims:</b></p>
+            <ul>{output.unresolvedClaims.map((c, i) => <li key={i}>{c}</li>)}</ul>
+          </>
+        )}
       </div>
     );
   }
@@ -191,6 +201,100 @@ function StageDetail({ stageId, output }) {
   return null;
 }
 
+// ── Live Research panel: provider health, queries, sources, evidence ──────
+
+function ResearchRunStatusBadge({ status }) {
+  const m = RESEARCH_RUN_STATUS_META[status] || { label: status, color: '#5d6c86' };
+  return <span className="pr-status-badge font-mono" style={{ color: m.color, background: `${m.color}1f`, borderColor: `${m.color}40` }}>{m.label}</span>;
+}
+
+function SourceCard({ source }) {
+  return (
+    <div className="cd-agent-card">
+      <div className="cd-agent-card-head">
+        <span className="font-ui">{source.title}</span>
+        <span className="cd-agent-status font-mono">{source.classification}</span>
+      </div>
+      <p className="pr-exec-meta font-mono">
+        <span>{source.domain}</span>
+        <span>{source.publishedAt ? new Date(source.publishedAt).toLocaleDateString() : 'undated'}</span>
+        <span>score {source.qualityScore ?? '—'}</span>
+      </p>
+      <p className="pr-reason-text font-mono">{(source.snippet || source.content || '').slice(0, 220)}</p>
+      <a href={source.url} target="_blank" rel="noopener noreferrer" className="pr-btn font-ui" style={{ display: 'inline-flex', alignItems: 'center', gap: 4, textDecoration: 'none' }}>
+        <FiExternalLink size={12} /> Open Source
+      </a>
+    </div>
+  );
+}
+
+function ResearchPanel({ researchRun, output }) {
+  if (!researchRun && !output?.evidence?.length) return null;
+  return (
+    <div style={{ marginTop: 8 }}>
+      {researchRun && (
+        <p className="pr-exec-meta font-mono">
+          <ResearchRunStatusBadge status={researchRun.status} />
+          <span>{researchRun.provider || 'no provider'}</span>
+          <span>{researchRun.usage?.queries || 0} queries</span>
+          <span>{researchRun.sources?.length || 0} sources</span>
+          <span>{researchRun.usage?.fetches || 0} fetched</span>
+          {fmtMoney(researchRun.estimatedCost) && <span>{fmtMoney(researchRun.estimatedCost)}</span>}
+        </p>
+      )}
+      {researchRun?.warnings?.length > 0 && researchRun.warnings.map((w, i) => (
+        <div key={i} className="pr-warning font-mono"><FiAlertCircle size={11} /> {w}</div>
+      ))}
+      {researchRun?.error && <div className="pr-warning font-mono"><FiAlertCircle size={11} /> {researchRun.error}</div>}
+
+      {researchRun?.queries?.length > 0 && (
+        <details>
+          <summary className="cd-agent-status font-mono" style={{ cursor: 'pointer' }}>Queries ({researchRun.queries.length})</summary>
+          <ul className="cd-brief-text font-mono">
+            {researchRun.queries.map(q => <li key={q.id}>{q.query} — <i>{q.purpose}</i></li>)}
+          </ul>
+        </details>
+      )}
+
+      {researchRun?.sources?.length > 0 && (
+        <details>
+          <summary className="cd-agent-status font-mono" style={{ cursor: 'pointer' }}>Sources ({researchRun.sources.length})</summary>
+          <div className="cd-agent-list">
+            {researchRun.sources.map(s => <SourceCard key={s.id} source={s} />)}
+          </div>
+        </details>
+      )}
+
+      {output?.evidence?.length > 0 && (
+        <details>
+          <summary className="cd-agent-status font-mono" style={{ cursor: 'pointer' }}>Evidence ({output.evidence.length})</summary>
+          <ul className="cd-brief-text font-mono">
+            {output.evidence.map(e => <li key={e.id}>[{e.verificationStatus}/{e.confidence}] {e.claim} {e.notes ? `— ${e.notes}` : ''}</li>)}
+          </ul>
+        </details>
+      )}
+
+      {output?.evidence?.some(e => e.verificationStatus === 'conflicting') && (
+        <details>
+          <summary className="cd-agent-status font-mono" style={{ cursor: 'pointer' }}>Conflicting Findings</summary>
+          <ul className="cd-brief-text font-mono">
+            {output.evidence.filter(e => e.verificationStatus === 'conflicting').map(e => <li key={e.id}>{e.claim} — {e.notes}</li>)}
+          </ul>
+        </details>
+      )}
+
+      {output?.unresolvedClaims?.length > 0 && (
+        <details>
+          <summary className="cd-agent-status font-mono" style={{ cursor: 'pointer' }}>Unsupported Claims</summary>
+          <ul className="cd-brief-text font-mono">
+            {output.unresolvedClaims.map((c, i) => <li key={i}>{c}</li>)}
+          </ul>
+        </details>
+      )}
+    </div>
+  );
+}
+
 const EDITABLE_STAGES = new Set(['script', 'storyboard', 'thumbnail', 'caption']);
 
 export default function ContentWorkforcePanel({ requestId, requestStatus, onOpenPackagePipeline, onOpenContentOrchestrator }) {
@@ -201,6 +305,8 @@ export default function ContentWorkforcePanel({ requestId, requestStatus, onOpen
   const [error, setError] = useState(null);
   const [editingStage, setEditingStage] = useState(null);
   const [rejectReason, setRejectReason] = useState('');
+  const [researchRunId, setResearchRunId] = useState(null);
+  const [researchRun, setResearchRun] = useState(null);
 
   const loadRun = useCallback(async () => {
     if (!requestId) return;
@@ -214,7 +320,29 @@ export default function ContentWorkforcePanel({ requestId, requestStatus, onOpen
     }
   }, [requestId]);
 
-  useEffect(() => { setRun(null); setLoaded(false); loadRun(); }, [requestId, loadRun]);
+  useEffect(() => { setRun(null); setLoaded(false); setResearchRunId(null); setResearchRun(null); loadRun(); }, [requestId, loadRun]);
+
+  // Fetch researchRunId via the detail route (the list route doesn't include it),
+  // then the full research-run record (sources/evidence/queries) whenever it changes.
+  useEffect(() => {
+    if (!run?.id) return;
+    let cancelled = false;
+    fetch(`/api/creative-director/workforce/${run.id}`, { cache: 'no-store' })
+      .then(res => res.ok ? res.json() : null)
+      .then(data => { if (!cancelled && data?.ok) setResearchRunId(data.researchRunId || null); })
+      .catch(() => {});
+    return () => { cancelled = true; };
+  }, [run?.id, run?.stages?.research?.status]);
+
+  useEffect(() => {
+    if (!researchRunId) { setResearchRun(null); return; }
+    let cancelled = false;
+    fetch(`/api/research/runs/${researchRunId}`, { cache: 'no-store' })
+      .then(res => res.ok ? res.json() : null)
+      .then(data => { if (!cancelled && data?.ok) setResearchRun(data.run); })
+      .catch(() => {});
+    return () => { cancelled = true; };
+  }, [researchRunId]);
 
   const doAction = async (fn) => {
     setBusy(true); setError(null);
@@ -234,7 +362,9 @@ export default function ContentWorkforcePanel({ requestId, requestStatus, onOpen
 
   const runWorkforce = () => doAction(() => fetch('/api/creative-director/workforce/run', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ requestId }) }));
   const runNext = () => doAction(() => fetch('/api/creative-director/workforce/run-next', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ runId: run.id }) }));
-  const rerunStage = (stageId) => doAction(() => fetch(`/api/creative-director/workforce/${run.id}/rerun-stage`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ stageId }) }));
+  const runNextWithResearchMode = (researchMode) => doAction(() => fetch('/api/creative-director/workforce/run-next', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(run ? { runId: run.id, researchMode } : { requestId, researchMode }) }));
+  const rerunStage = (stageId, researchMode) => doAction(() => fetch(`/api/creative-director/workforce/${run.id}/rerun-stage`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(researchMode ? { stageId, researchMode } : { stageId }) }));
+  const retryResearch = () => doAction(() => fetch(`/api/research/runs/${researchRunId}/retry`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{}' })).then(() => loadRun());
   const saveEdit = (stageId, override) => doAction(() => fetch(`/api/creative-director/workforce/${run.id}/rerun-stage`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ stageId, override }) })).then(d => { if (d) setEditingStage(null); });
   const approve = () => doAction(() => fetch(`/api/creative-director/workforce/${run.id}/approve`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{}' }));
   const reject = () => doAction(() => fetch(`/api/creative-director/workforce/${run.id}/reject`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ reason: rejectReason }) })).then(d => { if (d) setRejectReason(''); });
@@ -255,9 +385,17 @@ export default function ContentWorkforcePanel({ requestId, requestStatus, onOpen
       {!loaded && loading && <div className="thumb-empty font-mono">Loading workforce run…</div>}
 
       {loaded && !run && (
-        <button type="button" className="thumb-generate-btn font-ui" disabled={busy} onClick={runWorkforce}>
-          {busy ? <><FiRefreshCw size={12} className="spin" /> Running…</> : <><FiZap size={12} /> Run Creative Workforce</>}
-        </button>
+        <div className="pr-row-2">
+          <button type="button" className="thumb-generate-btn font-ui" disabled={busy} onClick={runWorkforce}>
+            {busy ? <><FiRefreshCw size={12} className="spin" /> Running…</> : <><FiZap size={12} /> Run Creative Workforce</>}
+          </button>
+          <button type="button" className="pr-btn pr-btn--approve font-ui" disabled={busy} onClick={() => runNextWithResearchMode('live-search')}>
+            <FiSearch size={12} /> Run Live Research
+          </button>
+          <button type="button" className="pr-btn font-ui" disabled={busy} onClick={() => runNextWithResearchMode('model-synthesis')}>
+            <FiZap size={12} /> Use Model Synthesis
+          </button>
+        </div>
       )}
 
       {run && (
@@ -335,7 +473,31 @@ export default function ContentWorkforcePanel({ requestId, requestStatus, onOpen
                     {cost && <span>{cost}</span>}
                     {result?.warnings?.length > 0 && <span>{result.warnings.length} warning(s)</span>}
                   </div>
-                  {(slot?.status === 'failed' || slot?.status === 'invalidated') && run.status !== 'package_created' && (
+                  {stageId === 'research' && (slot?.status === 'not_started' || slot?.status === 'invalidated') && run.status !== 'package_created' && (
+                    <div className="pr-row-2">
+                      <button type="button" className="pr-btn pr-btn--approve font-ui" disabled={busy} onClick={() => runNextWithResearchMode('live-search')}><FiSearch size={12} /> Run Live Research</button>
+                      <button type="button" className="pr-btn font-ui" disabled={busy} onClick={() => runNextWithResearchMode('model-synthesis')}><FiZap size={12} /> Use Model Synthesis</button>
+                    </div>
+                  )}
+                  {stageId === 'research' && slot?.status === 'failed' && run.status !== 'package_created' && (
+                    <div className="pr-row-2">
+                      {researchRun?.status === 'failed' && (
+                        <button type="button" className="pr-btn font-ui" disabled={busy} onClick={retryResearch}><FiRefreshCw size={12} /> Retry Research</button>
+                      )}
+                      <button type="button" className="pr-btn font-ui" disabled={busy} onClick={() => rerunStage(stageId)}><FiRefreshCw size={12} /> Rerun Stage</button>
+                    </div>
+                  )}
+                  {stageId === 'research' && slot?.status === 'completed' && run.status !== 'package_created' && (
+                    <div className="pr-row-2">
+                      <button type="button" className="pr-btn font-ui" disabled={busy} onClick={() => rerunStage(stageId, 'live-search')}><FiSearch size={12} /> Rerun with Live Search</button>
+                      <button type="button" className="pr-btn font-ui" disabled={busy} onClick={() => rerunStage(stageId, 'model-synthesis')}><FiZap size={12} /> Rerun with Model Synthesis</button>
+                    </div>
+                  )}
+                  {stageId === 'research' && (result?.ok || researchRun) && (
+                    <ResearchPanel researchRun={researchRun} output={result?.output} />
+                  )}
+
+                  {stageId !== 'research' && (slot?.status === 'failed' || slot?.status === 'invalidated') && run.status !== 'package_created' && (
                     <button type="button" className="pr-btn font-ui" disabled={busy} onClick={() => rerunStage(stageId)}><FiRefreshCw size={12} /> Rerun Stage</button>
                   )}
                   {slot?.status === 'completed' && EDITABLE_STAGES.has(stageId) && run.status !== 'package_created' && (

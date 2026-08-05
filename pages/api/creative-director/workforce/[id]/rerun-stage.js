@@ -22,15 +22,18 @@ export default async function handler(req, res) {
   }
 
   if (req.method === 'POST') {
-    const extraKeys = unknownKeys(req.body, ['stageId', 'overrideBudget', 'note']);
+    const extraKeys = unknownKeys(req.body, ['stageId', 'overrideBudget', 'note', 'researchMode']);
     if (extraKeys.length) return res.status(400).json({ ok: false, error: `Unknown field(s): ${extraKeys.join(', ')}` });
 
-    const { stageId, overrideBudget, note } = req.body || {};
+    const { stageId, overrideBudget, note, researchMode } = req.body || {};
     if (!stageId || !isValidStageId(stageId)) {
       return res.status(400).json({ ok: false, error: 'A valid stageId is required.' });
     }
+    if (researchMode !== undefined && !['model-synthesis', 'live-search'].includes(researchMode)) {
+      return res.status(400).json({ ok: false, error: 'researchMode must be "model-synthesis" or "live-search".' });
+    }
     try {
-      const run = await rerunStage(id, stageId, { overrideBudget: overrideBudget === true, note: typeof note === 'string' ? note.slice(0, 500) : null });
+      const run = await rerunStage(id, stageId, { overrideBudget: overrideBudget === true, note: typeof note === 'string' ? note.slice(0, 500) : null, researchMode });
       return res.status(200).json({ ok: true, run });
     } catch (err) {
       if (err instanceof WorkforceError) return res.status(err.status).json({ ok: false, code: err.code, error: err.message });
