@@ -10,6 +10,7 @@ import HeyGenConnectionPanel from './HeyGenConnectionPanel';
 import HeyGenSetupPanel from './HeyGenSetupPanel';
 import HiggsfieldConnectionPanel from './HiggsfieldConnectionPanel';
 import HiggsfieldSetupPanel from './HiggsfieldSetupPanel';
+import OpenArtConnectionPanel from './OpenArtConnectionPanel';
 import OpenArtVideoSetupPanel from './OpenArtVideoSetupPanel';
 import HyperFramesSetupPanel from './HyperFramesSetupPanel';
 import { normalizeArtifactList } from '../../lib/artifacts/normalizeArtifact';
@@ -1197,6 +1198,7 @@ export default function ProductionRouterWorkspace({ focusRequest, onFocusConsume
           <ProviderStatusPanel providers={providers} />
           <HeyGenConnectionPanel />
           <HiggsfieldConnectionPanel />
+          <OpenArtConnectionPanel />
         </div>
 
         {/* ══════════════════ RIGHT — job panel ══════════════════ */}
