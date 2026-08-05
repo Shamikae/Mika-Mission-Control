@@ -11,6 +11,7 @@ import HeyGenSetupPanel from './HeyGenSetupPanel';
 import HiggsfieldConnectionPanel from './HiggsfieldConnectionPanel';
 import HiggsfieldSetupPanel from './HiggsfieldSetupPanel';
 import OpenArtVideoSetupPanel from './OpenArtVideoSetupPanel';
+import HyperFramesSetupPanel from './HyperFramesSetupPanel';
 import { normalizeArtifactList } from '../../lib/artifacts/normalizeArtifact';
 import ArtifactViewer from '../artifacts/ArtifactViewer';
 import ArtifactCard from '../artifacts/ArtifactCard';
@@ -524,6 +525,9 @@ function JobPanel({
               )}
               {job.selectedProvider === 'openart-video' && (
                 <OpenArtVideoSetupPanel job={job} pkg={pkg} onSaved={onProviderInputSaved} />
+              )}
+              {job.selectedProvider === 'hyperframes' && (
+                <HyperFramesSetupPanel job={job} pkg={pkg} onSaved={onProviderInputSaved} />
               )}
             </>
           )}

@@ -389,7 +389,10 @@ async function main() {
   const hyperframes = b1.json?.providers?.find(p => p.id === 'hyperframes');
   check('B13: manual-export adapter unaffected (still executable)', manualExport?.executable === true);
   check('B13: mock-video adapter entry still present and reported honestly', !!mockVideo);
-  check('B13: HyperFrames provider entry unaffected by this milestone (still staged, no adapter)', !hyperframes || hyperframes.status === 'staged');
+  // HyperFrames gained a real adapter in a LATER milestone — no longer
+  // permanently 'staged'. This only confirms THIS milestone's changes
+  // didn't touch hyperframes, not a specific status.
+  check('B13: HyperFrames provider entry unaffected by this milestone (status may legitimately be active/staged/unavailable — a real adapter now exists)', !hyperframes || ['staged', 'active', 'unavailable', 'disabled'].includes(hyperframes.status));
 
   // ── Regression: OpenArt image generation flow (openartMcpClient.js) unaffected —
   // the exported helpers (extractHistoryId etc.) are ADDITIVE (export keyword only),

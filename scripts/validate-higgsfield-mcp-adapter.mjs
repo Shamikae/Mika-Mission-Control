@@ -662,7 +662,12 @@ async function main() {
   check('C12: HeyGen MCP adapter entry unaffected by this hardening pass', heygenMcp?.executionType === 'mcp-oauth');
   const hyperframesStatus = await api('GET', '/api/production/providers');
   const hyperframesEntry = hyperframesStatus.json?.providers?.find(p => p.id === 'hyperframes');
-  check('C12: HyperFrames provider entry unaffected by this hardening pass', !hyperframesEntry || hyperframesEntry.status === 'staged');
+  // HyperFrames gained a real adapter in a LATER milestone (see
+  // hyperframes.adapter.js) — no longer permanently 'staged'. This check's
+  // only real intent is "Higgsfield's own hardening pass didn't touch
+  // hyperframes," so it now just confirms a sane, known status rather than
+  // asserting a since-superseded specific one.
+  check('C12: HyperFrames provider entry unaffected by this hardening pass (status may legitimately be active/staged/unavailable — a real adapter now exists)', !hyperframesEntry || ['staged', 'active', 'unavailable', 'disabled'].includes(hyperframesEntry.status));
 
   printSummary();
 }
