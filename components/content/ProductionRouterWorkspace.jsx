@@ -10,6 +10,7 @@ import HeyGenConnectionPanel from './HeyGenConnectionPanel';
 import HeyGenSetupPanel from './HeyGenSetupPanel';
 import HiggsfieldConnectionPanel from './HiggsfieldConnectionPanel';
 import HiggsfieldSetupPanel from './HiggsfieldSetupPanel';
+import OpenArtVideoSetupPanel from './OpenArtVideoSetupPanel';
 import { normalizeArtifactList } from '../../lib/artifacts/normalizeArtifact';
 import ArtifactViewer from '../artifacts/ArtifactViewer';
 import ArtifactCard from '../artifacts/ArtifactCard';
@@ -320,6 +321,11 @@ function ExecutionPanel({
             <FiAlertCircle size={11} /> Higgsfield has no cancellation support — the generation may continue and consume credits even after this job is marked cancelled locally.
           </div>
         )}
+        {status === 'waiting_provider' && execution?.provider === 'openart-video' && (
+          <div className="pr-warning font-mono">
+            <FiAlertCircle size={11} /> OpenArt has no cancellation support for video — the generation may continue and consume credits even after this job is marked cancelled locally.
+          </div>
+        )}
         {inFlight && (
           <span className="pr-exec-inflight font-mono"><FiRefreshCw size={11} className="spin" /> In progress…</span>
         )}
@@ -515,6 +521,9 @@ function JobPanel({
               )}
               {job.selectedProvider === 'higgsfield-mcp' && (
                 <HiggsfieldSetupPanel job={job} pkg={pkg} onSaved={onProviderInputSaved} />
+              )}
+              {job.selectedProvider === 'openart-video' && (
+                <OpenArtVideoSetupPanel job={job} pkg={pkg} onSaved={onProviderInputSaved} />
               )}
             </>
           )}
