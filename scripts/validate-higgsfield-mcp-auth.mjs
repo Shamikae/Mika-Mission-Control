@@ -103,8 +103,20 @@ async function main() {
   check('A1: getHiggsfieldMcpConfig() reports the configured/default MCP URL', cfg.mcpUrl === 'https://mcp.higgsfield.ai/mcp', cfg.mcpUrl);
 
   const connectionStatusNow = getHiggsfieldConnectionStatus();
-  const expectedConnectionStatus = !envEnabled ? 'staged' : (preExistingTokens?.access_token ? 'connected' : 'authentication_required');
-  check('A2: getHiggsfieldConnectionStatus() status matches enabled flag + real session state', connectionStatusNow.status === expectedConnectionStatus, `expected ${expectedConnectionStatus}, got ${connectionStatusNow.status}`);
+  // Verified-status semantics: stored tokens alone never yield a connected
+  // state. With tokens present the session is either verified (a real
+  // authenticated call succeeded recently), unverified, or needs a reconnect.
+  const TOKENED_STATES = ['connected_verified', 'token_present_unverified', 'refresh_required', 'authorization_error'];
+  const expectedConnectionStatus = !envEnabled ? 'staged' : (preExistingTokens?.access_token ? TOKENED_STATES : 'authentication_required');
+  check('A2: getHiggsfieldConnectionStatus() status matches enabled flag + real session state',
+    Array.isArray(expectedConnectionStatus)
+      ? expectedConnectionStatus.includes(connectionStatusNow.status)
+      : connectionStatusNow.status === expectedConnectionStatus,
+    `expected ${expectedConnectionStatus}, got ${connectionStatusNow.status}`);
+  check('A2b: token presence alone never reports authenticated',
+    !(connectionStatusNow.hasTokens && connectionStatusNow.status === 'token_present_unverified' && connectionStatusNow.authenticated));
+  check('A2c: reconnectRequired is exposed for the UI',
+    typeof connectionStatusNow.reconnectRequired === 'boolean');
   check('A2: no secret keys in getHiggsfieldConnectionStatus()', noSecretKeys(connectionStatusNow).length === 0, JSON.stringify(noSecretKeys(connectionStatusNow)));
 
   // ── 2. Error classification ──────────────────────────────────────────────
@@ -219,7 +231,48 @@ async function main() {
     const accountResp = await api('GET', '/api/production/providers/higgsfield/account');
     check('B6: GET account -> 503 disabled', accountResp.status === 503 && accountResp.json?.code === 'disabled');
   } else {
-    check('B3: status is authentication_required or connected to match current server config (enabled, live mode)', ['authentication_required', 'connected'].includes(statusResp.json?.status), statusResp.json?.status);
+    check('B3: status is one of the verified-semantics states (enabled, live mode)', ['authentication_required', 'connected_verified', 'token_present_unverified', 'refresh_required', 'authorization_error'].includes(statusResp.json?.status), statusResp.json?.status);
+
+    // ── Verified-status semantics + auth recovery (BUG A / BUG B) ──────────
+    const st = statusResp.json || {};
+    check('B3a: authenticated is true ONLY for connected_verified',
+      st.authenticated === (st.status === 'connected_verified'), `${st.status}/${st.authenticated}`);
+    check('B3b: reconnectRequired is set for every unhealthy auth state',
+      st.reconnectRequired === ['authentication_required', 'refresh_required', 'authorization_error'].includes(st.status));
+    check('B3c: refresh-token presence is reported as a boolean, never a value',
+      typeof st.hasRefreshToken === 'boolean' && !JSON.stringify(st).match(/[A-Za-z0-9_-]{40,}/));
+
+    // A real authenticated call is the ONLY thing that may verify a session.
+    const acct = await api('GET', '/api/production/providers/higgsfield/account');
+    if (acct.status === 200 && acct.json?.ok) {
+      const after = await api('GET', '/api/production/providers/higgsfield/status');
+      check('B3d: a successful authenticated call yields connected_verified',
+        after.json?.status === 'connected_verified', after.json?.status);
+      check('B3e: verification stamps lastVerifiedAt', !!after.json?.lastVerifiedAt);
+      check('B3f: a successful call clears a stale lastError', after.json?.lastErrorCode === null, String(after.json?.lastErrorCode));
+      check('B3g: account summary carries plan + credits, no raw payload',
+        typeof acct.json.accountSummary?.planName === 'string' && Number.isFinite(acct.json.accountSummary?.remainingCredits));
+    } else {
+      check('B3d: an authenticated call that fails must NOT report connected_verified',
+        (await api('GET', '/api/production/providers/higgsfield/status')).json?.status !== 'connected_verified');
+    }
+
+    // Refresh capability is provided by the MCP SDK's auth() — assert it is
+    // reachable rather than reimplemented.
+    const clientSrc = fs.readFileSync(path.join(ROOT, 'lib/higgsfield/higgsfieldMcpClient.js'), 'utf8');
+    check('B3h: refresh is delegated to the SDK auth() flow, not hand-rolled',
+      /await auth\(provider, \{ serverUrl/.test(clientSrc) && !/grant_type=refresh_token/.test(clientSrc));
+    check('B3i: unauthorized responses are classified for reconnect',
+      /noteHiggsfieldAuthOutcome\(false, 'refresh_required'/.test(clientSrc));
+    check('B3j: only a real successful call marks the session verified',
+      /noteHiggsfieldAuthOutcome\(true\)/.test(clientSrc));
+
+    // Provider isolation must survive all of this.
+    const heygenSrc = fs.readFileSync(path.join(ROOT, 'lib/heygen/heygenMcpClient.js'), 'utf8');
+    check('B3k: HeyGen session remains isolated from Higgsfield',
+      !/higgsfield/i.test(heygenSrc));
+    check('B3l: Higgsfield client does not import HeyGen/OpenArt state',
+      !/heygenAuthStore|openartAuthStore/.test(clientSrc));
     console.log('SKIP — B4-B6 disabled-response checks (server currently has HIGGSFIELD_MCP_ENABLED=true — a disabled-mode 503 is not the expected response here).');
   }
 

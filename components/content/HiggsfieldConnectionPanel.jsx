@@ -10,9 +10,12 @@ import { FiAlertCircle, FiCheckCircle, FiLink, FiRefreshCw, FiXCircle } from 're
 
 function StatusPill({ status }) {
   const meta = {
-    staged:                  { label: 'Disabled', color: '#5d6c86' },
-    authentication_required: { label: 'Authentication Required', color: '#f59e0b' },
-    connected:               { label: 'Connected', color: '#4ade80' },
+    staged:                   { label: 'Disabled', color: '#5d6c86' },
+    authentication_required:  { label: 'Authentication Required', color: '#f59e0b' },
+    refresh_required:         { label: 'Reconnect Required', color: '#f59e0b' },
+    authorization_error:      { label: 'Authorization Error', color: '#f87171' },
+    token_present_unverified: { label: 'Unverified', color: '#60a5fa' },
+    connected_verified:       { label: 'Connected', color: '#4ade80' },
   }[status] || { label: status || 'Unknown', color: '#5d6c86' };
 
   return (
@@ -30,6 +33,9 @@ export default function HiggsfieldConnectionPanel() {
   const [disconnecting, setDisconnecting] = useState(false);
   const [actionError, setActionError] = useState(null);
   const [redirectNotice, setRedirectNotice] = useState(null);
+  // Set only when the browser blocked the consent tab — rendered as a
+  // clickable fallback so a blocked popup never dead-ends the flow.
+  const [manualAuthUrl, setManualAuthUrl] = useState(null);
 
   const loadStatus = useCallback(async () => {
     setLoading(true);
@@ -38,7 +44,8 @@ export default function HiggsfieldConnectionPanel() {
       const data = await res.json();
       if (res.ok && data.ok) {
         setStatus(data);
-        if (data.status === 'connected') {
+        // Tools are only fetched for a session a real call has verified.
+        if (data.status === 'connected_verified') {
           const toolsRes = await fetch('/api/production/providers/higgsfield/tools', { cache: 'no-store' }).catch(() => null);
           const toolsData = toolsRes && toolsRes.ok ? await toolsRes.json() : null;
           setToolCount(toolsData?.ok ? toolsData.count : null);
@@ -68,21 +75,40 @@ export default function HiggsfieldConnectionPanel() {
     loadStatus();
   }, [loadStatus]);
 
+  // Typed failure text. A bare 401 here means this browser session carries no
+  // Mika admin token, which silently breaks EVERY mutation button — not just
+  // this panel. Saying so is far more useful than "Request failed".
+  const describeFailure = (res, data) => {
+    if (res.status === 401 || data?.code === 'authentication_required') {
+      return 'Not authorized in this browser: no Mika admin token is present for this session, so the request was rejected before reaching Higgsfield. Every mutation button is affected, not just this panel.';
+    }
+    if (res.status === 503 || data?.code === 'disabled') return 'Higgsfield MCP is disabled. Set HIGGSFIELD_MCP_ENABLED=true.';
+    if (data?.code === 'invalid_redirect') return 'The OAuth redirect URL is not allowlisted.';
+    if (data?.code === 'registration_failed') return 'Dynamic client registration with Higgsfield failed.';
+    return data?.error || `Request failed (HTTP ${res.status}).`;
+  };
+
   const connect = async () => {
     setConnecting(true);
     setActionError(null);
+    setManualAuthUrl(null);
     try {
       const res = await fetch('/api/production/providers/higgsfield/connect', { method: 'POST' });
-      const data = await res.json();
+      const data = await res.json().catch(() => ({}));
+
       if (res.ok && data.ok && data.authorizationUrl) {
-        window.location.href = data.authorizationUrl;
-        return; // navigating away
+        // A refresh may have silently succeeded; otherwise send the operator to
+        // consent. Opened in a new tab so the workspace is not torn down — if
+        // the popup is blocked, the URL is shown as a clickable fallback.
+        const opened = window.open(data.authorizationUrl, '_blank', 'noopener,noreferrer');
+        if (!opened) setManualAuthUrl(data.authorizationUrl);
+        return;
       }
       if (res.ok && data.ok && data.status === 'authorized') {
         await loadStatus();
         return;
       }
-      setActionError(data.error || 'Could not start Higgsfield authorization.');
+      setActionError(describeFailure(res, data));
     } catch (err) {
       setActionError(err.message || 'Request failed.');
     } finally {
@@ -93,15 +119,32 @@ export default function HiggsfieldConnectionPanel() {
   const disconnect = async () => {
     setDisconnecting(true);
     setActionError(null);
+    setManualAuthUrl(null);
     try {
       const res = await fetch('/api/production/providers/higgsfield/disconnect', { method: 'POST' });
-      const data = await res.json();
-      if (res.ok && data.ok) await loadStatus();
-      else setActionError(data.error || 'Disconnect failed.');
+      const data = await res.json().catch(() => ({}));
+      // Status is refreshed on BOTH paths — a failed disconnect must never
+      // leave a stale "Connected" label behind.
+      if (res.ok && data.ok) {
+        await loadStatus();
+      } else {
+        setActionError(describeFailure(res, data));
+        await loadStatus();
+      }
+    } catch (err) {
+      setActionError(err.message || 'Request failed.');
+      await loadStatus();
     } finally {
       setDisconnecting(false);
     }
   };
+
+  // Derived from the new verified-status semantics. `connected` no longer
+  // exists as a state: a session is only "connected" once a real
+  // authenticated call has proven it (connected_verified).
+  const isVerified = status?.status === 'connected_verified';
+  const needsReconnect = status?.reconnectRequired === true;
+  const isUnverified = status?.status === 'token_present_unverified';
 
   if (!status) {
     return (
@@ -143,8 +186,24 @@ export default function HiggsfieldConnectionPanel() {
         </div>
       )}
 
+      {isUnverified && (
+        <div className="pr-reason-text font-mono">
+          Tokens are stored but unproven — no authenticated call has succeeded yet this session.
+          Status resolves to Connected only after a real provider call verifies it.
+        </div>
+      )}
+
       {actionError && (
         <div className="pr-warning font-mono"><FiAlertCircle size={11} /> {actionError}</div>
+      )}
+
+      {manualAuthUrl && (
+        <div className="pr-warning font-mono">
+          <FiAlertCircle size={11} /> The consent tab was blocked by the browser. Open this authorization link manually:
+          <div style={{ marginTop: 6, wordBreak: 'break-all' }}>
+            <a href={manualAuthUrl} target="_blank" rel="noopener noreferrer">{manualAuthUrl}</a>
+          </div>
+        </div>
       )}
 
       {status.status === 'staged' && (
@@ -156,22 +215,22 @@ export default function HiggsfieldConnectionPanel() {
           <span>MCP URL: {status.mcpUrl}</span>
           <span>Client registered: {status.clientRegistered ? 'Yes' : 'No'}</span>
           {status.connectedAt && <span>Connected: {new Date(status.connectedAt).toLocaleString()}</span>}
-          {status.status === 'connected' && <span>Tools discovered: {toolCount ?? '—'}</span>}
+          {isVerified && <span>Tools discovered: {toolCount ?? '—'}</span>}
         </div>
       )}
 
-      {status.status === 'connected' && status.accountSummary && (
+      {isVerified && status.accountSummary && (
         <div className="pr-exec-meta font-mono">
           {status.accountSummary.planName && <span>Plan: {status.accountSummary.planName}</span>}
           {status.accountSummary.remainingCredits != null && <span>Credits remaining: {status.accountSummary.remainingCredits}</span>}
           {status.accountSummary.accountName && <span>Account: {status.accountSummary.accountName}</span>}
         </div>
       )}
-      {status.status === 'connected' && !status.accountSummary && (
+      {isVerified && !status.accountSummary && (
         <p className="pr-reason-text font-mono">No account/plan tool was found in the discovered tool list — connection is otherwise healthy.</p>
       )}
 
-      {status.status === 'connected' && (
+      {isVerified && (
         <p className="pr-reason-text font-mono">
           Only image and video generation (via generate_image/generate_video) are wired into Mika — Higgsfield's
           much larger live tool surface (website building, game deployment, TikTok publishing, marketplace apps,
@@ -180,12 +239,12 @@ export default function HiggsfieldConnectionPanel() {
       )}
 
       <div className="pr-exec-actions">
-        {status.status === 'authentication_required' && (
+        {needsReconnect && (
           <button type="button" className="pr-btn pr-btn--approve font-ui" onClick={connect} disabled={connecting}>
             {connecting ? <><FiRefreshCw size={12} className="spin" /> Connecting…</> : <><FiLink size={12} /> Connect Higgsfield</>}
           </button>
         )}
-        {status.status === 'connected' && (
+        {isVerified && (
           <button type="button" className="pr-btn pr-btn--reject font-ui" onClick={disconnect} disabled={disconnecting}>
             {disconnecting ? <><FiRefreshCw size={12} className="spin" /> Disconnecting…</> : <><FiXCircle size={12} /> Disconnect</>}
           </button>
