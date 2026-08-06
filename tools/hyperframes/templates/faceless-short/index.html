@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=1080, height=1920">
     <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
     <!--
-      TRUSTED TEMPLATE — faceless-short v3
+      TRUSTED TEMPLATE — faceless-short v4
       ====================================
       This file is FIXED CODE. The translator copies it verbatim and replaces
       exactly four placeholders, none of which can carry model text into an
@@ -20,6 +20,11 @@
       The narration audio src is never caller-supplied: the translator emits
       the literal constant "assets/narration.wav" or emits nothing at all.
       HyperFrames owns playback — this file never calls play/pause/seek.
+
+      Scene background images follow the same rule: the translator copies each
+      resolved asset to the fixed relative path "assets/scene-<n>.<ext>" and
+      the bootstrap sets it as a CSS background-image on that scene only.
+      A scene with no resolved asset keeps its gradient placeholder.
 
       All model/user-authored strings live ONLY inside the JSON island and are
       written into the DOM through `textContent`, which is inert — it can never
@@ -44,6 +49,20 @@
       }
       .scene-bg { position: absolute; inset: 0; z-index: 0; }
       .scene-inner { position: relative; z-index: 1; width: 100%; }
+
+      /* A resolved scene image sits UNDER the text, covering the frame.
+         `cover` guarantees the 9:16 frame is filled without distortion. */
+      .scene-image {
+        position: absolute; inset: 0; z-index: 0;
+        background-repeat: no-repeat;
+        background-position: center center;
+        background-size: cover;
+      }
+      /* Legibility scrim — text must stay readable over arbitrary imagery. */
+      .scene-image::after {
+        content: ""; position: absolute; inset: 0;
+        background: linear-gradient(180deg, rgba(4,6,10,0.55) 0%, rgba(4,6,10,0.30) 45%, rgba(4,6,10,0.70) 100%);
+      }
 
       /* Background visual placeholder — used until a real asset exists. */
       .placeholder {
@@ -130,6 +149,19 @@ __AUDIO_MARKUP__
         (data.scenes || []).forEach(function (scene, i) {
           var el = document.getElementById('scene-' + i);
           if (!el) return;
+
+          // A resolved scene image is applied as a background on that scene
+          // only. The filename comes from the translator's own fixed pattern
+          // (assets/scene-<index>.<ext>); it is re-validated here against a
+          // strict allowlist so no data-driven string can steer the URL.
+          if (typeof scene.imageFile === 'string' && /^scene-\d{1,2}\.(png|jpg|jpeg|webp)$/.test(scene.imageFile)) {
+            var img = el.querySelector('.scene-image');
+            var ph = el.querySelector('.placeholder');
+            if (img) {
+              img.style.backgroundImage = 'url("assets/' + scene.imageFile + '")';
+              if (ph) ph.style.display = 'none';
+            }
+          }
 
           // Text is written as TEXT, never markup.
           var headline = el.querySelector('.headline');

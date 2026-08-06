@@ -71,3 +71,14 @@ data/narration/
 # Translator-generated HyperFrames compositions — build output, deterministically
 # regenerable from a Content Package via buildRenderSpec + hyperframesTranslator.
 tools/hyperframes/generated-*/
+
+# Ledger — append-only runtime governance records
+data/ledger/
+
+# Asset records + binaries (regenerable, large)
+data/assets/
+assets-library/
+
+# Asset library sidecars (append-only, regenerable)
+data/asset-index/
+data/asset-usage/
