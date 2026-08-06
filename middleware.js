@@ -7,6 +7,17 @@ const GUARDED_READ_PATHS = new Set([
   '/api/adapters/status',
 ]);
 
+// The session route is how a browser OBTAINS the credential this middleware
+// checks, so it cannot itself require that credential — that is the only
+// reason it is exempt. Everything else still applies to it: origin validation
+// below runs first, and the route performs its own constant-time token
+// comparison plus per-IP attempt throttling.
+const AUTH_SESSION_PATH = '/api/auth/session';
+
+function isAuthSessionRoute(request) {
+  return request.nextUrl.pathname === AUTH_SESSION_PATH;
+}
+
 function isGuardedRead(request) {
   return GUARDED_READ_PATHS.has(request.nextUrl.pathname)
     || request.nextUrl.pathname.startsWith('/api/paperclip/');
@@ -58,6 +69,13 @@ export function middleware(request) {
 
   if (origin && !allowedOrigins.has(origin)) {
     return jsonError(403, 'origin_rejected', 'Request origin is not allowed.');
+  }
+
+  // Origin validation above has already run. Sign-in/sign-out is allowed
+  // through the token gate — and only the token gate — because it is the
+  // endpoint that issues the token cookie.
+  if (isAuthSessionRoute(request)) {
+    return NextResponse.next();
   }
 
   const configuredToken = String(process.env.MIKA_ADMIN_TOKEN || '').trim();
