@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=1080, height=1920">
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <!--
+      TRUSTED TEMPLATE — faceless-short v3
+      ====================================
+      This file is FIXED CODE. The translator copies it verbatim and replaces
+      exactly four placeholders, none of which can carry model text into an
+      executable position (named here with a space after the underscores so
+      the tokens themselves appear exactly once each, in their real slots):
+
+        __ TOTAL_DURATION__   a validated finite Number
+        __ SCENES_MARKUP__    markup emitted from validated NUMBERS only (no text)
+        __ AUDIO_MARKUP__     one narration audio element with a FIXED relative src, or empty
+        __ RENDER_DATA__      a JSON island, escaped so it cannot break out
+
+      The narration audio src is never caller-supplied: the translator emits
+      the literal constant "assets/narration.wav" or emits nothing at all.
+      HyperFrames owns playback — this file never calls play/pause/seek.
+
+      All model/user-authored strings live ONLY inside the JSON island and are
+      written into the DOM through `textContent`, which is inert — it can never
+      be parsed as HTML or JavaScript. Nothing here evals, and no style string
+      from the data is ever interpolated into CSS.
+    -->
+    <style>
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body {
+        width: 1080px; height: 1920px;
+        overflow: hidden; background: #07090d;
+      }
+      #root { position: relative; width: 1080px; height: 1920px; }
+
+      .scene {
+        position: absolute; inset: 0;
+        display: flex; flex-direction: column;
+        align-items: center; justify-content: center;
+        padding: 140px 90px 260px;
+        text-align: center;
+        opacity: 0;
+      }
+      .scene-bg { position: absolute; inset: 0; z-index: 0; }
+      .scene-inner { position: relative; z-index: 1; width: 100%; }
+
+      /* Background visual placeholder — used until a real asset exists. */
+      .placeholder {
+        position: absolute; inset: 0;
+        background: linear-gradient(160deg, #0b1220 0%, #131c2e 55%, #0b1220 100%);
+      }
+      .placeholder::after {
+        content: ""; position: absolute; inset: 0;
+        background: radial-gradient(circle at 50% 38%, rgba(255,255,255,0.07), transparent 62%);
+      }
+
+      .headline {
+        font-size: 84px; line-height: 1.12; font-weight: 700;
+        color: #f5f7fa; letter-spacing: -0.02em;
+        text-shadow: 0 6px 34px rgba(0,0,0,0.55);
+      }
+      .caption {
+        position: absolute; left: 90px; right: 90px; bottom: 300px;
+        font-size: 46px; line-height: 1.3; font-weight: 600;
+        color: #e8ecf3; z-index: 2; text-align: center;
+        text-shadow: 0 4px 20px rgba(0,0,0,0.7);
+        opacity: 0;
+      }
+
+      /* Allowlisted typography treatments — selected by token, never by
+         interpolating a font string from model output. */
+      .font-sans  { font-family: "Inter", "Helvetica Neue", Arial, sans-serif; }
+      .font-serif { font-family: "Georgia", "Times New Roman", serif; }
+      /* Only auto-resolvable or generic families here. A family the renderer
+         cannot resolve (e.g. SFMono-Regular) fails `font_family_without_font_face`
+         and aborts the render in --strict mode, even when the class is unused. */
+      .font-mono  { font-family: "JetBrains Mono", monospace; }
+      .weight-regular .headline { font-weight: 400; }
+      .weight-medium  .headline { font-weight: 600; }
+      .weight-bold    .headline { font-weight: 700; }
+      .align-left   { text-align: left; }
+      .align-center { text-align: center; }
+
+      /* Allowlisted visual-style tokens. */
+      .tone-dark   { background: #07090d; }
+      .tone-bright .placeholder { background: linear-gradient(160deg, #1b2740 0%, #24344f 55%, #1b2740 100%); }
+      .tone-minimal .placeholder::after { display: none; }
+    </style>
+  </head>
+  <body>
+    <div data-hf-id="hf-urs1" id="root" data-composition-id="main"
+         data-start="0" data-duration="__TOTAL_DURATION__"
+         data-width="1080" data-height="1920">
+__SCENES_MARKUP__
+__AUDIO_MARKUP__
+    </div>
+
+    <!-- Sanitized data island. type="application/json" is never executed. -->
+    <script type="application/json" id="hf-render-data">__RENDER_DATA__</script>
+
+    <script>
+      // ---- Fixed bootstrap. Reads data, never evaluates it. ----
+      (function () {
+        var raw = document.getElementById('hf-render-data').textContent;
+        var data = JSON.parse(raw);
+
+        // Allowlisted entry animations. Keys come from the translator's own
+        // closed vocabulary; an unknown key falls back to 'still'.
+        var MOTION = {
+          still:   function (el) { return { from: { opacity: 0 }, to: { opacity: 1 } }; },
+          zoomIn:  function (el) { return { from: { opacity: 0, scale: 1.0 }, to: { opacity: 1, scale: 1.12 } }; },
+          zoomOut: function (el) { return { from: { opacity: 0, scale: 1.12 }, to: { opacity: 1, scale: 1.0 } }; },
+          pushIn:  function (el) { return { from: { opacity: 0, scale: 1.04 }, to: { opacity: 1, scale: 1.10 } }; },
+          panLeft: function (el) { return { from: { opacity: 0, xPercent: 4 }, to: { opacity: 1, xPercent: -4 } }; },
+          panRight:function (el) { return { from: { opacity: 0, xPercent: -4 }, to: { opacity: 1, xPercent: 4 } }; },
+          riseUp:  function (el) { return { from: { opacity: 0, y: 60 }, to: { opacity: 1, y: 0 } }; }
+        };
+
+        var root = document.getElementById('root');
+        if (data.style && typeof data.style.fontClass === 'string') root.classList.add(data.style.fontClass);
+        if (data.style && typeof data.style.weightClass === 'string') root.classList.add(data.style.weightClass);
+        if (data.style && typeof data.style.alignClass === 'string') root.classList.add(data.style.alignClass);
+        if (data.style && Array.isArray(data.style.toneClasses)) {
+          data.style.toneClasses.forEach(function (c) { if (typeof c === 'string') root.classList.add(c); });
+        }
+
+        var tl = gsap.timeline({ paused: true });
+
+        (data.scenes || []).forEach(function (scene, i) {
+          var el = document.getElementById('scene-' + i);
+          if (!el) return;
+
+          // Text is written as TEXT, never markup.
+          var headline = el.querySelector('.headline');
+          if (headline) headline.textContent = scene.onScreenText || '';
+          var cap = document.getElementById('caption-' + i);
+          if (cap) cap.textContent = scene.caption || '';
+
+          var start = Number(scene.startSeconds) || 0;
+          var dur = Number(scene.durationSeconds) || 0;
+          if (dur <= 0) return;
+
+          var preset = MOTION[scene.motionPreset] || MOTION.still;
+          var spec = preset(el);
+          var inner = el.querySelector('.scene-inner');
+
+          // Scene visibility: fade or hard cut, per allowlisted transition.
+          var fadeIn = scene.transitionIn === 'fade' ? Math.min(0.5, dur / 4) : 0.001;
+          var fadeOut = scene.transitionOut === 'fade' ? Math.min(0.5, dur / 4) : 0.001;
+
+          tl.fromTo(el, { opacity: 0 }, { opacity: 1, duration: fadeIn, ease: 'power2.out' }, start);
+          tl.to(el, { opacity: 0, duration: fadeOut, ease: 'power2.in' }, start + dur - fadeOut);
+
+          if (inner) {
+            tl.fromTo(inner, spec.from, Object.assign({ duration: dur, ease: 'none' }, spec.to), start);
+          }
+          if (cap) {
+            tl.fromTo(cap, { opacity: 0, y: 18 }, { opacity: 1, y: 0, duration: 0.35, ease: 'power2.out' }, start + 0.1);
+            tl.to(cap, { opacity: 0, duration: 0.25, ease: 'power2.in' }, start + dur - 0.25);
+          }
+        });
+
+        window.__timelines = window.__timelines || {};
+        window.__timelines['main'] = tl;
+      })();
+    </script>
+  </body>
+</html>

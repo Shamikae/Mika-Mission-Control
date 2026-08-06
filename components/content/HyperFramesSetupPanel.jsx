@@ -34,6 +34,14 @@ export default function HyperFramesSetupPanel({ job, onSaved }) {
   const [saveError, setSaveError] = useState(null);
   const [validation, setValidation] = useState(null);
 
+  const [generating, setGenerating] = useState(false);
+  const [generateError, setGenerateError] = useState(null);
+  const [translation, setTranslation] = useState(null);
+  const [narrationInfo, setNarrationInfo] = useState(null);
+  const [narrationPreview, setNarrationPreview] = useState(null);
+  const [voiceId, setVoiceId] = useState('Samantha');
+  const [withNarration, setWithNarration] = useState(true);
+
   const [costPreview, setCostPreview] = useState(null);
   const [costError, setCostError] = useState(null);
   const [loadingCost, setLoadingCost] = useState(false);
@@ -52,7 +60,7 @@ export default function HyperFramesSetupPanel({ job, onSaved }) {
     try {
       const res = await fetch(`/api/production/jobs/${encodeURIComponent(job.id)}/hyperframes-provider-input`, { cache: 'no-store' });
       const data = await res.json();
-      if (res.ok && data.ok) setCompositions(data.compositions);
+      if (res.ok && data.ok) { setCompositions(data.compositions); setNarrationPreview(data.narration || null); }
       else setCompositionsError(data.error || 'Could not load HyperFrames compositions.');
     } catch (e) {
       setCompositionsError(e.message);
@@ -103,6 +111,37 @@ export default function HyperFramesSetupPanel({ job, onSaved }) {
     }
   };
 
+  // Additive: builds this job's URS from its Content Package and generates a
+  // deterministic composition, then selects it. Manual selection below is
+  // untouched — this only removes the need to hand-author one first.
+  const generateFromPackage = async () => {
+    setGenerating(true); setGenerateError(null); setTranslation(null);
+    try {
+      const res = await fetch(`/api/production/jobs/${encodeURIComponent(job.id)}/hyperframes-provider-input`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ narration: withNarration, voiceId }),
+      });
+      const data = await res.json();
+      if (res.ok && data.ok) {
+        setTranslation(data.translation);
+        setNarrationInfo(data.narration || null);
+        setCompositionId(data.translation.compositionId);
+        setValidation(data.validation || null);
+        setCostPreview(null);
+        await loadCompositions();
+        if (onSaved) onSaved(data.job);
+      } else {
+        setGenerateError(data.error || 'Could not generate a composition from this package.');
+        if (data.narration) setNarrationInfo(data.narration);
+      }
+    } catch {
+      setGenerateError('Could not reach the generation endpoint.');
+    } finally {
+      setGenerating(false);
+    }
+  };
+
   return (
     <div className="pr-section pr-heygen-panel">
       <div className="pr-section-head">
@@ -131,6 +170,92 @@ export default function HyperFramesSetupPanel({ job, onSaved }) {
       </div>
 
       {compositionsError && <div className="pr-warning font-mono"><FiAlertCircle size={11} /> {compositionsError}</div>}
+
+      <div className="pr-field">
+        <label className="pr-field-label font-ui">Generate from package</label>
+
+        {narrationPreview && (
+          <div className="pr-exec-meta font-mono">
+            <span>Narration: {narrationPreview.available ? 'available' : 'none'}</span>
+            {narrationPreview.available && <span>{narrationPreview.characterCount} chars</span>}
+            {narrationPreview.available && <span>Timeline: {narrationPreview.timelineDurationSeconds}s</span>}
+            <span>Provider: {narrationPreview.estimatedCost?.provider}</span>
+            <span>Est. cost: ${narrationPreview.estimatedCost?.amountUsd ?? 0} ({narrationPreview.estimatedCost?.estimateType})</span>
+          </div>
+        )}
+
+        {narrationPreview?.available && (
+          <div className="pr-exec-meta font-mono" style={{ gap: 10, alignItems: 'center' }}>
+            <label style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+              <input type="checkbox" checked={withNarration} onChange={e => setWithNarration(e.target.checked)} />
+              Generate narration
+            </label>
+            <select value={voiceId} onChange={e => setVoiceId(e.target.value)} disabled={!withNarration}>
+              {(narrationPreview.voices || []).map(v => <option key={v.id} value={v.id}>{v.label}</option>)}
+            </select>
+          </div>
+        )}
+
+        <button
+          type="button"
+          className="thumb-btn"
+          onClick={generateFromPackage}
+          disabled={generating}
+          style={{ width: '100%' }}
+        >
+          {generating ? 'Generating…' : 'Generate composition from package'}
+        </button>
+        <div className="pr-reason-text font-mono">
+          Builds a Universal Render Specification from this job&apos;s Content Package and translates it into a
+          deterministic composition under the reserved <code>generated-</code> namespace. Hand-authored compositions are never modified.
+        </div>
+
+        {generateError && <div className="pr-warning font-mono"><FiAlertCircle size={11} /> {generateError}</div>}
+
+        {translation && (
+          <>
+            <div className="pr-approved-flash font-mono">
+              <FiCheckCircle size={12} /> {translation.reused ? 'Reused existing generated composition' : 'Generated composition'} — {translation.compositionId}
+            </div>
+            <div className="pr-exec-meta font-mono">
+              <span>Completeness: {translation.report?.completeness}%</span>
+              <span>Consumed: {translation.report?.consumedFields?.length ?? 0}</span>
+              <span>Degraded: {translation.report?.degradedFields?.length ?? 0}</span>
+              <span>Ignored: {translation.report?.ignoredFields?.length ?? 0}</span>
+            </div>
+            <div className="pr-exec-meta font-mono">
+              <span>Scenes: {translation.sceneCount}</span>
+              <span>Duration: {translation.totalDurationSeconds}s</span>
+              <span>URS: v{translation.ursVersion}</span>
+            </div>
+            {narrationInfo?.available && (
+              <div className="pr-exec-meta font-mono">
+                <span>Voice: {narrationInfo.voiceId}</span>
+                <span>Audio: {narrationInfo.audioDurationSeconds}s</span>
+                <span>Fit: {narrationInfo.timingFit}</span>
+                <span>Variance: {narrationInfo.varianceSeconds}s</span>
+                <span>Cost: ${narrationInfo.actualCost?.amountUsd ?? 0}</span>
+                {narrationInfo.reused && <span>(reused)</span>}
+              </div>
+            )}
+            {narrationInfo?.available === false && (
+              <div className="pr-reason-text font-mono">Narration: {narrationInfo.reason}</div>
+            )}
+            {(narrationInfo?.warnings || []).length > 0 && (
+              <div className="pr-reason-text font-mono">
+                {narrationInfo.warnings.map((w, i) => <div key={i}>• {w}</div>)}
+              </div>
+            )}
+            {(translation.report?.warnings || []).length > 0 && (
+              <div className="pr-reason-text font-mono">
+                {translation.report.warnings.map((w, i) => (
+                  <div key={i}>• {w}</div>
+                ))}
+              </div>
+            )}
+          </>
+        )}
+      </div>
 
       <div className="pr-field">
         <label className="pr-field-label font-ui">Composition</label>
