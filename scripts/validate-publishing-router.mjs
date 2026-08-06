@@ -109,11 +109,32 @@ async function main() {
   // B: Fixture setup — find a real artifact to REFERENCE (never duplicate)
   // ══════════════════════════════════════════════════════════════════════
 
+  // Publishing validates artifact MIME against the platform catalog (TikTok
+  // accepts video/mp4|video/webm only). The fixture must therefore reference a
+  // real VIDEO artifact.
+  //
+  // This deliberately scans EVERY completed job's EVERY output instead of
+  // taking the first completed job's outputs[0]. Real runtime data now
+  // contains legitimate non-video artifacts — manual-export writes a
+  // production-brief.json — and ordering is not a contract. Picking by
+  // position made this validator fail as soon as a JSON artifact happened to
+  // sort first: TikTok correctly rejected application/json, readiness never
+  // advanced, and scheduling then crashed on an undefined date. The fix is
+  // fixture SELECTION, not a loosened MIME rule — Publishing Router behavior
+  // is unchanged.
+  const PUBLISHABLE_VIDEO_MIMES = new Set(['video/mp4', 'video/webm']);
   const prodJobsResp = await api('GET', '/api/production/jobs');
-  const sourceJob = (prodJobsResp.json?.jobs || []).find(j => j.execution?.status === 'completed' && j.execution?.outputs?.length > 0);
-  check('B1: found at least one real completed production job with an output to reference', !!sourceJob);
-  if (!sourceJob) { printSummary(); return; }
-  const sourceOutput = sourceJob.execution.outputs[0];
+  let sourceJob = null;
+  let sourceOutput = null;
+  for (const job of prodJobsResp.json?.jobs || []) {
+    if (job.execution?.status !== 'completed') continue;
+    const videoOutput = (job.execution.outputs || []).find(o => PUBLISHABLE_VIDEO_MIMES.has(o?.mimeType));
+    if (videoOutput) { sourceJob = job; sourceOutput = videoOutput; break; }
+  }
+  check('B1: found a real completed production job with a video/mp4 artifact to reference', !!sourceOutput,
+    'no completed job has a video artifact — render one first (e.g. the HyperFrames flow)');
+  if (!sourceOutput) { printSummary(); return; }
+  check('B1a: fixture artifact MIME is a publishable video type', PUBLISHABLE_VIDEO_MIMES.has(sourceOutput.mimeType), String(sourceOutput.mimeType));
 
   const fixturePkgId = `pub-test-pkg-${RUN_ID}`;
   const fixtureApprovedJobId = `pub-test-approved-${RUN_ID}`;
@@ -229,7 +250,14 @@ async function main() {
     const futureDate = new Date(Date.now() + 3 * 86400000).toISOString();
     const scheduleResp = await api('POST', `/api/publishing/jobs/${mainJobId}/schedule`, { scheduledFor: futureDate });
     check('E2: scheduling succeeds and stores scheduledFor', scheduleResp.status === 200 && scheduleResp.json?.job?.status === 'scheduled');
-    check('E3: scheduledFor round-trips as a valid ISO date', new Date(scheduleResp.json?.job?.scheduledFor).toISOString() === new Date(futureDate).toISOString());
+    // Defensive: a failed schedule must REPORT, never crash the whole run on
+    // `new Date(undefined).toISOString()`.
+    const scheduledForValue = scheduleResp.json?.job?.scheduledFor;
+    const scheduledForParsed = scheduledForValue ? new Date(scheduledForValue) : null;
+    check('E3: scheduledFor round-trips as a valid ISO date',
+      !!scheduledForParsed && !Number.isNaN(scheduledForParsed.getTime())
+        && scheduledForParsed.toISOString() === new Date(futureDate).toISOString(),
+      String(scheduledForValue));
 
     // ════════════════════════════════════════════════════════════════════
     // F: Publish now (manual attestation) — requires explicit confirm

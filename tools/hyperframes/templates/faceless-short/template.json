@@ -1,0 +1,39 @@
+{
+  "id": "faceless-short",
+  "templateVersion": 3,
+  "format": "faceless_vertical_short",
+  "aspectRatio": "9:16",
+  "width": 1080,
+  "height": 1920,
+  "frameRate": 30,
+  "supportedModes": [
+    "faceless_social",
+    "cinematic_broll",
+    "product_demo"
+  ],
+  "durationRangeSeconds": {
+    "min": 5,
+    "max": 90
+  },
+  "maxScenes": 30,
+  "placeholders": [
+    "__TOTAL_DURATION__",
+    "__SCENES_MARKUP__",
+    "__AUDIO_MARKUP__",
+    "__RENDER_DATA__"
+  ],
+  "notes": "Fixed trusted template. Only numeric structural placeholders and one escaped JSON island are substituted. All model text reaches the DOM via textContent only.",
+  "changelog": {
+    "2": "Removed SFMono-Regular from the mono stack \u2014 unresolvable font families abort the render under HyperFrames --strict lint.",
+    "3": "Added optional narration <audio> track (one only). src is a fixed constant, never caller-supplied. Music remains unsupported and null."
+  },
+  "audio": {
+    "narration": {
+      "element": "audio",
+      "src": "assets/narration.wav",
+      "trackIndex": 10,
+      "maxTracks": 1
+    },
+    "music": null
+  }
+}

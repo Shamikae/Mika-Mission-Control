@@ -61,3 +61,13 @@ production-artifacts/
 *.swp
 *.swo
 node_modules
+
+# Generated narration audio + records (local, regenerable from URS)
+data/narration/
+
+# Env backups (e.g. .env.local.m0-backup) — `.env*.local` alone does not match a suffixed copy
+.env*.local*
+
+# Translator-generated HyperFrames compositions — build output, deterministically
+# regenerable from a Content Package via buildRenderSpec + hyperframesTranslator.
+tools/hyperframes/generated-*/
