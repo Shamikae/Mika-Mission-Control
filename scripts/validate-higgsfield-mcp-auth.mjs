@@ -328,7 +328,36 @@ function printSummary() {
   }
 }
 
-main().catch(err => {
-  console.error('Validation script crashed:', err);
-  process.exitCode = 1;
-});
+// ── Live-session safety net ────────────────────────────────────────────────
+// This validator exercises real disconnect behaviour, which necessarily
+// touches the on-disk Higgsfield session. It snapshots that file up front and
+// restores it inline — but an exception thrown BETWEEN the disconnect and the
+// restore would leave the operator genuinely signed out, forcing a manual
+// browser OAuth round-trip. That has happened.
+//
+// The snapshot/restore is therefore repeated here as a guaranteed finally, so
+// no failure path can leave a real session destroyed. Restoration is
+// idempotent: if the run already restored correctly, rewriting identical bytes
+// is a no-op.
+const AUTH_SNAPSHOT_FILE = path.join(ROOT, 'data', 'higgsfield-auth', 'session.json');
+const AUTH_SNAPSHOT = fs.existsSync(AUTH_SNAPSHOT_FILE) ? fs.readFileSync(AUTH_SNAPSHOT_FILE, 'utf8') : null;
+
+function restoreLiveSession() {
+  try {
+    if (AUTH_SNAPSHOT === null) return;
+    const current = fs.existsSync(AUTH_SNAPSHOT_FILE) ? fs.readFileSync(AUTH_SNAPSHOT_FILE, 'utf8') : null;
+    if (current === AUTH_SNAPSHOT) return;
+    fs.mkdirSync(path.dirname(AUTH_SNAPSHOT_FILE), { recursive: true });
+    fs.writeFileSync(AUTH_SNAPSHOT_FILE, AUTH_SNAPSHOT, { mode: 0o600 });
+    console.log('NOTE — restored the live Higgsfield session that this validator had modified.');
+  } catch (e) {
+    console.error('WARNING — could not restore the live Higgsfield session:', e.message);
+  }
+}
+
+main()
+  .catch(err => {
+    console.error('Validation script crashed:', err);
+    process.exitCode = 1;
+  })
+  .finally(restoreLiveSession);
