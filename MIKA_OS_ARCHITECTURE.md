@@ -274,6 +274,53 @@ MCP is currently fashionable and Mika has four MCP integrations, which creates a
 
 One caveat worth naming: an MCP aggregator like Higgsfield fronting 30+ models is a **single point of dependency**. If it deprecates a model or has an outage, every capability routed through it degrades together. Keep at least one independent path per critical capability.
 
+#### Q8.1 — When a provider offers BOTH a REST API and an MCP server
+
+**Take the REST API. This is frozen.**
+
+The decision was forced by Kie.ai, which has a plain Bearer-key REST API *and* a third-party MCP server + CLI ([felores/kie-cli-mcp](https://github.com/felores/kie-cli-mcp)). Mika uses the **direct REST adapter**, permanently. The MCP server is not, and will not become, an execution path.
+
+The general rule this settles: **MCP is justified only when it is the sole governed route into an account.** Higgsfield and HeyGen qualify — OAuth through the user's session is the only way in. A vendor with a working API key does not qualify; routing it through MCP wraps an API we already call and imports four problems:
+
+| Problem | Why it breaks the architecture |
+|---|---|
+| **One tool per model** (`nano_banana_image`, `veo3_generate_video`) | Moves model selection into the **transport**, where policy cannot reach it. Providers are stable; models change; **Diamond Control owns that mapping** via the ProviderBinding. |
+| **Its own SQLite task database** | A **second task history** competing with Production Jobs + Ledger. Spend tracking fragments; the Ledger stops being the single source of truth. |
+| **Blocking completion** (`wait_for_task`) | The engine is deliberately asynchronous: `submit() → taskId → poll() → ingest`. |
+| **No balance endpoint** | Loses a capability the direct API already provides. |
+
+**Two planes, and they must not touch:**
+
+```
+Developer / Agent plane          │  Mika Runtime plane
+  Claude · Hermes · OpenClaw     │    Diamond Control      (chooses)
+  Diamond (dev assistant)        │      ↓
+        ↓                        │    Execution Engine     (executes)
+  (optional) Kie MCP Server      │      ↓
+        ↓                        │    Direct REST Adapter
+  prompt experimentation         │      ↓
+  model discovery                │    Ledger               (records)
+  capability exploration         │      ↓
+  debugging, schema comparison   │    Asset Library        (preserves)
+        ↓                        │
+  NEVER spends on Mika's behalf  │  ALL production spend
+```
+
+The MCP server is genuinely useful on the left — prompt experimentation, model discovery, comparing parameter schemas. It must never appear on the right.
+
+#### Q8.2 — Provider records are temporary; Mika's are permanent
+
+Two expiry windows found during the Kie audit, and they generalise:
+
+- **Result download URLs expire quickly** (~10 minutes for Kie). Artifacts are downloaded on the poll that first observes success — not later.
+- **Remote task history is temporary** (~14 days for Kie), after which the provider can no longer answer for a task at all.
+
+So a provider's task list is a **diagnostic convenience with an expiry date**, never a record. Mika's permanent record is:
+
+> **Production Job → Ledger → Asset Library**
+
+If a fact will matter after the fact, it must already be in Mika's own records before the provider's copy ages out. This is why `creditsConsumed` is captured at poll time rather than reconciled later.
+
 ### Q9 — Where does local AI fit?
 
 **Provider layer — same contract, different economics.**

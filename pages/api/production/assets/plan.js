@@ -7,7 +7,11 @@
 // polling all use the EXISTING Production Router / Execution Engine endpoints
 // unchanged — there is no second execution path and no automatic spend here.
 //
-// Input:  { packageId, sceneIndex, capability?, modelOverride, dryRun? }
+// Input:  { packageId, sceneIndex, capability?, modelOverride?, providerOverride?, dryRun? }
+//
+// providerOverride is an opaque operator selection forwarded straight to policy.
+// This route does not know which providers exist and never validates it —
+// Diamond Control rejects a provider that has no binding for the capability.
 // Output: { ok, request, binding, job?, dryRun? }
 
 import { loadPackage } from '../../../../lib/content/contentPackageStore';
@@ -21,6 +25,8 @@ import { buildPackageAssetEntry } from '../../../../lib/production/assets/assetR
 import { savePackage } from '../../../../lib/content/contentPackageStore';
 import { appendLedgerEntry } from '../../../../lib/ledger/ledgerStore';
 import { createAssetJob } from '../../../../lib/production/assets/assetJobs';
+import { preflightCost } from '../../../../lib/diamond/costPreflight';
+import { aggregateCosts, checkCeilings, normalizeCeilings, unitLabel } from '../../../../lib/cost/costShape';
 import { createProductionJob, updateProductionJob, listProductionJobs } from '../../../../lib/production/productionJobStore';
 import { sanitizeExecutionForResponse } from '../../../../lib/production/execution/executionRules';
 
@@ -31,7 +37,7 @@ export default async function handler(req, res) {
     return res.status(405).json({ ok: false, error: 'Method not allowed' });
   }
 
-  const { packageId, sceneIndex, capability, modelOverride, dryRun } = req.body || {};
+  const { packageId, sceneIndex, capability, modelOverride, providerOverride, ceilings, dryRun } = req.body || {};
   if (!packageId || typeof packageId !== 'string') {
     return res.status(400).json({ ok: false, error: 'packageId is required.' });
   }
@@ -47,7 +53,7 @@ export default async function handler(req, res) {
     return res.status(422).json({ ok: false, error: 'Could not build a valid Render Specification for this package.' });
   }
 
-  const planned = planSceneAsset(built.spec, sceneIndex, { capability, modelOverride });
+  const planned = planSceneAsset(built.spec, sceneIndex, { capability, modelOverride, providerOverride });
   if (!planned.ok) {
     return res.status(422).json({ ok: false, error: planned.error, warnings: planned.warnings });
   }
@@ -161,12 +167,62 @@ export default async function handler(req, res) {
   const created = await createAssetJob(planned.request, planned.binding, { actor: 'user' });
   if (!created.ok) return res.status(422).json({ ok: false, error: created.error, ...preview });
 
+  // Price the bound request through Diamond Control and stamp the result onto
+  // the job's budget. Without this the job carries only a generic cost TIER,
+  // and the engine's Ledger hook — which reads job.budget — would record a
+  // paid execution with no amount, no unit and no provenance.
+  //
+  // The preflight is non-generating and creates nothing. A provider that cannot
+  // price its own request yields an honestly unknown budget rather than a
+  // guessed one.
+  const preflight = await preflightCost(planned.request, planned.binding);
+  const cost = preflight.cost || null;
+
+  // A per-unit ceiling, enforced BEFORE the job exists. `maxEstimatedCost` on
+  // the job budget only colours the approval reason — it never blocks — so an
+  // operator-supplied ceiling is checked here against the real grouped total,
+  // in the estimate's own unit. A ceiling in a different unit does not govern
+  // this spend and is treated as no ceiling at all.
+  if (ceilings && typeof ceilings === 'object' && Object.keys(ceilings).length > 0) {
+    const agg = aggregateCosts([cost]);
+    const verdict = checkCeilings(agg.totals, ceilings);
+    if (!verdict.ok) {
+      return res.status(422).json({
+        ok: false,
+        error: 'Estimated cost is not within the supplied budget ceiling.',
+        reasons: verdict.reasons,
+        ceilings: normalizeCeilings(ceilings),
+        totals: agg.totals,
+        estimate: cost,
+        ...preview,
+      });
+    }
+  }
+  const pricedBudget = cost && (cost.amount !== null || cost.unit)
+    ? {
+        ...(created.job.budget || {}),
+        estimateType: cost.estimateType,
+        // An open-ended max marks a floor price, exactly as the money shape does.
+        estimatedRange: cost.amount === null ? null : { min: cost.amount, max: cost.isLowerBound ? null : cost.amount },
+        currency: cost.unit === 'currency' ? cost.currency : cost.providerCreditUnit,
+        unit: cost.unit,
+        providerCreditUnit: cost.providerCreditUnit,
+        isLowerBound: cost.isLowerBound,
+        pricingSource: cost.pricingSource,
+        pricedAt: cost.pricedAt,
+        costTier: cost.amount === 0 ? 'free' : 'variable',
+        // Every non-local provider spend keeps requiring explicit approval.
+        approvalRequired: cost.estimateType !== 'confirmed_local',
+      }
+    : (created.job.budget || {});
+
   // buildProductionJob() BUILDS but does not persist — the caller owns that,
   // exactly as /api/production/router/plan does. Attribution is stamped on
   // before the first write so the Execution Engine's single Ledger hook can
   // read it; the engine stays ignorant of Asset Generation.
   const withAttribution = {
     ...created.job,
+    budget: pricedBudget,
     metadata: { ...(created.job.metadata || {}), ...created.metadata },
   };
 
@@ -201,6 +257,7 @@ export default async function handler(req, res) {
     jobCreated: true,
     reusedJobId: existing ? existing.id : null,
     droppedFields: unsupportedRequestFields(planned.request, planned.binding),
+    estimate: cost,
     job: { ...job, execution: sanitizeExecutionForResponse(job.execution) },
   });
 }

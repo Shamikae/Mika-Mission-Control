@@ -8,6 +8,7 @@ import { applyProductionRefToPackage } from '../../../../../lib/production/build
 import { isValidId, makeActivityEvent } from '../../../../../lib/production/productionRules';
 import { sanitizeExecutionForResponse } from '../../../../../lib/production/execution/executionRules';
 import { appendLedgerEntry } from '../../../../../lib/ledger/ledgerStore';
+import { COST_ESTIMATE_TYPES } from '../../../../../lib/cost/costShape';
 
 export default function handler(req, res) {
   if (req.method !== 'POST') {
@@ -58,11 +59,21 @@ export default function handler(req, res) {
       providerId: updated.selectedProvider || null,
       model: updated.providerInput?.model || null,
     },
+    // The unit and the estimate TYPE are preserved exactly as the job recorded
+    // them. This previously collapsed every non-free budget to 'provisional_tier'
+    // with no unit, so a published catalogue price and a provider-confirmed quote
+    // became indistinguishable at the moment of approval — the one record that
+    // proves what a human actually agreed to spend.
     estimate: {
       amount: budget.estimatedRange?.min ?? (budget.costTier === 'free' ? 0 : null),
       currency: budget.currency || 'USD',
-      estimateType: budget.costTier === 'free' ? 'confirmed_local' : 'provisional_tier',
-      confirmed: budget.costTier === 'free',
+      unit: budget.unit ?? null,
+      providerCreditUnit: budget.providerCreditUnit ?? null,
+      isLowerBound: budget.isLowerBound === true,
+      estimateType: COST_ESTIMATE_TYPES.includes(budget.estimateType) ? budget.estimateType
+        : budget.costTier === 'free' ? 'confirmed_local'
+        : 'provisional_tier',
+      confirmed: budget.costTier === 'free' || budget.estimateType === 'confirmed_local' || budget.estimateType === 'confirmed_provider',
     },
     approval: { required: true, approvalRef: updated.id, approvedAt: now, approvedBy: 'user' },
     outcome: { status: 'approved' },

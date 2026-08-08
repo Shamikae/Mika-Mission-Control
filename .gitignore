@@ -82,3 +82,6 @@ assets-library/
 # Asset library sidecars (append-only, regenerable)
 data/asset-index/
 data/asset-usage/
+
+# Asset plans (runtime records)
+data/asset-plans/
