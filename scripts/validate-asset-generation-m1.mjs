@@ -105,7 +105,14 @@ try {
   check('binding shape is valid', validateBindingShape(planned.binding).valid);
   check('binding carries a policy version', planned.binding.policyVersion === POLICY_VERSION);
   check('binding carries an auditable rationale', typeof planned.binding.rationale === 'string' && planned.binding.rationale.length > 0);
-  check('policy refuses to invent a model', recommendBinding({ capability: 'background_plate' }).ok === false);
+  // M3 gave the stub policy a DEFAULT model (verified present in the live
+  // catalog) because a planner needs a usable binding for every eligible miss.
+  // The invariant that still matters: the model is never empty, and an unknown
+  // capability is still refused rather than guessed.
+  const defaultBinding = recommendBinding({ capability: 'background_plate' });
+  check('policy returns a usable default model', defaultBinding.ok === true && typeof defaultBinding.binding.model === 'string' && defaultBinding.binding.model.length > 0);
+  check('an operator override still wins over the default',
+    recommendBinding({ capability: 'background_plate' }, { modelOverride: 'operator-choice' }).binding.model === 'operator-choice');
   check('policy refuses an unknown capability', recommendBinding({ capability: 'nope' }, { modelOverride: 'm' }).ok === false);
   check('binding shape validation rejects a missing providerId', !validateBindingShape({ model: 'x' }).valid);
 

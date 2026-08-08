@@ -164,11 +164,26 @@ try {
   check('free execution degrades rather than blocking', /degraded \(free execution\)/.test(engine));
   check('approval is recorded at the approval site', fs.readFileSync(path.join(ROOT, 'pages/api/production/jobs/[id]/approve.js'), 'utf8').includes('approval_granted'));
 
-  // Adapters must contain zero ledger logic.
+  // Adapters must contain zero ledger LOGIC — no import of the ledger modules
+  // and no call into them. Checked over RAW source (comments included) for the
+  // import/call forms, which is what actually constitutes a violation.
+  //
+  // This deliberately tests behaviour rather than the mere word "ledger": an
+  // adapter may legitimately explain in a comment which system owns the
+  // permanent record (kie.adapter.js does, by design), and banning the word
+  // would force adapters to be vague about the very boundary being enforced.
+  const LEDGER_LOGIC = /from\s+['"][^'"]*ledger[^'"]*['"]|require\(\s*['"][^'"]*ledger|\b(appendLedgerEntry|buildLedgerRecord|validateLedgerRecord|buildCorrectionRecord|recordLedger|generateLedgerId)\s*\(/i;
   const adapterDir = path.join(ROOT, 'lib/production/execution/adapters');
   const adapterHits = fs.readdirSync(adapterDir).filter(f => f.endsWith('.js'))
-    .filter(f => /ledger/i.test(fs.readFileSync(path.join(adapterDir, f), 'utf8')));
+    .filter(f => LEDGER_LOGIC.test(fs.readFileSync(path.join(adapterDir, f), 'utf8')));
   check('no provider adapter contains ledger logic', adapterHits.length === 0, adapterHits.join(','));
+  // The rule must still bite: prove the detector catches a real violation.
+  check('the ledger-logic detector actually catches an import',
+    LEDGER_LOGIC.test("import { appendLedgerEntry } from '../../../ledger/ledgerStore.js';"));
+  check('the ledger-logic detector actually catches a call',
+    LEDGER_LOGIC.test('const r = appendLedgerEntry({ event: "x" });'));
+  check('the ledger-logic detector ignores an explanatory comment',
+    !LEDGER_LOGIC.test('// Mika\'s permanent record is Production Job -> Ledger -> Asset Library.'));
 
   // ── Spend policy ─────────────────────────────────────────────────────────
   section('Spend policy');

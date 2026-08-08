@@ -13,6 +13,8 @@ import HiggsfieldSetupPanel from './HiggsfieldSetupPanel';
 import OpenArtConnectionPanel from './OpenArtConnectionPanel';
 import OpenArtVideoSetupPanel from './OpenArtVideoSetupPanel';
 import HyperFramesSetupPanel from './HyperFramesSetupPanel';
+import AssetPlanPanel from './AssetPlanPanel';
+import KieStatusPanel from './KieStatusPanel';
 import { normalizeArtifactList } from '../../lib/artifacts/normalizeArtifact';
 import ArtifactViewer from '../artifacts/ArtifactViewer';
 import ArtifactCard from '../artifacts/ArtifactCard';
@@ -530,6 +532,17 @@ function JobPanel({
               {job.selectedProvider === 'hyperframes' && (
                 <HyperFramesSetupPanel job={job} pkg={pkg} onSaved={onProviderInputSaved} />
               )}
+
+              {/* Additive, and deliberately OUTSIDE the provider conditional:
+                  scene assets belong to the package, not to whichever provider
+                  happens to be rendering it. */}
+              <AssetPlanPanel packageId={job?.packageId} />
+
+              {/* Read-only provider status for the asset-generation layer.
+                  Also outside the provider conditional: Kie generates the
+                  package's scene assets, never the render, so it is never the
+                  job's selectedProvider. */}
+              <KieStatusPanel />
             </>
           )}
 
